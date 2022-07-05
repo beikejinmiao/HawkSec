@@ -9,7 +9,7 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
+class Ui_Form(QtWidgets.QWidget):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(782, 532)
@@ -109,7 +109,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "通用设置"))
         self.label.setText(_translate("Form", "客户端设置"))
         self.label_2.setText(_translate("Form", "线程数量"))
         self.threadCntComboBox.setItemText(0, _translate("Form", "1"))

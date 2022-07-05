@@ -1,0 +1,19 @@
+# 监控对象
+target: https://www.ncut.edu.cn/
+# 访问协议
+protocol: https
+
+# 超时时间，单位秒
+timeout: 5  # seconds
+# 编码类型
+charset: auto   # auto, utf-8, gbk
+
+
+# SSH
+ssh:
+  host: 10.0.33.50
+  port: 22
+  user: root
+  password:
+
+
