@@ -3,7 +3,22 @@
 import os
 import logging
 import logging.config
+from PyQt6 import QtWidgets
 from conf.paths import DUMP_HOME, WORK_NAME
+
+
+class QTextEditLogger(logging.Handler):
+    """
+    # https://stackoverflow.com/questions/28655198/best-way-to-display-logs-in-pyqt
+    """
+    def __init__(self, parent):
+        super().__init__()
+        self.widget = QtWidgets.QPlainTextEdit(parent)
+        self.widget.setReadOnly(True)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget.appendPlainText(msg)
 
 
 LOGGING_CONFIG = {

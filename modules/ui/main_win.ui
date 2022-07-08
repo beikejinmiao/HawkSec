@@ -272,7 +272,7 @@
      <rect>
       <x>30</x>
       <y>560</y>
-      <width>362</width>
+      <width>267</width>
       <height>26</height>
      </rect>
     </property>
@@ -288,13 +288,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pauseBtn">
-       <property name="text">
-        <string>暂停</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="stopBtn">
        <property name="text">
         <string>停止</string>
@@ -302,9 +295,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="dumpBtn">
+      <widget class="QPushButton" name="exitBtn">
        <property name="text">
-        <string>导出</string>
+        <string>退出</string>
        </property>
       </widget>
      </item>

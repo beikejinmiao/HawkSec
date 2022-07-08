@@ -3,6 +3,8 @@
 from PyQt6 import QtWidgets
 from modules.ui.main_win import Ui_MainWindow as UiMainWindow
 from modules.ui.settings import Ui_Form as UiSettingForm
+from modules.action.manager import TaskManager
+from libs.logger import logger
 
 
 class SettingWindow(UiSettingForm, QtWidgets.QWidget):
@@ -23,11 +25,13 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
 
     def connect(self):
         self.startBtn.clicked.connect(self.start)
+        self.exitBtn.clicked.connect(self.close)
 
     def start(self):
         mtarget = self.monitTarget.text()
         protocol = self.monitProtoComboBox.currentText()
         mtype = self.monitTypeComboBox.currentIndex()
+        logger.info('%s %s %s ' % (mtarget, protocol, mtype))
 
 
 if __name__ == "__main__":
