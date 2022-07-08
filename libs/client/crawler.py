@@ -30,7 +30,7 @@ def url_file(url):
 
 
 class Spider(object):
-    def __init__(self, start_url, same_site=True, headers=None, timeout=10, ignore_file=True, hsts=False):
+    def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
         self._start_url = start_url
         self.site = tldextract.extract(start_url).registered_domain.lower()
         #
@@ -44,7 +44,6 @@ class Spider(object):
         self.timeout = timeout
         #
         self.same_site = same_site          # 是否限制只爬取同站网页
-        self.ignore_file = ignore_file      # 是否忽略文件链接
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
 
     def abspath(self, url):
@@ -73,12 +72,11 @@ class Spider(object):
         while len(new_urls):
             url = new_urls.popleft()
             # 处理文件链接(文件过大下载较慢,影响爬取速度)
-            if self.ignore_file:
-                filename = url_file(url)
-                if filename:
-                    self.file_urls[url] = self.all_urls.get(url)
-                    yield url, filename, None
-                    continue
+            filename = url_file(url)
+            if filename:
+                self.file_urls[url] = self.all_urls.get(url)
+                yield url, filename, None
+                continue
             # 爬取正常网页
             try:
                 resp = self.session.get(url, timeout=self.timeout)
@@ -135,9 +133,5 @@ class Spider(object):
     def filter_url(self, url):
         return False
 
-    def dump(self):
-        pass
-
-    def run(self):
-        pass
-
+    def close(self):
+        self.session.close()

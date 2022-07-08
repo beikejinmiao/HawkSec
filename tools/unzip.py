@@ -6,7 +6,11 @@ import platform
 import shutil
 import rarfile
 from py7zr import pack_7zarchive, unpack_7zarchive
+from conf.config import PLATFORM
 from conf.paths import TOOLS_HOME
+from libs.logger import logger
+from libs.enums import SYSTEM
+
 
 # https://bbs.huaweicloud.com/blogs/180864
 # register file format at first.
@@ -20,23 +24,24 @@ shutil.register_unpack_format('7zip',
 
 
 UNRAR_PATH = os.path.join(TOOLS_HOME, 'unrar', 'unrar.linux')
-if platform.system().lower() == 'windows':
+if PLATFORM == SYSTEM.WINDOWS:
     UNRAR_PATH = os.path.join(TOOLS_HOME, 'unrar', 'unrar.win.exe')
 
 
-def unrar(path):
+def unrar(filepath):
     rarfile.UNRAR_TOOL = UNRAR_PATH
-    rar = rarfile.RarFile(path)
-    dest_dir = path + '.unpack'
+    rar = rarfile.RarFile(filepath)
+    dest_dir = filepath + '.unpack'
     with rar as rf:
         rf.extractall(dest_dir)
 
 
-def unpack(path):
-    filename = os.path.basename(path)
+def unpack(filepath, dstdir=None):
+    filename = os.path.basename(filepath)
     if filename.endswith('.rar'):
-        unrar(path)
+        unrar(filepath)
     elif re.match(r'.*\.(zip|7z|tar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz)$', filename, re.I):
-        dest_dir = path + '.unpack'
+        dstdir = filepath + '.unpack' if not dstdir else dstdir
         # shutil.ReadError: xxx.zip is not a zip file
-        shutil.unpack_archive(path, dest_dir)
+        shutil.unpack_archive(filepath, dstdir)
+    logger.info("Unpack: '%s'" % filepath)

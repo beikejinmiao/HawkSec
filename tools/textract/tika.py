@@ -4,20 +4,20 @@ from tika import parser
 from libs.regex import plain_text, html, js_css
 
 
-def plaintext(path, encoding='gbk'):
-    if plain_text.match(path) or html.match(path) or js_css.match(path):
+def tikatext(filepath, encoding='gbk'):
+    if plain_text.match(filepath) or html.match(filepath) or js_css.match(filepath):
         try:
-            with open(path, encoding=encoding) as fopen:
+            with open(filepath, encoding=encoding) as fopen:
                 return fopen.read()
         except UnicodeDecodeError:
-            with open(path, encoding='gbk' if encoding is 'utf-8' else 'utf-8') as fopen:
+            with open(filepath, encoding='gbk' if encoding is 'utf-8' else 'utf-8') as fopen:
                 return fopen.read()
         # gbk/utf-8均解码错误，使用tika解析
         except:
-            parsed = parser.from_file(path)
+            parsed = parser.from_file(filepath)
             return parsed["content"]
     else:
-        parsed = parser.from_file(path)
+        parsed = parser.from_file(filepath)
         return parsed["content"]
 
 

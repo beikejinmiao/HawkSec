@@ -9,7 +9,8 @@ from collections import Counter
 from urllib.parse import urlparse
 from libs.timer import timer
 from libs.regex import img, video, executable
-from conf.paths import DOWNLOADS
+from libs.client.crawler import Spider
+from conf.paths import DUMP_HOME, DOWNLOADS
 from libs.logger import logger
 
 
@@ -40,18 +41,20 @@ class Downloader(object):
     def _log_stats(self):
         logger.info('Downloader count stats: %s' % json.dumps(self.counter))
 
-    def download(self):
+    def downloads(self):
         pass
 
     def run(self):
         self._log_stats()
-        self.download()
+        self.downloads()
 
 
 class WebFileDownloader(Downloader):
     def __init__(self, urls=None, urls_file=None, out_dir=DOWNLOADS, queue=None):
-        if not urls and not urls_file:
-            raise ValueError('下载地址和地址文件不能同时为空')
+        super().__init__(out_dir=out_dir, queue=queue)
+
+        # if not urls and not urls_file:
+        #     raise ValueError('下载地址和地址文件不能同时为空')
         self.urls = list()
         if urls_file:
             with open(urls_file) as fopen:
@@ -59,31 +62,55 @@ class WebFileDownloader(Downloader):
             self.urls.extend(_urls_)
         if urls:
             self.urls.extend(list(urls))
-        #
-        super().__init__(out_dir=out_dir, queue=queue)
 
-    def download(self):
-        suffix = list()
+    def download(self, url):
+        path = urlparse(url.strip()).path
+        suffix = None
+        # 默认不下载图片和可执行文件
+        if img.match(path) or video.match(path) or executable.match(path):
+            self.counter['ignored'] += 1
+        try:
+            filename = wget.download(url, out=self.out_dir)
+            suffix = path.split('.')[-1].lower()
+            self.counter['success'] += 1
+            # 将下载文件的本地路径放入队列中
+            self._put_queue(os.path.join(self.out_dir, filename))
+            logger.info('Download: %s' % url)
+        except:
+            self.counter['failed'] += 1
+            # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
+            logger.error(traceback.format_exc())
+            logger.error('Download Error: %s' % url)
+        return suffix
+
+    def downloads(self):
+        suffixes = list()
         for url in self.urls:
-            path = urlparse(url.strip()).path
-            # 默认不下载图片和可执行文件
-            if img.match(path) or video.match(path) or executable.match(path):
-                self.counter['ignored'] += 1
-                continue
-            try:
-                filename = wget.download(url, out=self.out_dir)
-                suffix.append(path.split('.')[-1].lower())
-                self.counter['success'] += 1
-                # 将下载文件的本地路径放入队列中
-                self._put_queue(os.path.join(self.out_dir, filename))
-                logger.info('Download: %s' % url)
-            except:
-                self.counter['failed'] += 1
-                # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
-                logger.error(traceback.format_exc())
-                logger.error('Download Error: %s' % url)
+            suffix = self.download(url)
+            if suffix is not None:
+                suffixes.append(suffix)
         # 统计文件类型数量
-        file_types = dict(Counter(suffix).most_common())
+        file_types = dict(Counter(suffixes).most_common())
         self.counter['file_type'] = file_types
         logger.info('Download done.\nDownloader count stats: %s' % json.dumps(self.counter))
         logger.info('File Types:\n %s' % json.dumps(file_types, indent=4))
+
+
+class WebCrawlDownloader(Spider, WebFileDownloader):
+    def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False, out_dir=DOWNLOADS, queue=None):
+        #
+        Spider.__init__(self, start_url, same_site=same_site, headers=headers, timeout=timeout, hsts=hsts)
+        WebFileDownloader.__init__(self, out_dir=out_dir, queue=queue)
+        self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')
+
+    def crawling(self):
+        for url, filename, html_text in self.scrape():
+            if filename:
+                self._file_urls_archive.write(url + '\n')
+                continue
+        #
+        self.urls = self.file_urls
+
+    def close(self):
+        super().close()
+        self._file_urls_archive.close()

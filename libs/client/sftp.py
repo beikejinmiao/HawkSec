@@ -103,7 +103,7 @@ class SSHSession(Downloader):
                     (self.counter['traversed'], len(self.files)))
         self._filepath_archive.close()
 
-    def download(self):
+    def downloads(self):
         suffix = list()
         for remote_filepath in self.files:
             # 创建本地目录
@@ -137,7 +137,7 @@ class SSHSession(Downloader):
     def run(self):
         self._log_stats()
         self.traverse()
-        self.download()
+        self.downloads()
         self.close()
 
 
