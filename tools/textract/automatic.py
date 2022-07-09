@@ -3,15 +3,38 @@
 import os
 import re
 import traceback
-from conf.config import PLATFORM
+from tika import parser as tikarser
+from conf.config import PLATFORM, TIKA_SERVER_ACTIVE
 from libs.enums import SYSTEM
 from libs.regex import plain_text, html, js_css
-from libs.logger import logger
 from tools.textract.office import doc, docx, xls, xlsx, ppt, pptx, pdf
-from tools.textract.tika import tikatext
+from libs.logger import logger
 
 
-office_extract = {
+def tikatext(filepath):
+    return tikarser.from_file(filepath)["content"]
+
+
+def plaintext(filepath, encoding='gbk'):
+    try:
+        with open(filepath, encoding=encoding) as fopen:
+            return fopen.read()
+    except UnicodeDecodeError:
+        pass
+    #
+    other_charset = 'gbk' if encoding == 'utf-8' else 'utf-8'
+    try:
+        with open(filepath, encoding=other_charset) as fopen:
+            return fopen.read()
+    except UnicodeDecodeError:
+        pass
+    # gbk/utf-8均解码错误，使用tika解析
+    if TIKA_SERVER_ACTIVE:
+        return tikatext(filepath)
+    return ''
+
+
+__office_methods = {
     'doc': doc,
     'docx': docx,
     'xls': xls,
@@ -27,25 +50,16 @@ def windows(filepath):
     content = ''
     # 普通文本文件、HTML、JS、CSS文件直接读取解析
     if plain_text.match(filepath) or html.match(filepath) or js_css.match(filepath):
-        try:
-            with open(filepath, encoding='gbk') as fopen:
-                content = fopen.read()
-        except UnicodeDecodeError:
-            with open(filepath, encoding='utf-8') as fopen:
-                content = fopen.read()
-        # # gbk/utf-8均解码错误，使用tika解析
-        # except:
-        #     content = parser.from_file(filepath)["content"]
+        content = plaintext(filepath)
     elif re.match(r'.*\.(doc[x]?|xls[x]?|ppt[x]?|pdf)$', filepath, re.I):
-        content = office_extract[suffix](filepath)
-    #
-    logger.error('Extract text success: %s' % filepath)
+        content = __office_methods[suffix](filepath)
+    logger.info('Extract text success: %s' % filepath)
     return content
 
 
 def linux(filepath):
-    content = tikatext(filepath)
-    logger.error('Extract text success: %s' % filepath)
+    content = plaintext(filepath)
+    logger.info('Extract text success: %s' % filepath)
     return content
 
 
@@ -57,7 +71,7 @@ def extract(filepath):
         elif PLATFORM == SYSTEM.LINUX:
             content = linux(filepath)
         else:
-            logger.warning()
+            logger.warning('Not supported system: %s' % PLATFORM)
     except:
         logger.error('Extract text error: %s' % filepath)
         logger.error(traceback.format_exc())

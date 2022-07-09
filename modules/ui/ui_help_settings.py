@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'settings.ui'
+# Form implementation generated from reading ui file 'ui_help_settings.ui'
 #
 # Created by: PyQt6 UI code generator 6.1.0
 #

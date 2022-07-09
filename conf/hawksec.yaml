@@ -11,9 +11,8 @@ charset: auto   # auto, utf-8, gbk
 
 # SSH
 ssh:
-  host: 10.0.33.50
-  port: 22
-  user: root
+  host: 106.13.202.41
+  port: 61001
+  username: root
   password:
-
-
+  path: /tmp

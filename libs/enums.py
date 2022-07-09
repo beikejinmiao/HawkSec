@@ -2,11 +2,15 @@
 # -*- coding:utf-8 -*-
 import enum
 
+SENSITIVE_FLAG_URL = 0
+SENSITIVE_FLAG_IDCARD = 1
+SENSITIVE_FLAG_KEYWORD = 2
 
-class SensitiveFLAG(enum.IntFlag):
-    URL = U = 1
-    IDCARD = I = 2
-    KEYWORD = K = 4
+
+class SensitiveType(enum.IntFlag):
+    URL = U = SENSITIVE_FLAG_URL
+    IDCARD = I = SENSITIVE_FLAG_IDCARD
+    KEYWORD = K = SENSITIVE_FLAG_KEYWORD
 
 
 class SYSTEM(str, enum.Enum):

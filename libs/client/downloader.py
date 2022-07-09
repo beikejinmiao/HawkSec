@@ -11,6 +11,7 @@ from libs.timer import timer
 from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from conf.paths import DUMP_HOME, DOWNLOADS
+from modules.action.actor import TextExtractor
 from libs.logger import logger
 
 
@@ -44,9 +45,13 @@ class Downloader(object):
     def downloads(self):
         pass
 
+    def close(self):
+        pass
+
     def run(self):
         self._log_stats()
         self.downloads()
+        self.close()
 
 
 class WebFileDownloader(Downloader):
@@ -97,10 +102,19 @@ class WebFileDownloader(Downloader):
 
 
 class WebCrawlDownloader(Spider, WebFileDownloader):
-    def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False, out_dir=DOWNLOADS, queue=None):
+    def __init__(self, start_url,
+                 same_site=True,
+                 headers=None,
+                 timeout=10,
+                 hsts=False,
+                 out_dir=DOWNLOADS,
+                 sensitive_flags=None,
+                 queue=None):
         #
         Spider.__init__(self, start_url, same_site=same_site, headers=headers, timeout=timeout, hsts=hsts)
         WebFileDownloader.__init__(self, out_dir=out_dir, queue=queue)
+        self.sensitive_flags = sensitive_flags
+        self.extractor = TextExtractor(sensitive_flags=self.sensitive_flags)
         self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')
 
     def crawling(self):
@@ -108,9 +122,18 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
             if filename:
                 self._file_urls_archive.write(url + '\n')
                 continue
-        #
-        self.urls = self.file_urls
+            # 1.解析网页中的敏感内容
+            self.extractor.extract(html_text, origin=url)
+        # 2. 下载文件解析敏感内容
+        self.urls = list(self.file_urls.keys())
 
     def close(self):
-        super().close()
+        self.session.close()
         self._file_urls_archive.close()
+
+    def run(self):
+        self._log_stats()
+        self.crawling()
+        self.downloads()
+        self.close()
+

@@ -132,6 +132,3 @@ class Spider(object):
 
     def filter_url(self, url):
         return False
-
-    def close(self):
-        self.session.close()
