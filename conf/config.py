@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import platform
 
-PLATFORM = platform.system().lower()
+Platform = platform.system().lower()
 TIKA = ''
 TIKA_SERVER_ACTIVE = False
 

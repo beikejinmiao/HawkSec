@@ -6,7 +6,7 @@ import platform
 import shutil
 import rarfile
 from py7zr import pack_7zarchive, unpack_7zarchive
-from conf.config import PLATFORM
+from conf.config import Platform
 from conf.paths import TOOLS_HOME
 from libs.logger import logger
 from libs.enums import SYSTEM
@@ -24,7 +24,7 @@ shutil.register_unpack_format('7zip',
 
 
 UNRAR_PATH = os.path.join(TOOLS_HOME, 'unrar', 'unrar.linux')
-if PLATFORM == SYSTEM.WINDOWS:
+if Platform == SYSTEM.WINDOWS:
     UNRAR_PATH = os.path.join(TOOLS_HOME, 'unrar', 'unrar.win.exe')
 
 

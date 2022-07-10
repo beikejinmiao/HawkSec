@@ -4,7 +4,7 @@ import os
 import re
 import traceback
 from tika import parser as tikarser
-from conf.config import PLATFORM, TIKA_SERVER_ACTIVE
+from conf.config import Platform, TIKA_SERVER_ACTIVE
 from libs.enums import SYSTEM
 from libs.regex import plain_text, html, js_css
 from tools.textract.office import doc, docx, xls, xlsx, ppt, pptx, pdf
@@ -66,12 +66,12 @@ def linux(filepath):
 def extract(filepath):
     content = ''
     try:
-        if PLATFORM == SYSTEM.WINDOWS:
+        if Platform == SYSTEM.WINDOWS:
             content = windows(filepath)
-        elif PLATFORM == SYSTEM.LINUX:
+        elif Platform == SYSTEM.LINUX:
             content = linux(filepath)
         else:
-            logger.warning('Not supported system: %s' % PLATFORM)
+            logger.warning('Not supported system: %s' % Platform)
     except:
         logger.error('Extract text error: %s' % filepath)
         logger.error(traceback.format_exc())
