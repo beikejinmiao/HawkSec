@@ -14,7 +14,7 @@
    <string>敏感信息监控系统</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLineEdit" name="monitTarget">
+   <widget class="QLineEdit" name="targetLineEdit">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -405,16 +405,16 @@
      </property>
      <layout class="QVBoxLayout" name="protocolVLayout">
       <item>
-       <widget class="QRadioButton" name="httpRadioBtn">
+       <widget class="QRadioButton" name="httpsRadioBtn">
         <property name="text">
-         <string>HTTP</string>
+         <string>HTTPS</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="httpsRadioBtn">
+       <widget class="QRadioButton" name="httpRadioBtn">
         <property name="text">
-         <string>HTTPS</string>
+         <string>HTTP</string>
         </property>
        </widget>
       </item>
@@ -428,7 +428,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QPlainTextEdit" name="logPlainTextEdit">
+   <widget class="QPlainTextEdit" name="logTextBox">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -436,6 +436,9 @@
       <width>831</width>
       <height>211</height>
      </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

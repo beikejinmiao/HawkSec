@@ -3,13 +3,14 @@
 import threading
 from collections import namedtuple
 from PyQt6 import QtWidgets, QtCore, Qt
+from PyQt6.QtCore import QThread, pyqtSignal
 from modules.ui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.ui.ui_help_settings import Ui_Form as UiSettingForm
 from modules.ui.ui_ssh_config import Ui_Dialog as UiSshConfigDialog
 from modules.action.manager import TaskManager
 from utils.mixed import ssh_accessible
 from libs.pyaml import configure
-from libs.logger import logger
+from libs.logger import QLogTailReader
 
 
 MONIT_TARGET = ''
@@ -113,40 +114,79 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.__init_state()
         #
         self.target = ''
-        self.protocol = 'http'
+        self.protocol = 'https'
         self.types = list()
         self.task_manager = None
 
     def __init_state(self):
-        self.httpRadioBtn.setChecked(True)
+        self.httpsRadioBtn.setChecked(True)
         self.extUrlCheckBox.setChecked(True)
+        self.stopBtn.setEnabled(False)
         #
         self.sftpRadioBtn.clicked.connect(self.show_sshconf_win)
         self.startBtn.clicked.connect(self.start)
         self.stopBtn.clicked.connect(self.stop)
         self.exitBtn.clicked.connect(self.close)
+        #
+
+    def __toggle_state(self, enable=True):
+        """
+        开始/停止时,切换按钮和输入框状态
+        """
+        self.startBtn.setEnabled(enable)
+        self.stopBtn.setEnabled(not enable)
+        self.targetLineEdit.setEnabled(enable)
+        for ix in range(self.protocolVLayout.count()):
+            child = self.protocolVLayout.itemAt(ix).widget()
+            child.setEnabled(enable)
+        for ix in range(self.mtypeGridLayout.count()):
+            child = self.mtypeGridLayout.itemAt(ix).widget()
+            child.setEnabled(enable)
+
+    def __log_append2gui(self, text):
+        self.logTextBox.appendPlainText(text)
+
+    def __start_log_reader(self):
+        self.log_viewer = QThread()
+        self.log_reader = QLogTailReader()
+        self.log_reader.moveToThread(self.log_viewer)
+        # Connect signals and slots
+        self.log_viewer.started.connect(self.log_reader.run)
+        self.log_reader.finished.connect(self.log_viewer.quit)
+        self.log_reader.finished.connect(self.log_reader.deleteLater)
+        self.log_viewer.finished.connect(self.log_viewer.deleteLater)
+        self.log_reader.progress.connect(self.__log_append2gui)
+        # Start the thread
+        self.log_viewer.start()
+
+        # Final resets
+        self.log_viewer.finished.connect(
+            lambda: self.startBtn.setEnabled(True)
+        )
 
     def _check_inputs(self):
-        self.target = self.monitTarget.text().strip()
+        self.target = self.targetLineEdit.text().strip()
         if len(self.target) <= 0:
             QtWidgets.QMessageBox.warning(self, "提醒", "监控对象为空！请输入监控对象：IP/域名/URL")
             return False
-        # for radioBtn in self.protocolVLayout.children():
-        for radioBtn in [self.httpRadioBtn, self.httpsRadioBtn, self.sftpRadioBtn]:
-            if radioBtn.isChecked():
-                self.protocol = radioBtn.text().lower()
+        # 访问协议
+        for ix in range(self.protocolVLayout.count()):
+            child = self.protocolVLayout.itemAt(ix).widget()
+            if isinstance(child, QtWidgets.QRadioButton) and child.isChecked():
+                self.protocol = child.text().lower()
+        # 监控内容/敏感类型
         self.types = list()
-        # for i, checkBox in enumerate(self.mtypeGridLayout.children()):
-        for i, checkBox in enumerate([self.extUrlCheckBox, self.idcardCheckBox, self.keywordCheckBox]):
-            if checkBox.isChecked():
-                self.types.append(i)
+        for ix in range(self.mtypeGridLayout.count()):
+            child = self.mtypeGridLayout.itemAt(ix).widget()
+            if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
+                self.types.append(ix)
         if len(self.types) <= 0:
             QtWidgets.QMessageBox.warning(self, "提醒", "未选择监控内容！")
             return False
         return True
 
     def show_sshconf_win(self):
-        self.sshConfigWindow.hostLineEdit.setText(self.monitTarget.text().strip())
+        self.sshConfigWindow.hostLineEdit.setText(self.targetLineEdit.text().strip())
         self.sshConfigWindow.show()
 
     def start(self):
@@ -160,21 +200,14 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         protocol=self.protocol,
                                         auth_config=auth_config)
         thread = threading.Thread(target=self.task_manager.start)
+        self.__start_log_reader()
+        self.__toggle_state(enable=False)
         thread.start()
-        # self.task_manager.start()     # 阻塞GUI主进程
+        #
 
     def stop(self):
+        self.__toggle_state(enable=True)
         if self.task_manager is not None:
             self.task_manager.stop()
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    # window.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
-    window.show()
-    sys.exit(app.exec())
-
 
 

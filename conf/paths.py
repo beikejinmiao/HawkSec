@@ -33,6 +33,6 @@ DOWNLOADS = os.path.join(DUMP_HOME, 'downloads')
 if not os.path.exists(DOWNLOADS):
     os.mkdir(DOWNLOADS)
 
-
+LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
 
 
