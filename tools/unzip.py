@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import re
-import platform
 import shutil
 import rarfile
 from py7zr import pack_7zarchive, unpack_7zarchive
@@ -10,6 +9,7 @@ from conf.config import Platform
 from conf.paths import TOOLS_HOME
 from libs.logger import logger
 from libs.enums import SYSTEM
+from utils.filedir import traverse
 
 
 # https://bbs.huaweicloud.com/blogs/180864
@@ -28,20 +28,45 @@ if Platform == SYSTEM.WINDOWS:
     UNRAR_PATH = os.path.join(TOOLS_HOME, 'unrar', 'unrar.win.exe')
 
 
-def unrar(filepath):
+def unrar(filepath, dstdir=None):
+    dstdir = filepath + '.unpack' if not dstdir else dstdir
+    #
     rarfile.UNRAR_TOOL = UNRAR_PATH
     rar = rarfile.RarFile(filepath)
-    dest_dir = filepath + '.unpack'
     with rar as rf:
-        rf.extractall(dest_dir)
+        rf.extractall(dstdir)
 
 
-def unpack(filepath, dstdir=None):
-    filename = os.path.basename(filepath)
-    if filename.endswith('.rar'):
-        unrar(filepath)
-    elif re.match(r'.*\.(zip|7z|tar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz)$', filename, re.I):
-        dstdir = filepath + '.unpack' if not dstdir else dstdir
+def __unpack(filepath, dstdir):
+    if re.match(r'.*\.rar$', filepath, re.I):
+        unrar(filepath, dstdir=dstdir)
+        logger.info("Unpack: '%s'" % filepath)
+    else:
         # shutil.ReadError: xxx.zip is not a zip file
         shutil.unpack_archive(filepath, dstdir)
-    logger.info("Unpack: '%s'" % filepath)
+        logger.info("Unpack: '%s'" % filepath)
+
+
+def unpack(filepath, dstdir=None, depth=2):
+    """
+    解压压缩包文件(目前不支持xz/gz)
+
+    注意：解压zip文件时,实际使用的是zipfile.py,有中文乱码情况
+         解决办法：搜索cp437, 全部替换为gbk.
+    :return:
+    """
+    if depth is None:
+        depth = 16  # 默认最大解压深度设置为16
+    if depth <= 0:
+        return
+    if not re.match(r'.*\.(rar|zip|7z|tar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz)$', filepath, re.I):
+        return
+    #
+    dstdir = filepath + '.unpack' if not dstdir else dstdir
+    __unpack(filepath, dstdir)
+    for sub_filepath in traverse(dstdir):
+        unpack(sub_filepath, depth=depth-1)
+
+
+if __name__ == '__main__':
+    unpack(r'D:\var\depth3.7z', depth=None)
