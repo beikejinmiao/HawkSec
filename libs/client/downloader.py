@@ -42,6 +42,9 @@ class Downloader(object):
     def _log_stats(self):
         logger.info('Downloader count stats: %s' % json.dumps(self.counter))
 
+    def crawling(self):
+        pass
+
     def downloads(self):
         pass
 
@@ -50,6 +53,7 @@ class Downloader(object):
 
     def run(self):
         self._log_stats()
+        self.crawling()
         self.downloads()
         self.close()
 
@@ -117,23 +121,23 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
         self.extractor = TextExtractor(sensitive_flags=self.sensitive_flags)
         self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')
 
+        self.counter.update({'404url': 0})
+
     def crawling(self):
-        for url, filename, html_text in self.scrape():
-            if filename:
-                self._file_urls_archive.write(url + '\n')
+        for resp in self.scrape():
+            if resp.filename:
+                # 文件链接单独处理,网页爬取完毕后再下载
+                self._file_urls_archive.write(resp.url + '\n')
                 continue
+            if resp.status_code == 404:
+                self.counter['404url'] += 1
+            elif resp.status_code >= 400:
+                self.counter['failed'] += 1
             # 1.解析网页中的敏感内容
-            self.extractor.extract(html_text, origin=url)
+            self.extractor.extract(resp.html_text, origin=resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
 
     def close(self):
         self.session.close()
         self._file_urls_archive.close()
-
-    def run(self):
-        self._log_stats()
-        self.crawling()
-        self.downloads()
-        self.close()
-

@@ -76,7 +76,7 @@ class SSHSession(Downloader):
             for x in self._sftp_walk(new_path):
                 yield x
 
-    def traverse(self):
+    def crawling(self):
         home = os.path.split(self.remote_root)[0]
         self.sftp.chdir(home)
         parent = os.path.split(self.remote_root)[1]
@@ -133,12 +133,6 @@ class SSHSession(Downloader):
         self.t.close()
         self.ssh.close()
         self._filepath_archive.close()
-
-    def run(self):
-        self._log_stats()
-        self.traverse()
-        self.downloads()
-        self.close()
 
 
 if __name__ == '__main__':

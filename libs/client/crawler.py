@@ -5,7 +5,7 @@ import re
 import requests
 from urllib.parse import urlparse
 from urllib.parse import urlsplit
-from collections import deque
+from collections import deque, namedtuple
 from bs4 import BeautifulSoup
 import tldextract
 from libs.regex import html, common_dom
@@ -63,10 +63,13 @@ class Spider(object):
             url = re.sub(r'[^/]+/\.\./', '', url)
         return url
 
+    RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text'])
+
     def scrape(self, path_limit=None):
         """
         执行爬取&提取页面url操作
         """
+        status_code = 0
         new_urls = deque([self._start_url])
         # 保存所有URL的来源
         while len(new_urls):
@@ -75,24 +78,26 @@ class Spider(object):
             filename = url_file(url)
             if filename:
                 self.file_urls[url] = self.all_urls.get(url)
-                yield url, filename, None
+                yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None)
                 continue
             # 爬取正常网页
             try:
                 resp = self.session.get(url, timeout=self.timeout)
-                logger.info('GET %s %s' % (url, resp.status_code))
+                status_code = resp.status_code
+                logger.info('GET %s %s' % (url, status_code))
                 # https://stackoverflow.com/questions/20475552/python-requests-library-redirect-new-url
                 # 如果发生重定向,更新URL,避免提取页面href后拼接错误新URL(大量404)
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
                     self.all_urls[url] = '302'
                     url = self.abspath(resp.url)  # 更新重定向后的URL
-                if 400 <= resp.status_code < 500:
-                    logger.info('!From: %s ' % self.all_urls.get(url))
+                # if 400 <= resp.status_code < 500:
+                #     logger.info('!From: %s ' % self.all_urls.get(url))
             # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
                 self.broken_urls[url] = self.all_urls.get(url, '')
+                yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None)
                 continue
             # 提取url site和url路径
             parts = urlsplit(url)
@@ -100,7 +105,7 @@ class Spider(object):
             path = url[:url.rfind('/') + 1] if '/' in parts.path else url
             # 解析HTML页面
             soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(response.text, "html.parser")
-            yield url, None, resp.text
+            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=resp.text)
             # 提取页面内容里的URL
             links = soup.find_all('a')
             for link in links:
