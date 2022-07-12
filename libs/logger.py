@@ -49,7 +49,9 @@ class QLogTailReader(QObject):
 
     @staticmethod
     def follow():
-        with open(LOG_FILEPATH, 'r') as fopen:
+        # UnicodeDecodeError: 'gbk' codec can't decode
+        # 写入中文日志导致GUI崩溃,调试模式下才抛出异常
+        with open(LOG_FILEPATH, 'r', encoding='utf-8') as fopen:
             # seek the end of the file
             fopen.seek(0, os.SEEK_END)
             # start infinite loop

@@ -3,7 +3,6 @@
 import threading
 import time
 import traceback
-from multiprocessing import Process
 from libs.logger import logger
 
 
@@ -15,17 +14,24 @@ class SimpleTimer(threading.Thread):
         self._target = target
         self._args = tuple(args)
         self._kwargs = dict(kwargs)
+        self.terminated = False
 
     def run(self):
         if self.delay and self.delay > 0:
             time.sleep(self.delay)
 
         while True:
+            if self.terminated:
+                break
+            #
             try:
                 self._target(*self._args, **self._kwargs)
             except:
                 logger.error("Exception: {0}".format(traceback.format_exc()))
             time.sleep(self.period)
+
+    def stop(self):
+        self.terminated = True
 
 
 def timer(delay, period):

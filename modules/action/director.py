@@ -117,6 +117,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.protocol = 'https'
         self.types = list()
         self.task_manager = None
+        self.log_viewer = None
 
     def __init_state(self):
         self.httpsRadioBtn.setChecked(True)
@@ -199,15 +200,13 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         flags=self.types,
                                         protocol=self.protocol,
                                         auth_config=auth_config)
-        thread = threading.Thread(target=self.task_manager.start)
-        self.__start_log_reader()
+        if self.log_viewer is None:
+            self.__start_log_reader()
         self.__toggle_state(enable=False)
-        thread.start()
-        #
+        self.task_manager.start()
 
     def stop(self):
+        self.task_manager.stop()
         self.__toggle_state(enable=True)
-        if self.task_manager is not None:
-            self.task_manager.stop()
-
+        del self.task_manager
 

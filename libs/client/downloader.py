@@ -4,22 +4,26 @@ import os
 import json
 import wget
 import time
+import threading
 import traceback
+from queue import Full
 from collections import Counter
 from urllib.parse import urlparse
 from libs.timer import timer
 from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from conf.paths import DUMP_HOME, DOWNLOADS
-from modules.action.actor import TextExtractor
+from modules.action.extractor import TextExtractor
 from libs.logger import logger
 
 
-class Downloader(object):
+class Downloader(threading.Thread):
     def __init__(self, out_dir=DOWNLOADS, queue=None):
-        self.out_dir = out_dir
+        super().__init__()
         #
+        self.out_dir = out_dir
         self.queue = queue
+        self.terminated = False
         #
         self.counter = {
             'success': 0,
@@ -30,12 +34,16 @@ class Downloader(object):
     def _put_queue(self, local_path):
         if self.queue is None:
             return
-        # 当queue长度大于100时等待消费端处理,避免堆积过多导致占用过多磁盘空间
-        while self.queue.qsize() > 100:
-            logger.debug('Queue size greater than 100, sleep 10s.')
-            time.sleep(10)
-        # 阻塞至有空闲槽可用
-        self.queue.put(local_path, block=True)
+        # 当queue长度大于1000时等待消费端处理,避免堆积过多导致占用过多磁盘空间
+        while self.queue.qsize() > 1000:
+            if not self.terminated:
+                logger.debug('Queue size greater than 1000, sleep 1s.')
+                time.sleep(1)
+        try:
+            # self.queue.put(local_path, block=True)        # 阻塞至有空闲槽可用
+            self.queue.put(local_path, block=False)         # 可停止的线程不能阻塞
+        except Full:
+            time.sleep(0.2)
         self.counter['que_put'] = self.counter.get('que_put', 0) + 1
 
     @timer(120, 120)
@@ -52,10 +60,16 @@ class Downloader(object):
         pass
 
     def run(self):
-        self._log_stats()
-        self.crawling()
-        self.downloads()
+        # self._log_stats()
+        if not self.terminated:
+            self.crawling()
+        if not self.terminated:
+            self.downloads()
         self.close()
+        logger.info('Downloader task terminated')
+
+    def stop(self):
+        self.terminated = True
 
 
 class WebFileDownloader(Downloader):
@@ -95,6 +109,9 @@ class WebFileDownloader(Downloader):
     def downloads(self):
         suffixes = list()
         for url in self.urls:
+            if self.terminated:
+                break
+            #
             suffix = self.download(url)
             if suffix is not None:
                 suffixes.append(suffix)
@@ -125,6 +142,9 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
 
     def crawling(self):
         for resp in self.scrape():
+            if self.terminated:
+                break
+            #
             if resp.filename:
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
@@ -134,10 +154,13 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
             elif resp.status_code >= 400:
                 self.counter['failed'] += 1
             # 1.解析网页中的敏感内容
-            self.extractor.extract(resp.html_text, origin=resp.url)
+            if resp.html_text:
+                self.extractor.extract(resp.html_text, origin=resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
 
     def close(self):
         self.session.close()
-        self._file_urls_archive.close()
+        if not self._file_urls_archive.closed:
+            self._file_urls_archive.close()
+        logger.info('Downloader成功关闭Web Session和文件资源')

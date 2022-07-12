@@ -2,8 +2,11 @@
 # -*- coding:utf-8 -*-
 import os
 import re
+import time
 import shutil
 import tldextract
+import threading
+from queue import Empty
 from libs.regex import img, video, executable, archive
 from libs.enums import SensitiveType
 from utils.filedir import traverse
@@ -11,10 +14,12 @@ from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_ioc, is_valid_ip, is_gov_edu
 from utils.idcard import find_idcard
+from libs.logger import logger
 
 
-class TextExtractor(object):
+class TextExtractor(threading.Thread):
     def __init__(self, root=None, sensitive_flags=None, queue=None):
+        super().__init__()
         self.files = list()
         if isinstance(root, (list, tuple)):
             self.files = list(root)
@@ -29,6 +34,7 @@ class TextExtractor(object):
         self.queue = queue
         self.sensitive_flags = sensitive_flags
         self.results = dict()
+        self.terminated = False
         #
         self.counter = {
             'archive': 0,
@@ -98,15 +104,30 @@ class TextExtractor(object):
     def extfrom_root(self):
         results = dict()
         for filepath in self.files:
+            if self.terminated:
+                break
+            #
             self.load2extract(filepath)
         return results
 
     def extfrom_queue(self):
         # 无法根据queue是否empty自动退出(如果处理快于下载导致queue多数时间为空)
-        while True:
-            filepath = self.queue.get(block=True)     # 阻塞至项目可得到
-            self.counter['que_get'] = self.counter.get('que_get', 0) + 1
-            self.load2extract(filepath)
-            os.remove(filepath)
+        while not self.terminated:
+            # filepath = self.queue.get(block=True)     # 阻塞至项目可得到
+            try:
+                filepath = self.queue.get(block=False)      # 可停止的线程不能阻塞
+                self.counter['que_get'] = self.counter.get('que_get', 0) + 1
+                self.load2extract(filepath)
+                os.remove(filepath)
+            except Empty:
+                time.sleep(0.2)
 
+    def run(self):
+        if self.queue is not None:
+            self.extfrom_queue()
+        else:
+            self.extfrom_root()
+        logger.info('Extractor task terminated')
 
+    def stop(self):
+        self.terminated = True

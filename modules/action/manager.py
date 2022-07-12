@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import re
-import time
-from multiprocessing import Queue, Process
+import threading
+# from multiprocessing import Queue, Process
+from queue import Queue
 from libs.enums import SensitiveType
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
-from modules.action.actor import TextExtractor
+from modules.action.extractor import TextExtractor
 from libs.logger import logger
 
 
@@ -29,8 +30,10 @@ class TaskManager(object):
             raise ValueError('sensitive flag must be list or tuple, and can not be empty.')
         #
         self.auth_config = auth_config
+        self.client = self.__client()
+        self.extractor = self.__extractor()
 
-    def crawl(self):
+    def __client(self):
         client = None
         if self.protocol in ('http', 'https', 'ftp'):
             hsts = True if self.protocol == 'https' else False
@@ -45,23 +48,31 @@ class TaskManager(object):
                                 password=self.auth_config['password'],
                                 remote_root=self.auth_config.get('path', '/tmp'),
                                 queue=self.queue)
-        client.run()
+        return client
 
-    def extract(self):
-        extractor = TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags)
-        extractor.extfrom_queue()
+    def __extractor(self):
+        return TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags)
 
     def start(self):
-        ps_crawl = Process(target=self.crawl, name='crawl')
-        ps_extract = Process(target=self.extract, name='extract')
-        ps_crawl.start()
-        ps_extract.start()
-        logger.info('manager start')
-        while True:
-            time.sleep(60)
+        # 进程
+        # ps_crawl = Process(target=self.client.run, name='crawl')
+        # ps_extract = Process(target=self.extractor.extfrom_queue, name='extract')
+        # while True:
+        #     time.sleep(60)
+        # ps_crawl.join()
+        # ps_extract.join()
+
+        # 线程
+        self.client.start()
+        self.extractor.start()
+        logger.info('Manager started')
 
     def stop(self):
-        pass
+        self.client.stop()
+        self.extractor.stop()
+        self.client.join()
+        self.extractor.join()
+        logger.info('Manager terminated')
 
 
 if __name__ == '__main__':

@@ -83,7 +83,12 @@ class SSHSession(Downloader):
         self.counter['traversed'] = 0
         try:
             for path, _, files in self._sftp_walk(parent):
+                if self.terminated:
+                    break
                 for filename in files:
+                    if self.terminated:
+                        break
+                    #
                     self.counter['traversed'] += 1
                     if self.counter['traversed'] % 2000 == 0:
                         logger.info('count: %s' % self.counter['traversed'])
@@ -106,6 +111,8 @@ class SSHSession(Downloader):
     def downloads(self):
         suffix = list()
         for remote_filepath in self.files:
+            if self.terminated:
+                break
             # 创建本地目录
             local_filepath = os.path.join(self.out_dir, remote_filepath[1:])   # 注意: 两个绝对路径join之后是最后一个绝对路径
             local_dir = os.path.dirname(local_filepath)
@@ -132,7 +139,9 @@ class SSHSession(Downloader):
     def close(self):
         self.t.close()
         self.ssh.close()
-        self._filepath_archive.close()
+        if not self._filepath_archive.closed:
+            self._filepath_archive.close()
+        logger.info('Downloader成功关闭SSH Session和文件资源')
 
 
 if __name__ == '__main__':
