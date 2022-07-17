@@ -55,8 +55,8 @@
      <rect>
       <x>30</x>
       <y>400</y>
-      <width>301</width>
-      <height>121</height>
+      <width>251</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
@@ -64,115 +64,66 @@
     </property>
     <layout class="QVBoxLayout" name="metricVerticalLayout">
      <item>
-      <layout class="QHBoxLayout" name="crawledUrlHLayout" stretch="0,1,0">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_7">
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_17">
          <property name="text">
           <string>   已爬取网页数量:</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="label_8">
+       <item row="0" column="1">
+        <widget class="QLabel" name="crawledCntLabel">
          <property name="text">
           <string>0     </string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="crawledUrlCheckBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>查看</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="s404UrlHLayout" stretch="0,1,0">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_9">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_19">
          <property name="text">
           <string>       404网页数量:</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="label_10">
+       <item row="1" column="1">
+        <widget class="QLabel" name="c404CntLabel">
          <property name="text">
           <string>0     </string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="s404UrlCheckBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_20">
          <property name="text">
-          <string>查看</string>
+          <string>访问异常网页数量:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="abnorCntLabel">
+         <property name="text">
+          <string>0     </string>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="abnorUrlHLayout" stretch="0,1,0">
-       <property name="spacing">
-        <number>6</number>
+      <widget class="QPushButton" name="checkProgressBtn">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
        </property>
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>访问异常网页数量:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>0     </string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="abnorUrlCheckBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>查看</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>查看</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -180,7 +131,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>560</y>
+      <y>580</y>
       <width>267</width>
       <height>26</height>
      </rect>
@@ -215,10 +166,10 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>550</x>
+      <x>630</x>
       <y>400</y>
-      <width>311</width>
-      <height>101</height>
+      <width>231</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
@@ -226,110 +177,66 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <layout class="QHBoxLayout" name="extUrlHLayout" stretch="0,1,0,0">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
-          <string> 外链数量: 0</string>
+          <string>        外链数量: </string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="extUrlCheckBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
+       <item row="0" column="1">
+        <widget class="QLabel" name="extUrlCntLabel">
          <property name="text">
-          <string>查看</string>
+          <string>0     </string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="extUrlDumpBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_15">
          <property name="text">
-          <string>导出</string>
+          <string>      身份证数量:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="idcardCntLabel">
+         <property name="text">
+          <string>0     </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>关键字网页数量:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="keywordCntLabel">
+         <property name="text">
+          <string>0     </string>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="idcardHLayout" stretch="0,1,0,0">
-       <property name="spacing">
-        <number>6</number>
+      <widget class="QPushButton" name="checkExtractBtn">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
        </property>
-       <item>
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>身份证数量:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>0     </string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="idcardCheckBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>查看</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="idcardDumpBtn">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>导出</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>查看</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

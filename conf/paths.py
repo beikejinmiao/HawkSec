@@ -20,6 +20,7 @@ else:
 #
 CONF_HOME = os.path.join(MAIN_HOME, 'conf')
 TOOLS_HOME = os.path.join(MAIN_HOME, 'tools')
+PRIVATE_RESOURCE_HOME = os.path.join(MAIN_HOME, 'resources')
 
 DUMP_HOME = os.path.join(MAIN_HOME, 'zdump')
 if stage == 'exe':
