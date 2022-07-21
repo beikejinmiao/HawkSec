@@ -6,7 +6,7 @@ from modules.ui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
 from modules.action.win.settings import SettingWindow
-from modules.action.win.tableview import DataGridWindow, ProgressDataWindow, ExtractDataWindow
+from modules.action.win.tableview import ProgressDataWindow, ExtractDataWindow
 from libs.logger import QLogTailReader
 
 MONIT_TARGET = ''

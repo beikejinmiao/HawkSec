@@ -20,6 +20,13 @@ class SYSTEM(str, enum.Enum):
     DARWIN = "darwin"
 
 
+class TABLES(enum.Enum):
+    CrawlStat = "crawlstat"
+    Extractor = "extractor"
+    FileType = "filetype"
+    WhiteList = "whitelist"
+
+
 if __name__ == '__main__':
     # print(SYSTEM('Windows') is SYSTEM.WINDOWS)
     print('windows' == SYSTEM.WINDOWS)

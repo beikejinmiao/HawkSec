@@ -68,7 +68,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="label_17">
          <property name="text">
-          <string>   已爬取网页数量:</string>
+          <string>         已爬取数量:</string>
          </property>
         </widget>
        </item>
@@ -79,15 +79,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>       404网页数量:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="c404CntLabel">
+       <item row="2" column="1">
+        <widget class="QLabel" name="abnorCntLabel">
          <property name="text">
           <string>0     </string>
          </property>
@@ -96,14 +89,21 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_20">
          <property name="text">
-          <string>访问异常网页数量:</string>
+          <string>      访问异常数量:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="abnorCntLabel">
+       <item row="1" column="1">
+        <widget class="QLabel" name="hittedCntLabel">
          <property name="text">
           <string>0     </string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>含有监控内容数量:</string>
          </property>
         </widget>
        </item>

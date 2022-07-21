@@ -7,7 +7,10 @@ import shutil
 import tldextract
 import threading
 from queue import Empty
+from libs.timer import timer
 from libs.regex import img, video, executable, archive
+from libs.pysqlite import Sqlite
+from libs.enums import TABLES
 from libs.enums import SensitiveType
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -41,6 +44,19 @@ class TextExtractor(threading.Thread):
             'doc': 0,
             'others': 0,
         }
+        #
+        self.db = None
+        self.db_records = list()
+        self.db_record_ix = 0
+
+    @timer(2, 4)
+    def _records2db(self):
+        if self.db is None:
+            self.db = Sqlite()
+        left = self.db_record_ix
+        right = len(self.db_records)
+        self.db.insert_many(TABLES.Extractor.value, self.db_records[left:right])
+        self.db_record_ix = right
 
     def external_url(self, text):
         candidates = set()
@@ -70,11 +86,20 @@ class TextExtractor(threading.Thread):
         if origin and re.match(r'^http[s]://', origin):
             # 只在网页中提取提取外链,下载的文件中不提取
             if SensitiveType.URL in self.sensitive_flags:
-                result['external_url'] = self.external_url(text)
+                candidates = self.external_url(text)
+                result['external_url'] = candidates
+                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.URL.value,
+                                        'result': ', '.join(candidates), 'count': len(candidates)})
         if SensitiveType.IDCARD in self.sensitive_flags:
-            result['idcard'] = self.idcard(text)
+            candidates = self.idcard(text)
+            result['idcard'] = candidates
+            self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.IDCARD.value,
+                                    'result': ', '.join(candidates), 'count': len(candidates)})
         if SensitiveType.KEYWORD in self.sensitive_flags:
-            result['keyword'] = self.keyword(text)
+            candidates = self.keyword(text)
+            result['keyword'] = candidates
+            self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.KEYWORD.value,
+                                    'result': ', '.join(candidates), 'count': len(candidates)})
         if origin is not None:
             self.results[origin] = result
         return result
@@ -123,6 +148,7 @@ class TextExtractor(threading.Thread):
                 time.sleep(0.2)
 
     def run(self):
+        self._records2db()
         if self.queue is not None:
             self.extfrom_queue()
         else:

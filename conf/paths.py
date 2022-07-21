@@ -35,5 +35,5 @@ if not os.path.exists(DOWNLOADS):
     os.mkdir(DOWNLOADS)
 
 LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
-
+DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
 

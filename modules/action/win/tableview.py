@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 from PyQt6 import QtWidgets
+from libs.enums import TABLES
+from libs.pysqlite import Sqlite
+from conf.paths import DUMP_HOME
 from modules.ui.ui_tableview import Ui_Form
 from modules.action.dbmodel import TablePageModel
 
@@ -18,12 +22,16 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
 
         self.set_connect()
         self.update_state()
+        #
+        self.sqlite = Sqlite()
 
     def set_connect(self):
         self.prePageBtn.clicked.connect(self.on_prev_page)
         self.nextPageBtn.clicked.connect(self.on_next_page)
         self.switchPageBtn.clicked.connect(self.go_switch_page)
         self.searchBtn.clicked.connect(self.go_search)
+        self.refreshBtn.clicked.connect(self.refresh)
+        self.dumpBtn.clicked.connect(self.dump)
 
     def update_state(self):
         self.curPageLineEdit.setText(str(self.cur_page))
@@ -60,6 +68,20 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
             return
         code = self.codeComboBox.currentIndex()
 
+    def refresh(self):
+        self.cur_page = 1
+        self.query_page(page=1)
+
+    def dump(self):
+        filepath, ok = QtWidgets.QFileDialog.getSaveFileName(self, "保存文件",
+                                                             os.path.join(DUMP_HOME, "%s.csv" % self.table))
+        if ok:
+            try:
+                self.sqlite.dump(self.table, filepath)
+                QtWidgets.QMessageBox.information(self, "提示", "保存成功. 文件路径: " + filepath)
+            except Exception as e:
+                QtWidgets.QMessageBox.warning(self, "提示", "保存失败. 错误原因: " + str(e))
+
     def closeEvent(self, event):
         self.close_db()
 
@@ -70,7 +92,7 @@ class ProgressDataWindow(DataGridWindow):
             ['id', 'origin', 'resp_code', 'create_time'],
             ['ID', 'URL/FILE路径', '状态码', '创建时间']
         ))
-        super().__init__(table='crawlstat', columns=columns)
+        super().__init__(table=TABLES.CrawlStat.value, columns=columns)
 
 
 class ExtractDataWindow(DataGridWindow):
@@ -79,7 +101,7 @@ class ExtractDataWindow(DataGridWindow):
             ['id', 'origin', 'sensitive_type', 'count', 'create_time'],
             ['ID', '敏感内容来源', '敏感种类', '数量', '创建时间']
         ))
-        super().__init__(table='extractor', columns=columns)
+        super().__init__(table=TABLES.Extractor.value, columns=columns)
 
 
 class WhiteListDataWindow(DataGridWindow):
@@ -88,4 +110,4 @@ class WhiteListDataWindow(DataGridWindow):
             ['id', 'white_type', 'ioc', 'create_time'],
             ['ID', '种类', '内容', '创建时间']
         ))
-        super().__init__(table='whitelist', columns=columns)
+        super().__init__(table=TABLES.WhiteList.value, columns=columns)

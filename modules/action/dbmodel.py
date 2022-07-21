@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import os
 import math
 from PyQt6.QtSql import QSqlDatabase, QSqlQueryModel
 from PyQt6.QtCore import Qt
-from conf.paths import PRIVATE_RESOURCE_HOME
-
-
-DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
+from conf.paths import DB_PATH
 
 
 class QueryModel(QSqlQueryModel):
@@ -26,7 +22,7 @@ class TablePageModel(object):
         # 当前页
         self.cur_page = 1
         # 每页记录数
-        self.page_record = 5
+        self.page_record = 10
         # 总页数
         self.total_page = 0
         # 总记录数
@@ -67,27 +63,28 @@ class TablePageModel(object):
         #     columns = self.__columns
         # elif isinstance(columns, (list, tuple)):
         #     columns = ','.join(columns)
-        sql = 'SELECT %s FROM `%s` limit %d,%d' % (self.__columns, self.table, start_index, limit)
+        sql = 'SELECT %s FROM `%s`  ORDER BY `create_time` DESC LIMIT %d,%d' % \
+              (self.__columns, self.table, start_index, limit)
         self.query_model.setQuery(sql, self.db)
 
-    def query_page(self, step=0):
-        self.cur_page += step
-        start_index = (self.cur_page - 1) * self.page_record
+    def query_page(self, page=None):
+        if not page or page < 1:
+            page = self.cur_page
+        start_index = (page - 1) * self.page_record
         self.limit_query(start_index=start_index)
+        self.update_state()
 
     def on_prev_page(self):
-        self.query_page(step=-1)
-        self.update_state()
+        self.cur_page -= 1
+        self.query_page()
 
     def on_next_page(self):
-        self.query_page(step=1)
-        self.update_state()
+        self.cur_page += 1
+        self.query_page()
 
     def on_switch_page(self):
-        start_index = (self.switch_page - 1) * self.page_record
-        self.limit_query(start_index)
         self.cur_page = self.switch_page
-        self.update_state()
+        self.query_page()
 
     def close_db(self):
         if self.db.isOpen():

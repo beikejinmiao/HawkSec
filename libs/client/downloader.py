@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 from libs.timer import timer
 from libs.regex import img, video, executable
 from libs.client.crawler import Spider
+from libs.pysqlite import Sqlite
+from libs.enums import TABLES
 from conf.paths import DUMP_HOME, DOWNLOADS
 from modules.action.extractor import TextExtractor
 from libs.logger import logger
@@ -30,6 +32,10 @@ class Downloader(threading.Thread):
             'failed': 0,
             'ignored': 0,
         }
+        #
+        self.db = None
+        self.db_records = list()
+        self.db_record_ix = 0
 
     def _put_queue(self, local_path):
         if self.queue is None:
@@ -50,6 +56,15 @@ class Downloader(threading.Thread):
     def _log_stats(self):
         logger.info('Downloader count stats: %s' % json.dumps(self.counter))
 
+    @timer(2, 4)
+    def _records2db(self):
+        if self.db is None:
+            self.db = Sqlite()
+        left = self.db_record_ix
+        right = len(self.db_records)
+        self.db.insert_many(TABLES.CrawlStat.value, self.db_records[left:right])
+        self.db_record_ix = right
+
     def crawling(self):
         pass
 
@@ -60,7 +75,8 @@ class Downloader(threading.Thread):
         pass
 
     def run(self):
-        # self._log_stats()
+        self._log_stats()
+        self._records2db()
         if not self.terminated:
             self.crawling()
         if not self.terminated:
@@ -145,6 +161,7 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
             if self.terminated:
                 break
             #
+            self.db_records.append({'origin': resp.url, 'resp_code': resp.status_code})
             if resp.filename:
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
