@@ -80,7 +80,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLabel" name="abnorCntLabel">
+        <widget class="QLabel" name="faieldCntLabel">
          <property name="text">
           <string>0     </string>
          </property>
@@ -89,12 +89,12 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_20">
          <property name="text">
-          <string>      访问异常数量:</string>
+          <string>      访问失败数量:</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLabel" name="hittedCntLabel">
+        <widget class="QLabel" name="hitCntLabel">
          <property name="text">
           <string>0     </string>
          </property>
@@ -209,7 +209,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>关键字网页数量:</string>
+          <string>关键字发现次数:</string>
          </property>
         </widget>
        </item>

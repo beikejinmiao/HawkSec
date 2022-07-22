@@ -45,7 +45,7 @@ class QLogTailReader(QObject):
     创建子线程读取日志文件, 将日志内容发送至GUI主线程, 由主线程添加至日志框
     """
     finished = pyqtSignal()
-    progress = pyqtSignal(str)
+    readline = pyqtSignal(str)
 
     @staticmethod
     def follow():
@@ -67,7 +67,7 @@ class QLogTailReader(QObject):
     def run(self):
         """Long-running task."""
         for line in self.follow():
-            self.progress.emit(line.strip())
+            self.readline.emit(line.strip())
         self.finished.emit()
 
 

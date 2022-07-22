@@ -30,10 +30,10 @@ class TaskManager(object):
             raise ValueError('sensitive flag must be list or tuple, and can not be empty.')
         #
         self.auth_config = auth_config
-        self.client = self.__client()
-        self.extractor = self.__extractor()
+        self.crawler = self.__init_crawler()
+        self.extractor = self.__init_extractor()
 
-    def __client(self):
+    def __init_crawler(self):
         client = None
         if self.protocol in ('http', 'https', 'ftp'):
             hsts = True if self.protocol == 'https' else False
@@ -50,12 +50,12 @@ class TaskManager(object):
                                 queue=self.queue)
         return client
 
-    def __extractor(self):
+    def __init_extractor(self):
         return TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags)
 
     def start(self):
         # 进程
-        # ps_crawl = Process(target=self.client.run, name='crawl')
+        # ps_crawl = Process(target=self.crawler.run, name='crawl')
         # ps_extract = Process(target=self.extractor.extfrom_queue, name='extract')
         # while True:
         #     time.sleep(60)
@@ -63,14 +63,14 @@ class TaskManager(object):
         # ps_extract.join()
 
         # 线程
-        self.client.start()
+        self.crawler.start()
         self.extractor.start()
         logger.info('Manager started')
 
     def stop(self):
-        self.client.stop()
+        self.crawler.stop()
         self.extractor.stop()
-        self.client.join()
+        self.crawler.join()
         self.extractor.join()
         logger.info('Manager terminated')
 

@@ -7,6 +7,7 @@ from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
 from modules.action.win.settings import SettingWindow
 from modules.action.win.tableview import ProgressDataWindow, ExtractDataWindow
+from modules.action.progression import CrawlExtProgress
 from libs.logger import QLogTailReader
 
 MONIT_TARGET = ''
@@ -27,6 +28,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.protocol = 'https'
         self.types = list()
         self.task_manager = None
+        self.progression = None
         self.log_viewer = None
 
     def __init_state(self):
@@ -69,7 +71,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.log_reader.finished.connect(self.log_viewer.quit)
         self.log_reader.finished.connect(self.log_reader.deleteLater)
         self.log_viewer.finished.connect(self.log_viewer.deleteLater)
-        self.log_reader.progress.connect(self.__log_append2gui)
+        self.log_reader.readline.connect(self.__log_append2gui)
         # Start the thread
         self.log_viewer.start()
 
@@ -111,6 +113,14 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
         self.extractWindow.show()
 
+    def update_progress(self, stat):
+        self.crawledCntLabel.setText(str(stat['crawled']))
+        self.faieldCntLabel.setText(str(stat['failed']))
+        self.hitCntLabel.setText(str(stat['hit']))
+        self.extUrlCntLabel.setText(str(stat['external_url']))
+        self.idcardCntLabel.setText(str(stat['idcard']))
+        self.keywordCntLabel.setText(str(stat['keyword']))
+
     def start(self):
         if not self._check_inputs():
             return
@@ -121,13 +131,18 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         flags=self.types,
                                         protocol=self.protocol,
                                         auth_config=auth_config)
+        self.progression = CrawlExtProgress(extractor=self.task_manager.extractor)
         if self.log_viewer is None:
             self.__start_log_reader()
         self.__toggle_state(enable=False)
         self.task_manager.start()
+        self.progression.start()
+        self.progression.progress.connect(self.update_progress)
 
     def stop(self):
+        self.progression.stop()
         self.task_manager.stop()
         self.__toggle_state(enable=True)
+        del self.progression
         del self.task_manager
 

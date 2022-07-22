@@ -59,7 +59,7 @@ class Sqlite(object):
 
     def truncate(self, table):
         self.__cursor.execute('DELETE FROM %s' % table)
-        self.__cursor.execute('DELETE FROM SQLITE_SEQUENCE WHERE name=%s' % table)
+        self.__cursor.execute('DELETE FROM SQLITE_SEQUENCE WHERE name="%s"' % table)
         self.__conn.commit()
 
     def dump(self, table, filepath):
@@ -72,5 +72,5 @@ class Sqlite(object):
 
 if __name__ == '__main__':
     sqlite = Sqlite()
-    print(sqlite.count('filetype'))
+    print(sqlite.truncate('crawlstat'))
 

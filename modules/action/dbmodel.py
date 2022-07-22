@@ -63,7 +63,7 @@ class TablePageModel(object):
         #     columns = self.__columns
         # elif isinstance(columns, (list, tuple)):
         #     columns = ','.join(columns)
-        sql = 'SELECT %s FROM `%s`  ORDER BY `create_time` DESC LIMIT %d,%d' % \
+        sql = 'SELECT %s FROM `%s`  ORDER BY `id` DESC LIMIT %d,%d' % \
               (self.__columns, self.table, start_index, limit)
         self.query_model.setQuery(sql, self.db)
 

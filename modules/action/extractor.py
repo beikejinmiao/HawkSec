@@ -44,6 +44,11 @@ class TextExtractor(threading.Thread):
             'doc': 0,
             'others': 0,
         }
+        self.sensitives = {
+            'external_url': set(),
+            'idcard': set(),
+            'keyword': list(),
+        }
         #
         self.db = None
         self.db_records = list()
@@ -87,20 +92,26 @@ class TextExtractor(threading.Thread):
             # 只在网页中提取提取外链,下载的文件中不提取
             if SensitiveType.URL in self.sensitive_flags:
                 candidates = self.external_url(text)
-                result['external_url'] = candidates
-                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.URL.value,
-                                        'result': ', '.join(candidates), 'count': len(candidates)})
+                if len(candidates) > 0:
+                    result['external_url'] = candidates
+                    self.sensitives['external_url'].union(set(candidates))
+                    self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.URL.value,
+                                            'result': ', '.join(candidates), 'count': len(candidates)})
         if SensitiveType.IDCARD in self.sensitive_flags:
             candidates = self.idcard(text)
-            result['idcard'] = candidates
-            self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.IDCARD.value,
-                                    'result': ', '.join(candidates), 'count': len(candidates)})
+            if len(candidates) > 0:
+                result['idcard'] = candidates
+                self.sensitives['idcard'].union(set(candidates))
+                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.IDCARD.value,
+                                        'result': ', '.join(candidates), 'count': len(candidates)})
         if SensitiveType.KEYWORD in self.sensitive_flags:
             candidates = self.keyword(text)
-            result['keyword'] = candidates
-            self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.KEYWORD.value,
-                                    'result': ', '.join(candidates), 'count': len(candidates)})
-        if origin is not None:
+            if len(candidates) > 0:
+                result['keyword'] = candidates
+                self.sensitives['keyword'].extend(candidates)
+                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.KEYWORD.value,
+                                        'result': ', '.join(candidates), 'count': len(candidates)})
+        if origin is not None and len(result) > 0:
             self.results[origin] = result
         return result
 

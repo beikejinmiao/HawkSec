@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
+import math
 from PyQt6 import QtWidgets
 from libs.enums import TABLES
 from libs.pysqlite import Sqlite
@@ -71,6 +72,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
     def refresh(self):
         self.cur_page = 1
         self.query_page(page=1)
+        self.total_record = self.sqlite.count(TABLES.CrawlStat.value)
+        self.total_page = math.ceil(self.total_record / self.page_record)
 
     def dump(self):
         filepath, ok = QtWidgets.QFileDialog.getSaveFileName(self, "保存文件",

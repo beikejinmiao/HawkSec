@@ -154,8 +154,6 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
         self.extractor = TextExtractor(sensitive_flags=self.sensitive_flags)
         self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')
 
-        self.counter.update({'404url': 0})
-
     def crawling(self):
         for resp in self.scrape():
             if self.terminated:
@@ -166,10 +164,10 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
                 continue
-            if resp.status_code == 404:
-                self.counter['404url'] += 1
-            elif resp.status_code >= 400:
+            if resp.status_code >= 400:
                 self.counter['failed'] += 1
+            elif resp.status_code == 200:
+                self.counter['success'] += 1
             # 1.解析网页中的敏感内容
             if resp.html_text:
                 self.extractor.extract(resp.html_text, origin=resp.url)
