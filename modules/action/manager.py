@@ -6,7 +6,7 @@ import threading
 # from multiprocessing import Queue, Process
 from queue import Queue
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, LOG_FILEPATH
-from libs.enums import SensitiveType, TABLES
+from libs.enums import SENSITIVE_FLAG, TABLES
 from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
@@ -15,7 +15,7 @@ from libs.logger import logger
 
 
 class TaskManager(object):
-    def __init__(self, target, flags, protocol=None, auth_config=None):
+    def __init__(self, target, flags, keywords=None, protocol=None, auth_config=None):
         self.queue = Queue(100000)
         #
         self.target = target
@@ -31,17 +31,17 @@ class TaskManager(object):
             self.sensitive_flags = list(flags)
         else:
             raise ValueError('sensitive flag must be list or tuple, and can not be empty.')
+        self._keywords = keywords
         #
         self.auth_config = auth_config
-        self.crawler = self.__init_crawler()
         self.extractor = self.__init_extractor()
+        self.crawler = self.__init_crawler()
 
     def __init_crawler(self):
         client = None
         if self.protocol in ('http', 'https', 'ftp'):
             hsts = True if self.protocol == 'https' else False
-            client = WebCrawlDownloader(self.target, hsts=hsts, queue=self.queue,
-                                        sensitive_flags=self.sensitive_flags)
+            client = WebCrawlDownloader(self.target, hsts=hsts, extractor=self.extractor, queue=self.queue)
         elif self.protocol == 'sftp':
             if not isinstance(self.auth_config, dict) or 'password' not in self.auth_config:
                 raise ValueError('ssh auth config is empty or has not password.')
@@ -54,7 +54,7 @@ class TaskManager(object):
         return client
 
     def __init_extractor(self):
-        return TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags)
+        return TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags, keywords=self._keywords)
 
     def start(self):
         # 进程
@@ -95,7 +95,7 @@ class TaskManager(object):
 
 
 if __name__ == '__main__':
-    manager = TaskManager('https://www.ncut.edu.cn/', flags=[SensitiveType.URL, SensitiveType.IDCARD])
+    manager = TaskManager('https://www.ncut.edu.cn/', flags=[SENSITIVE_FLAG.URL, SENSITIVE_FLAG.IDCARD])
     # manager = TaskManager('106.13.202.41', protocol='sftp',
     #                       flags=[SensitiveType.URL, SensitiveType.IDCARD],
     #                       auth_config={'port': 61001, 'username': 'root', 'password': ''})

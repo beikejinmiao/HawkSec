@@ -130,12 +130,12 @@ class SSHSession(Downloader):
                 # 将下载文件的本地路径放入队列中
                 self._put_queue(local_filepath)
                 logger.info('Download: %s' % remote_filepath)
-                self.db_records.append({'origin': remote_filepath, 'resp_code': 0})
-            except:
+                self.db_rows.append({'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'})
+            except Exception as e:
                 self.metric.file_failed += 1
                 logger.error(traceback)
                 logger.error('Download Error: %s' % remote_filepath)
-                self.db_records.append({'origin': remote_filepath, 'resp_code': 1})
+                self.db_rows.append({'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)})
         # 统计文件类型数量
         file_types = dict(Counter(suffix).most_common())
         logger.info('下载%s' % '终止' if self.terminated else '完成')

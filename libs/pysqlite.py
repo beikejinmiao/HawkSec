@@ -72,5 +72,7 @@ class Sqlite(object):
 
 if __name__ == '__main__':
     sqlite = Sqlite()
-    print(sqlite.truncate('crawlstat'))
+    sqlite.truncate('crawlstat')
+    sqlite.truncate('extractor')
+    sqlite.close()
 

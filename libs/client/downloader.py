@@ -30,9 +30,9 @@ class Downloader(threading.Thread):
         #
         self.metric = CrawlMetric()
         #
-        self.db = None
-        self.db_records = list()
-        self.db_record_ix = 0
+        self.sqlite = None
+        self.db_rows = list()
+        self.__db_row_ix = 0    # 用于记录已插入数据库中的self.db_rows最后一条索引位置
 
     def _put_queue(self, local_path):
         if self.queue is None:
@@ -56,13 +56,13 @@ class Downloader(threading.Thread):
         logger.info('爬虫客户端Metric统计: %s' % self.metric)
 
     @timer(2, 4)
-    def _records2db(self):
-        if self.db is None:
-            self.db = Sqlite()
-        left = self.db_record_ix
-        right = len(self.db_records)
-        self.db.insert_many(TABLES.CrawlStat.value, self.db_records[left:right])
-        self.db_record_ix = right
+    def _sync2db(self):
+        if self.sqlite is None:
+            self.sqlite = Sqlite()
+        left = self.__db_row_ix
+        right = len(self.db_rows)
+        self.sqlite.insert_many(TABLES.CrawlStat.value, self.db_rows[left:right])
+        self.__db_row_ix = right
 
     @timer(2, 1)
     def _dump_metric(self):
@@ -79,7 +79,7 @@ class Downloader(threading.Thread):
 
     def run(self):
         self._log_stats()
-        self._records2db()
+        self._sync2db()
         self._dump_metric()
         if not self.terminated:
             self.crawling()
@@ -115,15 +115,15 @@ class WebFileDownloader(Downloader):
             self.metric.file_ignored += 1
         try:
             filename = wget.download(url, out=self.out_dir)
-            self.db_records.append({'origin': url, 'resp_code': 0})
+            self.db_rows.append({'origin': url, 'resp_code': 0, 'desc': 'Success'})
             suffix = path.split('.')[-1].lower()
             self.metric.file_success += 1
             # 将下载文件的本地路径放入队列中
             self._put_queue(os.path.join(self.out_dir, filename))
             logger.info('Download: %s' % url)
-        except:
+        except Exception as e:
             self.metric.file_failed += 1
-            self.db_records.append({'origin': url, 'resp_code': -1})
+            self.db_rows.append({'origin': url, 'resp_code': -1, 'desc': str(e)})
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
             logger.error(traceback.format_exc())
             logger.error('Download Error: %s' % url)
@@ -152,13 +152,12 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                  timeout=10,
                  hsts=False,
                  out_dir=DOWNLOADS,
-                 sensitive_flags=None,
+                 extractor=None,
                  queue=None):
         #
         Spider.__init__(self, start_url, same_site=same_site, headers=headers, timeout=timeout, hsts=hsts)
         WebFileDownloader.__init__(self, out_dir=out_dir, queue=queue)
-        self.sensitive_flags = sensitive_flags
-        self.extractor = TextExtractor(sensitive_flags=self.sensitive_flags)
+        self.extractor = extractor
         self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')
 
     def crawling(self):
@@ -170,14 +169,14 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
                 continue
-            self.db_records.append({'origin': resp.url, 'resp_code': resp.status_code})
+            self.db_rows.append({'origin': resp.url, 'resp_code': resp.status_code, 'desc': resp.desc})
             self.metric.crawl_total += 1
             if resp.status_code == 200:
                 self.metric.crawl_success += 1
             else:
                 self.metric.crawl_failed += 1
             # 1.解析网页中的敏感内容
-            if resp.html_text:
+            if resp.html_text and self.extractor is not None:
                 self.extractor.extract(resp.html_text, origin=resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())

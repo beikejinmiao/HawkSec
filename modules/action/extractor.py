@@ -11,7 +11,7 @@ from libs.timer import timer
 from libs.regex import img, video, executable, archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
-from libs.enums import SensitiveType
+from libs.enums import SENSITIVE_FLAG, SENSITIVE_NAME
 from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -23,7 +23,7 @@ from libs.logger import logger
 
 
 class TextExtractor(threading.Thread):
-    def __init__(self, root=None, sensitive_flags=None, queue=None):
+    def __init__(self, root=None, sensitive_flags=None, keywords=None, queue=None):
         super().__init__()
         self.files = list()
         if isinstance(root, (list, tuple)):
@@ -35,7 +35,7 @@ class TextExtractor(threading.Thread):
                 self.files.append(root)
         #
         self._white_domain = dict()
-        self._keywords = list()
+        self._keywords = set() if keywords is None else set(keywords)
         self.queue = queue
         self.sensitive_flags = sensitive_flags
         self.results = dict()
@@ -54,19 +54,19 @@ class TextExtractor(threading.Thread):
         self.metric = ExtractMetric()
         #
         self.sqlite = None
-        self.db_records = list()
-        self.db_record_ix = 0
+        self.db_rows = list()
+        self.__db_row_ix = 0
 
     @timer(2, 4)
-    def _records2db(self):
+    def _sync2db(self):
         # sqlite3.ProgrammingError: SQLite objects created in a thread can only be used in that same thread.
         # The object was created in thread id 4936 and this is thread id 6760.
         if self.sqlite is None:
             self.sqlite = Sqlite()
-        left = self.db_record_ix
-        right = len(self.db_records)
-        self.sqlite.insert_many(TABLES.Extractor.value, self.db_records[left:right])
-        self.db_record_ix = right
+        left = self.__db_row_ix
+        right = len(self.db_rows)
+        self.sqlite.insert_many(TABLES.Extractor.value, self.db_rows[left:right])
+        self.__db_row_ix = right
 
     @timer(2, 1)
     def _dump_metric(self):
@@ -103,27 +103,30 @@ class TextExtractor(threading.Thread):
         result = dict()
         if origin and re.match(r'^http[s]://', origin):
             # 只在网页中提取提取外链,下载的文件中不提取
-            if SensitiveType.URL in self.sensitive_flags:
+            if SENSITIVE_FLAG.URL in self.sensitive_flags:
                 candidates = self.external_url(text)
                 if len(candidates) > 0:
                     result['external_url'] = candidates
-                    self.sensitives['external_url'].union(set(candidates))
-                    self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.URL.value,
-                                            'result': ', '.join(candidates), 'count': len(candidates)})
-        if SensitiveType.IDCARD in self.sensitive_flags:
+                    self.sensitives['external_url'] = self.sensitives['external_url'] | set(candidates)
+                    self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.URL.value,
+                                         'sensitive_name': SENSITIVE_NAME.URL.value,
+                                         'result': ', '.join(candidates), 'count': len(candidates)})
+        if SENSITIVE_FLAG.IDCARD in self.sensitive_flags:
             candidates = self.idcard(text)
             if len(candidates) > 0:
-                result['idcard'] = candidates
+                self.sensitives['idcard'] = self.sensitives['idcard'] | set(candidates)
                 self.sensitives['idcard'].union(set(candidates))
-                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.IDCARD.value,
-                                        'result': ', '.join(candidates), 'count': len(candidates)})
-        if SensitiveType.KEYWORD in self.sensitive_flags:
+                self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.IDCARD.value,
+                                     'sensitive_name': SENSITIVE_NAME.IDCARD.value,
+                                     'result': ', '.join(candidates), 'count': len(candidates)})
+        if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
             candidates = self.keyword(text)
             if len(candidates) > 0:
                 result['keyword'] = candidates
                 self.sensitives['keyword'].extend(candidates)
-                self.db_records.append({'origin': origin, 'sensitive_type': SensitiveType.KEYWORD.value,
-                                        'result': ', '.join(candidates), 'count': len(candidates)})
+                self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.KEYWORD.value,
+                                     'sensitive_name': SENSITIVE_NAME.KEYWORD.value,
+                                     'result': ', '.join(candidates), 'count': len(candidates)})
         if origin is not None and len(result) > 0:
             self.results[origin] = result
         return result
@@ -172,7 +175,7 @@ class TextExtractor(threading.Thread):
                 time.sleep(0.2)
 
     def run(self):
-        self._records2db()
+        self._sync2db()
         self._dump_metric()
         if self.queue is not None:
             self.extfrom_queue()

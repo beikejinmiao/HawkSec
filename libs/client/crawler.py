@@ -63,7 +63,7 @@ class Spider(object):
             url = re.sub(r'[^/]+/\.\./', '', url)
         return url
 
-    RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text'])
+    RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text', 'desc'])
 
     def scrape(self, path_limit=None):
         """
@@ -78,7 +78,7 @@ class Spider(object):
             filename = url_file(url)
             if filename:
                 self.file_urls[url] = self.all_urls.get(url)
-                yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None)
+                yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
                 continue
             # 爬取正常网页
             try:
@@ -97,15 +97,16 @@ class Spider(object):
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
                 self.broken_urls[url] = self.all_urls.get(url, '')
-                yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None)
+                yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None, desc=type(e).__name__)
                 continue
             # 提取url site和url路径
             parts = urlsplit(url)
             site = "{0.scheme}://{0.netloc}".format(parts)
             path = url[:url.rfind('/') + 1] if '/' in parts.path else url
             # 解析HTML页面
-            soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(response.text, "html.parser")
-            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=resp.text)
+            # html_text = resp.content.decode(resp.encoding)
+            soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
+            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=resp.text, desc=resp.reason)
             # 提取页面内容里的URL
             links = soup.find_all('a')
             for link in links:

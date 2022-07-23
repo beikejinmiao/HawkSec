@@ -7,10 +7,16 @@ SENSITIVE_FLAG_IDCARD = 1
 SENSITIVE_FLAG_KEYWORD = 2
 
 
-class SensitiveType(enum.IntFlag):
+class SENSITIVE_FLAG(enum.IntFlag):
     URL = U = SENSITIVE_FLAG_URL
     IDCARD = I = SENSITIVE_FLAG_IDCARD
     KEYWORD = K = SENSITIVE_FLAG_KEYWORD
+
+
+class SENSITIVE_NAME(enum.Enum):
+    URL = "外链"
+    IDCARD = "身份证"
+    KEYWORD = "关键字"
 
 
 class SYSTEM(str, enum.Enum):

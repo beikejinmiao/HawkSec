@@ -5,6 +5,7 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtCore import QThread
 from conf.paths import LOG_FILEPATH
+from libs.enums import SENSITIVE_FLAG
 from modules.ui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
@@ -29,7 +30,8 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         #
         self.target = ''
         self.protocol = 'https'
-        self.types = list()
+        self.sensitive_flags = list()
+        self._keywords = None
         self.task_manager = None
         self.metric_thread = None
         self.log_viewer = None
@@ -60,8 +62,8 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         for ix in range(self.protocolVLayout.count()):
             child = self.protocolVLayout.itemAt(ix).widget()
             child.setEnabled(enable)
-        for ix in range(self.mtypeGridLayout.count()):
-            child = self.mtypeGridLayout.itemAt(ix).widget()
+        for ix in range(self.sflagGridLayout.count()):
+            child = self.sflagGridLayout.itemAt(ix).widget()
             child.setEnabled(enable)
 
     def __log2gui(self, text):
@@ -108,12 +110,14 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
             if isinstance(child, QtWidgets.QRadioButton) and child.isChecked():
                 self.protocol = child.text().lower()
         # 监控内容/敏感类型
-        self.types = list()
-        for ix in range(self.mtypeGridLayout.count()):
-            child = self.mtypeGridLayout.itemAt(ix).widget()
+        self.sensitive_flags = list()
+        for ix in range(self.sflagGridLayout.count()):
+            child = self.sflagGridLayout.itemAt(ix).widget()
             if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
-                self.types.append(ix)
-        if len(self.types) <= 0:
+                self.sensitive_flags.append(ix)
+        if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
+            self._keywords = [item.strip() for item in self.keywordLineEdit.text().split(',')]
+        if len(self.sensitive_flags) <= 0:
             QMessageBox.warning(self, "提醒", "未选择监控内容！")
             return False
         return True
@@ -149,13 +153,15 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         if reply == QMessageBox.StandardButton.Close:
             return
         TaskManager.clear()
+        self.update_ui_metric(dict())
         #
         auth_config = None
         if self.protocol == 'sftp':
             auth_config = self.sshConfigWindow.config
         self.task_manager = TaskManager(self.target,
-                                        flags=self.types,
+                                        flags=self.sensitive_flags,
                                         protocol=self.protocol,
+                                        keywords=self._keywords,
                                         auth_config=auth_config)
         self.metric_thread = QCrawlExtProgress()
         self.__toggle_state(enable=False)

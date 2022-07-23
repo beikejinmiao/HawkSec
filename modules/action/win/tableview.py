@@ -91,8 +91,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
 class ProgressDataWindow(DataGridWindow):
     def __init__(self):
         columns = dict(zip(
-            ['id', 'origin', 'resp_code', 'create_time'],
-            ['ID', 'URL/FILE路径', '状态码', '创建时间']
+            ['id', 'origin', 'resp_code', 'desc', 'create_time'],
+            ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
         ))
         super().__init__(table=TABLES.CrawlStat.value, columns=columns)
 
@@ -100,8 +100,8 @@ class ProgressDataWindow(DataGridWindow):
 class ExtractDataWindow(DataGridWindow):
     def __init__(self):
         columns = dict(zip(
-            ['id', 'origin', 'sensitive_type', 'count', 'create_time'],
-            ['ID', '敏感内容来源', '敏感种类', '数量', '创建时间']
+            ['id', 'origin', 'sensitive_name', 'result', 'count', 'create_time'],
+            ['ID', 'URL/FILE路径', '敏感类型', '内容', '数量', '创建时间']
         ))
         super().__init__(table=TABLES.Extractor.value, columns=columns)
 
