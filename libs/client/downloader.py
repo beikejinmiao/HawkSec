@@ -14,7 +14,8 @@ from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
-from conf.paths import DUMP_HOME, DOWNLOADS
+from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
+from modules.action.metric import CrawlMetric
 from modules.action.extractor import TextExtractor
 from libs.logger import logger
 
@@ -27,11 +28,7 @@ class Downloader(threading.Thread):
         self.queue = queue
         self.terminated = False
         #
-        self.counter = {
-            'success': 0,
-            'failed': 0,
-            'ignored': 0,
-        }
+        self.metric = CrawlMetric()
         #
         self.db = None
         self.db_records = list()
@@ -50,11 +47,13 @@ class Downloader(threading.Thread):
             self.queue.put(local_path, block=False)         # 可停止的线程不能阻塞
         except Full:
             time.sleep(0.2)
-        self.counter['que_put'] = self.counter.get('que_put', 0) + 1
+        if self.metric.queue_put < 0:
+            self.metric.queue_put = 0
+        self.metric.queue_put += 1
 
     @timer(120, 120)
     def _log_stats(self):
-        logger.info('Downloader count stats: %s' % json.dumps(self.counter))
+        logger.info('爬虫客户端Metric统计: %s' % self.metric)
 
     @timer(2, 4)
     def _records2db(self):
@@ -64,6 +63,10 @@ class Downloader(threading.Thread):
         right = len(self.db_records)
         self.db.insert_many(TABLES.CrawlStat.value, self.db_records[left:right])
         self.db_record_ix = right
+
+    @timer(2, 1)
+    def _dump_metric(self):
+        self.metric.dump(CRAWL_METRIC_PATH)
 
     def crawling(self):
         pass
@@ -77,12 +80,13 @@ class Downloader(threading.Thread):
     def run(self):
         self._log_stats()
         self._records2db()
+        self._dump_metric()
         if not self.terminated:
             self.crawling()
         if not self.terminated:
             self.downloads()
         self.close()
-        logger.info('Downloader task terminated')
+        logger.info('爬虫客户端任务%s' % '终止' if self.terminated else '完成')
 
     def stop(self):
         self.terminated = True
@@ -106,17 +110,20 @@ class WebFileDownloader(Downloader):
         path = urlparse(url.strip()).path
         suffix = None
         # 默认不下载图片和可执行文件
+        self.metric.file_total += 1
         if img.match(path) or video.match(path) or executable.match(path):
-            self.counter['ignored'] += 1
+            self.metric.file_ignored += 1
         try:
             filename = wget.download(url, out=self.out_dir)
+            self.db_records.append({'origin': url, 'resp_code': 0})
             suffix = path.split('.')[-1].lower()
-            self.counter['success'] += 1
+            self.metric.file_success += 1
             # 将下载文件的本地路径放入队列中
             self._put_queue(os.path.join(self.out_dir, filename))
             logger.info('Download: %s' % url)
         except:
-            self.counter['failed'] += 1
+            self.metric.file_failed += 1
+            self.db_records.append({'origin': url, 'resp_code': -1})
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
             logger.error(traceback.format_exc())
             logger.error('Download Error: %s' % url)
@@ -133,9 +140,9 @@ class WebFileDownloader(Downloader):
                 suffixes.append(suffix)
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
-        self.counter['file_type'] = file_types
-        logger.info('Download done.\nDownloader count stats: %s' % json.dumps(self.counter))
-        logger.info('File Types:\n %s' % json.dumps(file_types, indent=4))
+        logger.info('下载%s' % '终止' if self.terminated else '完成')
+        logger.info('爬虫客户端Metric统计: %s' % self.metric)
+        logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
 
 class WebCrawlDownloader(Spider, WebFileDownloader):
@@ -159,23 +166,27 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
             if self.terminated:
                 break
             #
-            self.db_records.append({'origin': resp.url, 'resp_code': resp.status_code})
             if resp.filename:
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
                 continue
-            if resp.status_code >= 400:
-                self.counter['failed'] += 1
-            elif resp.status_code == 200:
-                self.counter['success'] += 1
+            self.db_records.append({'origin': resp.url, 'resp_code': resp.status_code})
+            self.metric.crawl_total += 1
+            if resp.status_code == 200:
+                self.metric.crawl_success += 1
+            else:
+                self.metric.crawl_failed += 1
             # 1.解析网页中的敏感内容
             if resp.html_text:
                 self.extractor.extract(resp.html_text, origin=resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
+        logger.info('爬取URL%s' % '终止' if self.terminated else '完成')
+        logger.info('爬虫客户端Metric统计: %s' % self.metric)
+        logger.info('发现文件URL: %s个' % len(self.urls))
 
     def close(self):
         self.session.close()
         if not self._file_urls_archive.closed:
             self._file_urls_archive.close()
-        logger.info('Downloader成功关闭Web Session和文件资源')
+        logger.info('WebCrawler成功关闭Web Session和文件资源')

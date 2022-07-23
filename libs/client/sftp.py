@@ -80,7 +80,6 @@ class SSHSession(Downloader):
         home = os.path.split(self.remote_root)[0]
         self.sftp.chdir(home)
         parent = os.path.split(self.remote_root)[1]
-        self.counter['traversed'] = 0
         try:
             for path, _, files in self._sftp_walk(parent):
                 if self.terminated:
@@ -89,27 +88,31 @@ class SSHSession(Downloader):
                     if self.terminated:
                         break
                     #
-                    self.counter['traversed'] += 1
-                    if self.counter['traversed'] % 2000 == 0:
-                        logger.info('count: %s' % self.counter['traversed'])
+                    self.metric.crawl_total += 1
+                    self.metric.crawl_success += 1
+                    if self.metric.crawl_success % 100 == 0:
                         self._filepath_archive.flush()
                     remote_filepath = self._path_join(home, path, filename)
                     self._filepath_archive.write(remote_filepath + '\n')
                     # 过滤图片、音视频、可执行程序
                     if img.match(remote_filepath) or video.match(remote_filepath) or executable.match(remote_filepath):
-                        self.counter['ignored'] += 1
+                        self.metric.crawl_ignored += 1
                         logger.debug('Ignore: %s' % remote_filepath)
                         continue
                     self.files.append(remote_filepath)
         except:
+            self.metric.crawl_total += 1
+            self.metric.crawl_failed += 1
             logger.error('sftp traverse error: %s' % self.remote_root)
             logger.info(traceback.format_exc())
-        logger.info('Traverse done.\nTotal file count: %s. Valid file count: %s' %
-                    (self.counter['traversed'], len(self.files)))
+        logger.info('遍历目录%s' % '终止' if self.terminated else '完成')
+        logger.info('SFTP Metric统计: %s' % self.metric)
         self._filepath_archive.close()
 
     def downloads(self):
         suffix = list()
+        self.metric.file_ignored = self.metric.crawl_ignored
+        #
         for remote_filepath in self.files:
             if self.terminated:
                 break
@@ -119,35 +122,36 @@ class SSHSession(Downloader):
             if not os.path.exists(local_dir):
                 os.makedirs(local_dir)
             # 下载
+            self.metric.file_total += 1
             try:
                 self.sftp.get(remote_filepath, local_filepath)
                 suffix.append(local_filepath.split('.')[-1].lower())
-                self.counter['success'] += 1
+                self.metric.file_success += 1
                 # 将下载文件的本地路径放入队列中
                 self._put_queue(local_filepath)
                 logger.info('Download: %s' % remote_filepath)
                 self.db_records.append({'origin': remote_filepath, 'resp_code': 0})
             except:
-                self.counter['failed'] += 1
+                self.metric.file_failed += 1
                 logger.error(traceback)
                 logger.error('Download Error: %s' % remote_filepath)
                 self.db_records.append({'origin': remote_filepath, 'resp_code': 1})
         # 统计文件类型数量
         file_types = dict(Counter(suffix).most_common())
-        self.counter['file_type'] = file_types
-        logger.info('Download done.\nDownloader count stats: %s' % json.dumps(self.counter))
-        logger.info('File Types:\n %s' % json.dumps(file_types, indent=4))
+        logger.info('下载%s' % '终止' if self.terminated else '完成')
+        logger.info('SFTP Metric统计: %s' % self.metric)
+        logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
     def close(self):
         self.t.close()
         self.ssh.close()
         if not self._filepath_archive.closed:
             self._filepath_archive.close()
-        logger.info('Downloader成功关闭SSH Session和文件资源')
+        logger.info('SFTP成功关闭SSH Session和文件资源')
 
 
 if __name__ == '__main__':
     s = SSHSession(hostname='106.13.202.41', port=61001, password='', remote_root='/root/xdocker')
     s.run()
-    print(json.dumps(s.counter))
+    print(s.metric)
     s.close()

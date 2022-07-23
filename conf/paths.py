@@ -36,4 +36,5 @@ if not os.path.exists(DOWNLOADS):
 
 LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
 DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
-
+CRAWL_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'crawl.metric.json')
+EXTRACT_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'extract.metric.json')

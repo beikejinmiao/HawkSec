@@ -12,11 +12,13 @@ from libs.regex import img, video, executable, archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.enums import SensitiveType
+from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_ioc, is_valid_ip, is_gov_edu
 from utils.idcard import find_idcard
+from modules.action.metric import ExtractMetric
 from libs.logger import logger
 
 
@@ -49,19 +51,30 @@ class TextExtractor(threading.Thread):
             'idcard': set(),
             'keyword': list(),
         }
+        self.metric = ExtractMetric()
         #
-        self.db = None
+        self.sqlite = None
         self.db_records = list()
         self.db_record_ix = 0
 
     @timer(2, 4)
     def _records2db(self):
-        if self.db is None:
-            self.db = Sqlite()
+        # sqlite3.ProgrammingError: SQLite objects created in a thread can only be used in that same thread.
+        # The object was created in thread id 4936 and this is thread id 6760.
+        if self.sqlite is None:
+            self.sqlite = Sqlite()
         left = self.db_record_ix
         right = len(self.db_records)
-        self.db.insert_many(TABLES.Extractor.value, self.db_records[left:right])
+        self.sqlite.insert_many(TABLES.Extractor.value, self.db_records[left:right])
         self.db_record_ix = right
+
+    @timer(2, 1)
+    def _dump_metric(self):
+        self.metric.external_url = len(self.sensitives['external_url'])
+        self.metric.idcard = len(self.sensitives['idcard'])
+        self.metric.keyword = len(self.sensitives['keyword'])
+        self.metric.origin_hit = len(self.results)
+        self.metric.dump(EXTRACT_METRIC_PATH)
 
     def external_url(self, text):
         candidates = set()
@@ -160,11 +173,12 @@ class TextExtractor(threading.Thread):
 
     def run(self):
         self._records2db()
+        self._dump_metric()
         if self.queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
-        logger.info('Extractor task terminated')
+        logger.info('敏感内容提取任务%s' % '终止' if self.terminated else '完成')
 
     def stop(self):
         self.terminated = True

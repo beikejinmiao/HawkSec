@@ -7,7 +7,7 @@ from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
 from modules.action.win.settings import SettingWindow
 from modules.action.win.tableview import ProgressDataWindow, ExtractDataWindow
-from modules.action.progression import CrawlExtProgress
+from modules.action.metric import QCrawlExtProgress
 from libs.logger import QLogTailReader
 
 MONIT_TARGET = ''
@@ -22,16 +22,16 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.progressWindow = None  # ProgressDataWindow()
         self.extractWindow = None   # ExtractDataWindow()
         #
-        self.__init_state()
+        self.__init_ui_state()
         #
         self.target = ''
         self.protocol = 'https'
         self.types = list()
         self.task_manager = None
-        self.progression = None
+        self.metric_thread = None
         self.log_viewer = None
 
-    def __init_state(self):
+    def __init_ui_state(self):
         self.httpsRadioBtn.setChecked(True)
         self.extUrlCheckBox.setChecked(True)
         self.stopBtn.setEnabled(False)
@@ -43,6 +43,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.exitBtn.clicked.connect(self.close)
         self.checkProgressBtn.clicked.connect(self.show_progress_win)
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
+        self.update_ui_metric(QCrawlExtProgress.metric())
         #
 
     def __toggle_state(self, enable=True):
@@ -113,13 +114,13 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
         self.extractWindow.show()
 
-    def update_progress(self, stat):
-        self.crawledCntLabel.setText(str(stat['crawled']))
-        self.faieldCntLabel.setText(str(stat['failed']))
-        self.hitCntLabel.setText(str(stat['hit']))
-        self.extUrlCntLabel.setText(str(stat['external_url']))
-        self.idcardCntLabel.setText(str(stat['idcard']))
-        self.keywordCntLabel.setText(str(stat['keyword']))
+    def update_ui_metric(self, stat):
+        self.crawledCntLabel.setText(str(stat.get('crawl_total', 0)))
+        self.faieldCntLabel.setText(str(stat.get('crawl_failed', 0)))
+        self.hitCntLabel.setText(str(stat.get('origin_hit', 0)))
+        self.extUrlCntLabel.setText(str(stat.get('external_url', 0)))
+        self.idcardCntLabel.setText(str(stat.get('idcard', 0)))
+        self.keywordCntLabel.setText(str(stat.get('keyword', 0)))
 
     def start(self):
         if not self._check_inputs():
@@ -131,18 +132,21 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         flags=self.types,
                                         protocol=self.protocol,
                                         auth_config=auth_config)
-        self.progression = CrawlExtProgress(extractor=self.task_manager.extractor)
+        self.metric_thread = QCrawlExtProgress()
         if self.log_viewer is None:
             self.__start_log_reader()
         self.__toggle_state(enable=False)
         self.task_manager.start()
-        self.progression.start()
-        self.progression.progress.connect(self.update_progress)
+        self.metric_thread.start()
+        self.metric_thread.progress.connect(self.update_ui_metric)
 
     def stop(self):
-        self.progression.stop()
+        self.metric_thread.stop()
         self.task_manager.stop()
         self.__toggle_state(enable=True)
-        del self.progression
+        del self.metric_thread
         del self.task_manager
+
+    def closeEvent(self, event):
+        pass
 
