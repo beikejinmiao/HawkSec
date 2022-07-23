@@ -123,6 +123,8 @@ LOGGING_CONFIG = {
 
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("file")
+if not os.path.exists(LOG_FILEPATH):
+    open(LOG_FILEPATH, 'a').close()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtCore import QThread
+from conf.paths import LOG_FILEPATH
 from modules.ui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
@@ -32,6 +35,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.log_viewer = None
 
     def __init_ui_state(self):
+        self.targetLineEdit.setText('https://www.btbu.edu.cn/')
         self.httpsRadioBtn.setChecked(True)
         self.extUrlCheckBox.setChecked(True)
         self.stopBtn.setEnabled(False)
@@ -44,7 +48,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.checkProgressBtn.clicked.connect(self.show_progress_win)
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
         self.update_ui_metric(QCrawlExtProgress.metric())
-        #
+        # self.__pre_load_log()
 
     def __toggle_state(self, enable=True):
         """
@@ -60,8 +64,20 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
             child = self.mtypeGridLayout.itemAt(ix).widget()
             child.setEnabled(enable)
 
-    def __log_append2gui(self, text):
+    def __log2gui(self, text):
         self.logTextBox.appendPlainText(text)
+
+    def __pre_load_log(self):
+        with open(LOG_FILEPATH, 'rb') as fopen:
+            # seek the end of the file
+            fopen.seek(0, os.SEEK_END)
+            # 逆序读取最多1500个字符
+            fopen.seek(max(-fopen.tell(), -1500), os.SEEK_END)
+            lines = fopen.readlines()
+            if len(lines) <= 1:
+                return
+            for i in range(1, len(lines)):
+                self.__log2gui(str(lines[i], encoding='utf-8').strip())
 
     def __start_log_reader(self):
         self.log_viewer = QThread()
@@ -72,7 +88,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.log_reader.finished.connect(self.log_viewer.quit)
         self.log_reader.finished.connect(self.log_reader.deleteLater)
         self.log_viewer.finished.connect(self.log_viewer.deleteLater)
-        self.log_reader.readline.connect(self.__log_append2gui)
+        self.log_reader.readline.connect(self.__log2gui)
         # Start the thread
         self.log_viewer.start()
 
@@ -84,7 +100,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
     def _check_inputs(self):
         self.target = self.targetLineEdit.text().strip()
         if len(self.target) <= 0:
-            QtWidgets.QMessageBox.warning(self, "提醒", "监控对象为空！请输入监控对象：IP/域名/URL")
+            QMessageBox.warning(self, "提醒", "监控对象为空！请输入监控对象：IP/域名/URL")
             return False
         # 访问协议
         for ix in range(self.protocolVLayout.count()):
@@ -98,7 +114,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
             if isinstance(child, QtWidgets.QCheckBox) and child.isChecked():
                 self.types.append(ix)
         if len(self.types) <= 0:
-            QtWidgets.QMessageBox.warning(self, "提醒", "未选择监控内容！")
+            QMessageBox.warning(self, "提醒", "未选择监控内容！")
             return False
         return True
 
@@ -123,8 +139,17 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.keywordCntLabel.setText(str(stat.get('keyword', 0)))
 
     def start(self):
+        if self.log_viewer is None:
+            self.__start_log_reader()
         if not self._check_inputs():
             return
+        reply = QMessageBox.information(self, "提醒", "重新开始将清除历史数据",
+                                        buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Close,
+                                        defaultButton=QMessageBox.StandardButton.Ok)
+        if reply == QMessageBox.StandardButton.Close:
+            return
+        TaskManager.clear()
+        #
         auth_config = None
         if self.protocol == 'sftp':
             auth_config = self.sshConfigWindow.config
@@ -133,9 +158,8 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         protocol=self.protocol,
                                         auth_config=auth_config)
         self.metric_thread = QCrawlExtProgress()
-        if self.log_viewer is None:
-            self.__start_log_reader()
         self.__toggle_state(enable=False)
+
         self.task_manager.start()
         self.metric_thread.start()
         self.metric_thread.progress.connect(self.update_ui_metric)

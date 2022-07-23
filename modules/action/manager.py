@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 import re
 import threading
 # from multiprocessing import Queue, Process
 from queue import Queue
-from libs.enums import SensitiveType
+from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, LOG_FILEPATH
+from libs.enums import SensitiveType, TABLES
+from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
 from modules.action.extractor import TextExtractor
@@ -73,6 +76,22 @@ class TaskManager(object):
         self.crawler.join()
         self.extractor.join()
         logger.info('%s Manager stopped %s' % ('=' * 18, '=' * 18))
+
+    @staticmethod
+    def clear():
+        sqlite = Sqlite()
+        sqlite.truncate(TABLES.CrawlStat.value)
+        sqlite.truncate(TABLES.Extractor.value)
+        sqlite.close()
+        # TODO 清空文件会导致GUI日志线程无法读取内容
+        # if os.path.exists(LOG_FILEPATH):
+        #     with open(LOG_FILEPATH, 'w') as fopen:
+        #         fopen.write('')
+        if os.path.exists(CRAWL_METRIC_PATH):
+            os.remove(CRAWL_METRIC_PATH)
+        if os.path.exists(EXTRACT_METRIC_PATH):
+            os.remove(EXTRACT_METRIC_PATH)
+        logger.info('成功清除历史数据')
 
 
 if __name__ == '__main__':
