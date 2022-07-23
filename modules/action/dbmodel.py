@@ -4,6 +4,7 @@ import math
 from PyQt6.QtSql import QSqlDatabase, QSqlQueryModel
 from PyQt6.QtCore import Qt
 from conf.paths import DB_PATH
+from libs.pysqlite import Sqlite
 
 
 class QueryModel(QSqlQueryModel):
@@ -18,6 +19,7 @@ class TablePageModel(object):
     def __init__(self, table, columns):
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(DB_PATH)
+        self.sqlite = Sqlite()
 
         # 当前页
         self.cur_page = 1
@@ -46,14 +48,24 @@ class TablePageModel(object):
         self.query_model = QueryModel()
         if not self.db.isOpen():
             self.db.open()
-        sql = 'SELECT %s FROM `%s`' % (self.__columns, self.table)
-        self.query_model.setQuery(sql, self.db)
-        self.total_record = self.query_model.rowCount()
-        self.total_page = math.ceil(self.total_record / self.page_record)
+        #
+        self.update_total_count()
         self.limit_query(start_index=0)
         if isinstance(self.columns, dict):
             for i, name in enumerate(self.columns.values()):
                 self.query_model.setHeaderData(i, Qt.Orientation.Horizontal, name)
+
+    def update_total_count(self):
+        # 默认最多返回256行
+        # https://stackoverflow.com/questions/42286016/qsqlrelationaltablemodel-only-populates-first-256-records
+        # sql = 'SELECT %s FROM `%s`' % (self.__columns, self.table)
+        # self.query_model.setQuery(sql, self.db)
+        # self.total_record = self.query_model.rowCount()
+        self.total_record = self.sqlite.count(self.table)
+        self.total_page = math.ceil(self.total_record / self.page_record)
+
+    def update_ui_state(self):
+        pass
 
     def limit_query(self, start_index=0, limit=None):
         if not limit:
@@ -72,7 +84,7 @@ class TablePageModel(object):
             page = self.cur_page
         start_index = (page - 1) * self.page_record
         self.limit_query(start_index=start_index)
-        self.update_state()
+        self.update_ui_state()
 
     def on_prev_page(self):
         self.cur_page -= 1
@@ -90,5 +102,3 @@ class TablePageModel(object):
         if self.db.isOpen():
             self.db.close()
 
-    def update_state(self):
-        pass
