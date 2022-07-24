@@ -9,6 +9,7 @@ from collections import deque, namedtuple
 from bs4 import BeautifulSoup
 import tldextract
 from libs.regex import html, common_dom
+from utils.mixed import auto_decode
 from libs.logger import logger
 
 default_headers = {
@@ -104,9 +105,9 @@ class Spider(object):
             site = "{0.scheme}://{0.netloc}".format(parts)
             path = url[:url.rfind('/') + 1] if '/' in parts.path else url
             # 解析HTML页面
-            # html_text = resp.content.decode(resp.encoding)
+            html_text = auto_decode(resp.content)       # resp.text
             soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
-            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=resp.text, desc=resp.reason)
+            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=html_text, desc=resp.reason)
             # 提取页面内容里的URL
             links = soup.find_all('a')
             for link in links:

@@ -40,3 +40,14 @@ def ssh_accessible(host, port=22, username=None, password=None):
     # paramiko.ssh_exception.AuthenticationException: Authentication failed.
     # paramiko.ssh_exception.AuthenticationException: Authentication timeout.   # auth_timeout=1
 
+
+def auto_decode(text):
+    if not isinstance(text, bytes):
+        return text
+    #
+    for charset in ('utf-8', 'gbk'):
+        try:
+            return text.decode(charset)
+        except UnicodeDecodeError:
+            pass
+    return None
