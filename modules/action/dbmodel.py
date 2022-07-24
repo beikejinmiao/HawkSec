@@ -12,6 +12,7 @@ class QueryModel(QSqlQueryModel):
         # 表格数据居中显示
         if role == Qt.ItemDataRole.TextAlignmentRole:
             return Qt.AlignmentFlag.AlignCenter
+            # return Qt.AlignmentFlag.AlignLeft
         return super().data(index, role=role)
 
 

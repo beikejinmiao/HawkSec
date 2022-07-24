@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-import math
 from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import QHeaderView
 from libs.enums import TABLES
 from libs.pysqlite import Sqlite
 from conf.paths import DUMP_HOME
@@ -11,15 +11,19 @@ from modules.action.dbmodel import TablePageModel
 
 
 class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
-    def __init__(self, table, columns):
+    def __init__(self, table, columns, column_modes=None):
         TablePageModel.__init__(self, table, columns)
         Ui_Form.__init__(self)
         QtWidgets.QWidget.__init__(self)
         # super().__init__(table, columns)
         self.setupUi(self)
         self.tableView.setModel(self.query_model)
-        self.tableView.horizontalHeader().setStretchLastSection(True)
-        self.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        # self.tableView.horizontalHeader().setStretchLastSection(True)
+        # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header = self.tableView.horizontalHeader()
+        for i, mode in enumerate(column_modes):
+            header.setSectionResizeMode(i, mode)
+        self.tableView.showRow(0)
 
         self.set_connect()
         self.update_ui_state()
@@ -94,7 +98,10 @@ class ProgressDataWindow(DataGridWindow):
             ['id', 'origin', 'resp_code', 'desc', 'create_time'],
             ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
         ))
-        super().__init__(table=TABLES.CrawlStat.value, columns=columns)
+        column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
+                        QHeaderView.ResizeMode.ResizeToContents]
+        super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes)
 
 
 class ExtractDataWindow(DataGridWindow):
@@ -103,7 +110,10 @@ class ExtractDataWindow(DataGridWindow):
             ['id', 'origin', 'sensitive_name', 'result', 'count', 'create_time'],
             ['ID', 'URL/FILE路径', '敏感类型', '内容', '数量', '创建时间']
         ))
-        super().__init__(table=TABLES.Extractor.value, columns=columns)
+        column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
+        super().__init__(table=TABLES.Extractor.value, columns=columns, column_modes=column_modes)
 
 
 class WhiteListDataWindow(DataGridWindow):
