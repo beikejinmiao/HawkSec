@@ -20,6 +20,7 @@ class TablePageModel(object):
     def __init__(self, table, columns):
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(DB_PATH)
+        self.db_where = None
         self.sqlite = Sqlite()
 
         # 当前页
@@ -62,7 +63,7 @@ class TablePageModel(object):
         # sql = 'SELECT %s FROM `%s`' % (self.__columns, self.table)
         # self.query_model.setQuery(sql, self.db)
         # self.total_record = self.query_model.rowCount()
-        self.total_record = self.sqlite.count(self.table)
+        self.total_record = self.sqlite.count(self.table, where=self.db_where)
         self.total_page = math.ceil(self.total_record / self.page_record)
 
     def update_ui_state(self):
@@ -76,8 +77,8 @@ class TablePageModel(object):
         #     columns = self.__columns
         # elif isinstance(columns, (list, tuple)):
         #     columns = ','.join(columns)
-        sql = 'SELECT %s FROM `%s`  ORDER BY `id` DESC LIMIT %d,%d' % \
-              (self.__columns, self.table, start_index, limit)
+        sql = 'SELECT %s FROM `%s` %s ORDER BY `id` DESC LIMIT %d,%d' % \
+              (self.__columns, self.table, '' if not self.db_where else 'WHERE '+self.db_where, start_index, limit)
         self.query_model.setQuery(sql, self.db)
 
     def query_page(self, page=None):
@@ -102,4 +103,5 @@ class TablePageModel(object):
     def close_db(self):
         if self.db.isOpen():
             self.db.close()
+        self.sqlite.close()
 

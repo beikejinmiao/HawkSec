@@ -54,8 +54,9 @@ class Sqlite(object):
     def select(self, sql):
         return self.__cursor.execute(sql).fetchall()
 
-    def count(self, table):
-        return self.__cursor.execute('SELECT count(*) FROM `%s`' % table).fetchone()[0]
+    def count(self, table, where=''):
+        return self.__cursor.execute('SELECT count(*) FROM `%s` %s' %
+                                     (table, '' if not where else 'WHERE '+where)).fetchone()[0]
 
     def truncate(self, table):
         self.__cursor.execute('DELETE FROM %s' % table)
@@ -74,5 +75,6 @@ if __name__ == '__main__':
     sqlite = Sqlite()
     sqlite.truncate('crawlstat')
     sqlite.truncate('extractor')
+    # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 
