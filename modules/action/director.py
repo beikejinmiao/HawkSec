@@ -10,7 +10,7 @@ from modules.ui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.action.manager import TaskManager
 from modules.action.win.sshconfig import SshConfigWindow
 from modules.action.win.settings import SettingWindow
-from modules.action.win.tableview import ProgressDataWindow, ExtractDataWindow
+from modules.action.win.tableview import ProgressDataWindow, ExtractDataWindow, SensitiveDataWindow
 from modules.action.metric import QCrawlExtProgress
 from libs.logger import QLogTailReader
 
@@ -25,6 +25,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.sshConfigWindow = SshConfigWindow()
         self.progressWindow = None  # ProgressDataWindow()
         self.extractWindow = None   # ExtractDataWindow()
+        self.sensitiveWindow = None  # SensitiveDataWindow()
         #
         self.__init_ui_state()
         #
@@ -37,7 +38,6 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.log_viewer = None
 
     def __init_ui_state(self):
-        self.targetLineEdit.setText('https://www.btbu.edu.cn/')
         self.httpsRadioBtn.setChecked(True)
         self.extUrlCheckBox.setChecked(True)
         self.stopBtn.setEnabled(False)
@@ -45,10 +45,11 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.menuActionGeneral.triggered.connect(self.settingWindow.show)
         self.sftpRadioBtn.clicked.connect(self.show_sshconf_win)
         self.startBtn.clicked.connect(self.start)
-        self.stopBtn.clicked.connect(self.stop)
-        self.exitBtn.clicked.connect(self.close)
+        self.stopBtn.clicked.connect(self.terminate)
+        self.exitBtn.clicked.connect(self.exit)
         self.checkProgressBtn.clicked.connect(self.show_progress_win)
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
+        self.checkSensitiveBtn.clicked.connect(self.show_sensitive_win)
         self.update_ui_metric(QCrawlExtProgress.metric())
         # self.__pre_load_log()
 
@@ -134,13 +135,19 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
         self.extractWindow.show()
 
+    def show_sensitive_win(self):
+        self.sensitiveWindow = SensitiveDataWindow()        # 窗口关闭后销毁对象
+        self.sensitiveWindow.show()
+
     def update_ui_metric(self, stat):
+        if stat is None:
+            return
         self.crawledCntLabel.setText(str(stat.get('crawl_total', 0)))
         self.faieldCntLabel.setText(str(stat.get('crawl_failed', 0)))
         self.hitCntLabel.setText(str(stat.get('origin_hit', 0)))
-        self.extUrlCntLabel.setText(str(stat.get('external_url', 0)))
-        self.idcardCntLabel.setText(str(stat.get('idcard', 0)))
-        self.keywordCntLabel.setText(str(stat.get('keyword', 0)))
+        self.extUrlCntLabel.setText('%s个/%s次' % (stat.get('external_url_count', 0), stat.get('external_url_find', 0)))
+        self.idcardCntLabel.setText('%s个/%s次' % (stat.get('idcard_count', 0), stat.get('idcard_find', 0)))
+        self.keywordCntLabel.setText('%s个/%s次' % (stat.get('keyword_count', 0), stat.get('keyword_find', 0)))
 
     def start(self):
         if self.log_viewer is None:
@@ -170,13 +177,33 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.metric_thread.start()
         self.metric_thread.progress.connect(self.update_ui_metric)
 
-    def stop(self):
+    def terminate(self):
+        reply = QMessageBox.information(self, "提醒", "请确认是否终止目前任务，任务终止后需重新开始。",
+                                        buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                                        defaultButton=QMessageBox.StandardButton.Cancel)
+        if reply == QMessageBox.StandardButton.Cancel:
+            return
         self.metric_thread.stop()
         self.task_manager.stop()
         self.__toggle_state(enable=True)
         del self.metric_thread
         del self.task_manager
 
+    def exit(self):
+        reply = QMessageBox.information(self, "提醒", "请确认是否直接退出",
+                                        buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                                        defaultButton=QMessageBox.StandardButton.Cancel)
+        if reply == QMessageBox.StandardButton.Cancel:
+            return
+        self.close()
+
     def closeEvent(self, event):
-        pass
+        if self.settingWindow:
+            self.settingWindow.close()
+        if self.sshConfigWindow:
+            self.sshConfigWindow.close()
+        if self.progressWindow:
+            self.progressWindow.close()
+        if self.extractWindow:
+            self.extractWindow.close()
 

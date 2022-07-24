@@ -56,76 +56,98 @@
       <x>30</x>
       <y>400</y>
       <width>251</width>
-      <height>151</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
      <string>进度状态统计</string>
     </property>
-    <layout class="QVBoxLayout" name="metricVerticalLayout">
-     <item>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>         已爬取数量:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="crawledCntLabel">
-         <property name="text">
-          <string>0     </string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="faieldCntLabel">
-         <property name="text">
-          <string>0     </string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="text">
-          <string>      访问失败数量:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="hitCntLabel">
-         <property name="text">
-          <string>0     </string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>含有监控内容数量:</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QPushButton" name="checkProgressBtn">
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>查看</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>231</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>         已爬取数量:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="crawledCntLabel">
+        <property name="text">
+         <string>0     </string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="checkProgressBtn">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>查看</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>      访问失败数量:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_19">
+        <property name="text">
+         <string>含有监控内容数量:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="hitCntLabel">
+        <property name="text">
+         <string>0     </string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="checkExtractBtn">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>查看</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="faieldCntLabel">
+        <property name="text">
+         <string>0     </string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
@@ -150,7 +172,7 @@
      <item>
       <widget class="QPushButton" name="stopBtn">
        <property name="text">
-        <string>停止</string>
+        <string>终止</string>
        </property>
       </widget>
      </item>
@@ -166,10 +188,10 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>630</x>
+      <x>570</x>
       <y>400</y>
-      <width>231</width>
-      <height>151</height>
+      <width>291</width>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
@@ -178,65 +200,62 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_14">
+       <item row="2" column="1">
+        <widget class="QLabel" name="keywordCntLabel">
          <property name="text">
-          <string>        外链数量: </string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="extUrlCntLabel">
-         <property name="text">
-          <string>0     </string>
+          <string>0个/0次</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_15">
          <property name="text">
-          <string>      身份证数量:</string>
+          <string>身份证数量统计:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="extUrlCntLabel">
+         <property name="text">
+          <string>0个/0次     </string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>  外链数量统计: </string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
         <widget class="QLabel" name="idcardCntLabel">
          <property name="text">
-          <string>0     </string>
+          <string>0个/0次</string>
          </property>
         </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>关键字发现次数:</string>
+          <string>关键字数量统计:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="keywordCntLabel">
+       <item row="2" column="2">
+        <widget class="QPushButton" name="checkSensitiveBtn">
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>0     </string>
+          <string>详情</string>
          </property>
         </widget>
        </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QPushButton" name="checkExtractBtn">
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>查看</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </widget>

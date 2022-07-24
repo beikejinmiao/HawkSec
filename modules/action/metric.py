@@ -39,10 +39,16 @@ class CrawlMetric(AbstractMetric):
 
 
 class ExtractMetric(AbstractMetric):
-    def __init__(self, external_url=0, idcard=0, keyword=0, origin_hit=0, queue_get=-1):
-        self.external_url = external_url
-        self.idcard = idcard
-        self.keyword = keyword
+    def __init__(self, external_url_find=0, external_url_count=0,
+                 idcard_find=0, idcard_count=0,
+                 keyword_find=0, keyword_count=0,
+                 origin_hit=0, queue_get=-1):
+        self.external_url_find = external_url_find
+        self.external_url_count = external_url_count
+        self.idcard_find = idcard_find
+        self.idcard_count = idcard_count
+        self.keyword_find = keyword_find
+        self.keyword_count = keyword_count
         self.origin_hit = origin_hit
         self.queue_get = queue_get
 
@@ -57,10 +63,11 @@ class QCrawlExtProgress(QThread):
 
     @staticmethod
     def metric():
-        stat = dict()
+        stat = None
         try:
+            stat = dict()
             with open(CRAWL_METRIC_PATH, encoding='utf-8') as fopen:
-                stat.update(json.load(fopen))
+                stat = json.load(fopen)
             with open(EXTRACT_METRIC_PATH, encoding='utf-8') as fopen:
                 stat.update(json.load(fopen))
         except FileNotFoundError:

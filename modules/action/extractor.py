@@ -11,7 +11,7 @@ from libs.timer import timer
 from libs.regex import img, video, executable, archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
-from libs.enums import SENSITIVE_FLAG, SENSITIVE_NAME
+from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
 from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -38,7 +38,7 @@ class TextExtractor(threading.Thread):
         self._keywords = set() if keywords is None else set(keywords)
         self.queue = queue
         self.sensitive_flags = sensitive_flags
-        self.results = dict()
+        self.results = dict()           # key:origin,  value:敏感内容类型以及content列表
         self.terminated = False
         #
         self.counter = {
@@ -47,15 +47,26 @@ class TextExtractor(threading.Thread):
             'others': 0,
         }
         self.sensitives = {
-            'external_url': set(),
-            'idcard': set(),
-            'keyword': list(),
+            SENSITIVE_FLAG.URL: {'content': set(), 'find': 0},
+            SENSITIVE_FLAG.IDCARD: {'content': set(), 'find': 0},
+            SENSITIVE_FLAG.KEYWORD: {'content': set(), 'find': 0},
+        }
+        self.__funcs = {
+            SENSITIVE_FLAG.URL: self.external_url,
+            SENSITIVE_FLAG.IDCARD: self.idcard,
+            SENSITIVE_FLAG.KEYWORD: self.keyword,
         }
         self.metric = ExtractMetric()
         #
         self.sqlite = None
-        self.db_rows = list()
-        self.__db_row_ix = 0
+        self.db_rows = {
+            TABLES.Extractor.value: list(),
+            TABLES.Sensitives.value: list(),
+        }
+        self.__db_row_ix = {
+            TABLES.Extractor.value: 0,
+            TABLES.Sensitives.value: 0,
+        }
 
     @timer(2, 4)
     def _sync2db(self):
@@ -63,16 +74,21 @@ class TextExtractor(threading.Thread):
         # The object was created in thread id 4936 and this is thread id 6760.
         if self.sqlite is None:
             self.sqlite = Sqlite()
-        left = self.__db_row_ix
-        right = len(self.db_rows)
-        self.sqlite.insert_many(TABLES.Extractor.value, self.db_rows[left:right])
-        self.__db_row_ix = right
+
+        for table in self.db_rows:
+            left = self.__db_row_ix[table]
+            right = len(self.db_rows[table])
+            self.sqlite.insert_many(table, self.db_rows[table][left:right])
+            self.__db_row_ix[table] = right
 
     @timer(2, 1)
     def _dump_metric(self):
-        self.metric.external_url = len(self.sensitives['external_url'])
-        self.metric.idcard = len(self.sensitives['idcard'])
-        self.metric.keyword = len(self.sensitives['keyword'])
+        self.metric.external_url_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
+        self.metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
+        self.metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
+        self.metric.external_url_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
+        self.metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
+        self.metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
         self.metric.origin_hit = len(self.results)
         self.metric.dump(EXTRACT_METRIC_PATH)
 
@@ -101,32 +117,32 @@ class TextExtractor(threading.Thread):
 
     def extract(self, text, origin=None):
         result = dict()
-        if origin and re.match(r'^http[s]://', origin):
-            # 只在网页中提取提取外链,下载的文件中不提取
-            if SENSITIVE_FLAG.URL in self.sensitive_flags:
-                candidates = self.external_url(text)
-                if len(candidates) > 0:
-                    result['external_url'] = candidates
-                    self.sensitives['external_url'] = self.sensitives['external_url'] | set(candidates)
-                    self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.URL.value,
-                                         'sensitive_name': SENSITIVE_NAME.URL.value,
-                                         'result': ', '.join(candidates), 'count': len(candidates)})
-        if SENSITIVE_FLAG.IDCARD in self.sensitive_flags:
-            candidates = self.idcard(text)
+        for flag in self.__funcs:
+            if flag == SENSITIVE_FLAG.URL:
+                if not (origin and re.match(r'^http[s]://', origin)):
+                    # 只在网页中提取提取外链,下载的文件中不提取
+                    continue
+            candidates = self.__funcs[flag](text)
             if len(candidates) > 0:
-                self.sensitives['idcard'] = self.sensitives['idcard'] | set(candidates)
-                self.sensitives['idcard'].union(set(candidates))
-                self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.IDCARD.value,
-                                     'sensitive_name': SENSITIVE_NAME.IDCARD.value,
-                                     'result': ', '.join(candidates), 'count': len(candidates)})
-        if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
-            candidates = self.keyword(text)
-            if len(candidates) > 0:
-                result['keyword'] = candidates
-                self.sensitives['keyword'].extend(candidates)
-                self.db_rows.append({'origin': origin, 'sensitive_type': SENSITIVE_FLAG.KEYWORD.value,
-                                     'sensitive_name': SENSITIVE_NAME.KEYWORD.value,
-                                     'result': ', '.join(candidates), 'count': len(candidates)})
+                self.sensitives[flag]['find'] += len(candidates)
+                candidates = set(candidates)
+                result[flag] = candidates
+                self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
+
+        for flag, values in result.items():
+            sensitive_name = sensitive_flag_name[flag].value
+            sensitive_flag = flag.value
+            self.db_rows[TABLES.Extractor.value].append({
+                'origin': origin,
+                'sensitive_type': sensitive_flag, 'sensitive_name': sensitive_name,
+                'content': ', '.join(values), 'count': len(values),
+            })
+            for value in values:
+                self.db_rows[TABLES.Sensitives.value].append({
+                    'content': value, 'origin': origin,
+                    'sensitive_type': sensitive_flag, 'sensitive_name': sensitive_name,
+                })
+
         if origin is not None and len(result) > 0:
             self.results[origin] = result
         return result

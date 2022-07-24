@@ -75,6 +75,7 @@ if __name__ == '__main__':
     sqlite = Sqlite()
     sqlite.truncate('crawlstat')
     sqlite.truncate('extractor')
+    sqlite.truncate('sensitives')
     # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 

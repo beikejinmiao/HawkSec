@@ -3,7 +3,7 @@
 import os
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QHeaderView
-from libs.enums import TABLES
+from libs.enums import TABLES, SENSITIVE_NAME
 from libs.pysqlite import Sqlite
 from conf.paths import DUMP_HOME
 from modules.ui.ui_tableview import Ui_Form
@@ -80,7 +80,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
         if code.upper() != 'ALL':
             if self.table == TABLES.CrawlStat.value:
                 self.db_where = 'resp_code=%s' % code
-            elif self.table == TABLES.Extractor.value:
+            elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
                 self.db_where = 'sensitive_name="%s"' % code
         else:
             self.db_where = None
@@ -129,8 +129,8 @@ class ProgressDataWindow(DataGridWindow):
 class ExtractDataWindow(DataGridWindow):
     def __init__(self):
         columns = dict(zip(
-            ['id', 'origin', 'sensitive_name', 'result', 'count', 'create_time'],
-            ['ID', 'URL/FILE路径', '敏感类型', '内容', '数量', '创建时间']
+            ['id', 'origin', 'sensitive_name', 'content', 'count', 'create_time'],
+            ['ID', 'URL/FILE路径', '敏感类型', '敏感内容', '数量', '创建时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
@@ -139,7 +139,25 @@ class ExtractDataWindow(DataGridWindow):
 
     def custom_ui(self):
         self.searchCodeLabel.setText('敏感类型')
-        names = ['外链', '身份证', '关键字']
+        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+        for i, name in enumerate(names):
+            self.searchCodeComboBox.insertItem(i + 1, name)
+
+
+class SensitiveDataWindow(DataGridWindow):
+    def __init__(self):
+        columns = dict(zip(
+            ['id',  'sensitive_name', 'content', 'origin', 'create_time'],
+            ['ID',  '敏感类型', '敏感内容', 'URL/FILE来源', '创建时间']
+        ))
+        column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
+                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents]
+        super().__init__(table=TABLES.Sensitives.value, columns=columns, column_modes=column_modes)
+
+    def custom_ui(self):
+        self.searchCodeLabel.setText('敏感类型')
+        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
         for i, name in enumerate(names):
             self.searchCodeComboBox.insertItem(i + 1, name)
 

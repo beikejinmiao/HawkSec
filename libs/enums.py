@@ -19,6 +19,13 @@ class SENSITIVE_NAME(enum.Enum):
     KEYWORD = "关键字"
 
 
+sensitive_flag_name = {
+    SENSITIVE_FLAG.URL: SENSITIVE_NAME.URL,
+    SENSITIVE_FLAG.IDCARD: SENSITIVE_NAME.IDCARD,
+    SENSITIVE_FLAG.KEYWORD: SENSITIVE_NAME.KEYWORD,
+}
+
+
 class SYSTEM(str, enum.Enum):
     # https://stackoverflow.com/questions/58608361/string-based-enum-in-python
     LINUX = "linux"
@@ -31,6 +38,7 @@ class TABLES(enum.Enum):
     Extractor = "extractor"
     FileType = "filetype"
     WhiteList = "whitelist"
+    Sensitives = "sensitives"
 
 
 if __name__ == '__main__':

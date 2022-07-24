@@ -82,6 +82,7 @@ class TaskManager(object):
         sqlite = Sqlite()
         sqlite.truncate(TABLES.CrawlStat.value)
         sqlite.truncate(TABLES.Extractor.value)
+        sqlite.truncate(TABLES.Sensitives.value)
         sqlite.close()
         # TODO 清空文件会导致GUI日志线程无法读取内容
         # if os.path.exists(LOG_FILEPATH):
