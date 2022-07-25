@@ -5,13 +5,13 @@ import re
 import time
 import shutil
 import tldextract
-import threading
 from queue import Empty
 from libs.timer import timer
 from libs.regex import img, video, executable, archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
+from libs.thread import SuicidalThread
 from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -22,7 +22,7 @@ from modules.action.metric import ExtractMetric
 from libs.logger import logger
 
 
-class TextExtractor(threading.Thread):
+class TextExtractor(SuicidalThread):
     def __init__(self, root=None, sensitive_flags=None, keywords=None, queue=None):
         super().__init__()
         self.files = list()
@@ -39,7 +39,6 @@ class TextExtractor(threading.Thread):
         self.queue = queue
         self.sensitive_flags = sensitive_flags
         self.results = dict()           # key:origin,  value:敏感内容类型以及content列表
-        self.terminated = False
         #
         self.counter = {
             'archive': 0,
@@ -170,20 +169,18 @@ class TextExtractor(threading.Thread):
             self.__extract_file(filepath)
 
     def extfrom_root(self):
-        results = dict()
         for filepath in self.files:
-            if self.terminated:
-                break
-            #
             self.load2extract(filepath)
-        return results
+        return self.results
 
     def extfrom_queue(self):
         # 无法根据queue是否empty自动退出(如果处理快于下载导致queue多数时间为空)
-        while not self.terminated:
+        while True:
             # filepath = self.queue.get(block=True)     # 阻塞至项目可得到
             try:
                 filepath = self.queue.get(block=False)      # 可停止的线程不能阻塞
+                if filepath == 'END':
+                    break
                 self.counter['que_get'] = self.counter.get('que_get', 0) + 1
                 self.load2extract(filepath)
                 os.remove(filepath)
@@ -191,13 +188,10 @@ class TextExtractor(threading.Thread):
                 time.sleep(0.2)
 
     def run(self):
-        self._sync2db()
-        self._dump_metric()
+        self.add_sub_thd(self._sync2db())
+        self.add_sub_thd(self._dump_metric())
         if self.queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
-        logger.info('敏感内容提取任务%s' % '终止' if self.terminated else '完成')
-
-    def stop(self):
-        self.terminated = True
+        logger.info('敏感内容提取任务结束')

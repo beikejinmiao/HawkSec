@@ -82,12 +82,7 @@ class SSHSession(Downloader):
         parent = os.path.split(self.remote_root)[1]
         try:
             for path, _, files in self._sftp_walk(parent):
-                if self.terminated:
-                    break
                 for filename in files:
-                    if self.terminated:
-                        break
-                    #
                     self.metric.crawl_total += 1
                     self.metric.crawl_success += 1
                     if self.metric.crawl_success % 100 == 0:
@@ -105,7 +100,7 @@ class SSHSession(Downloader):
             self.metric.crawl_failed += 1
             logger.error('sftp traverse error: %s' % self.remote_root)
             logger.info(traceback.format_exc())
-        logger.info('遍历目录%s' % '终止' if self.terminated else '完成')
+        logger.info('SFTP遍历目录结束')
         logger.info('SFTP Metric统计: %s' % self.metric)
         self._filepath_archive.close()
 
@@ -114,8 +109,6 @@ class SSHSession(Downloader):
         self.metric.file_ignored = self.metric.crawl_ignored
         #
         for remote_filepath in self.files:
-            if self.terminated:
-                break
             # 创建本地目录
             local_filepath = os.path.join(self.out_dir, remote_filepath[1:])   # 注意: 两个绝对路径join之后是最后一个绝对路径
             local_dir = os.path.dirname(local_filepath)
@@ -137,12 +130,13 @@ class SSHSession(Downloader):
                 logger.error('Download Error: %s' % remote_filepath)
                 self.db_rows.append({'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)})
         # 统计文件类型数量
+        self._put_queue('END')
         file_types = dict(Counter(suffix).most_common())
-        logger.info('下载%s' % '终止' if self.terminated else '完成')
+        logger.info('SFTP下载结束')
         logger.info('SFTP Metric统计: %s' % self.metric)
         logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
-    def close(self):
+    def cleanup(self):
         self.t.close()
         self.ssh.close()
         if not self._filepath_archive.closed:
@@ -154,4 +148,4 @@ if __name__ == '__main__':
     s = SSHSession(hostname='106.13.202.41', port=61001, password='', remote_root='/root/xdocker')
     s.run()
     print(s.metric)
-    s.close()
+    s.cleanup()

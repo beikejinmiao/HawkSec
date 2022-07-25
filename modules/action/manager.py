@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import re
-import threading
-# from multiprocessing import Queue, Process
 from queue import Queue
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, LOG_FILEPATH
 from libs.enums import SENSITIVE_FLAG, TABLES
@@ -70,11 +68,9 @@ class TaskManager(object):
         self.extractor.start()
         logger.info('%s Manager started %s' % ('=' * 18, '=' * 18))
 
-    def stop(self):
-        self.crawler.stop()
-        self.extractor.stop()
-        self.crawler.join()
-        self.extractor.join()
+    def terminate(self):
+        self.crawler.terminate()
+        self.extractor.terminate()
         logger.info('%s Manager stopped %s' % ('=' * 18, '=' * 18))
 
     @staticmethod

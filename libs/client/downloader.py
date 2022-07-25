@@ -4,7 +4,6 @@ import os
 import json
 import wget
 import time
-import threading
 import traceback
 from queue import Full
 from collections import Counter
@@ -14,19 +13,18 @@ from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
+from libs.thread import SuicidalThread
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
 from modules.action.metric import CrawlMetric
-from modules.action.extractor import TextExtractor
 from libs.logger import logger
 
 
-class Downloader(threading.Thread):
+class Downloader(SuicidalThread):
     def __init__(self, out_dir=DOWNLOADS, queue=None):
         super().__init__()
         #
         self.out_dir = out_dir
         self.queue = queue
-        self.terminated = False
         #
         self.metric = CrawlMetric()
         #
@@ -39,9 +37,8 @@ class Downloader(threading.Thread):
             return
         # 当queue长度大于1000时等待消费端处理,避免堆积过多导致占用过多磁盘空间
         while self.queue.qsize() > 1000:
-            if not self.terminated:
-                logger.debug('Queue size greater than 1000, sleep 1s.')
-                time.sleep(1)
+            logger.debug('Queue size greater than 1000, sleep 1s.')
+            time.sleep(1)
         try:
             # self.queue.put(local_path, block=True)        # 阻塞至有空闲槽可用
             self.queue.put(local_path, block=False)         # 可停止的线程不能阻塞
@@ -74,22 +71,14 @@ class Downloader(threading.Thread):
     def downloads(self):
         pass
 
-    def close(self):
-        pass
-
     def run(self):
-        self._log_stats()
-        self._sync2db()
-        self._dump_metric()
-        if not self.terminated:
-            self.crawling()
-        if not self.terminated:
-            self.downloads()
-        self.close()
-        logger.info('爬虫客户端任务%s' % '终止' if self.terminated else '完成')
-
-    def stop(self):
-        self.terminated = True
+        self.add_sub_thd(self._log_stats())
+        self.add_sub_thd(self._sync2db())
+        self.add_sub_thd(self._dump_metric())
+        self.crawling()
+        self.downloads()
+        self.cleanup()
+        logger.info('爬虫客户端任务结束')
 
 
 class WebFileDownloader(Downloader):
@@ -132,16 +121,14 @@ class WebFileDownloader(Downloader):
     def downloads(self):
         suffixes = list()
         for url in self.urls:
-            if self.terminated:
-                break
-            #
             suffix = self.download(url)
             if suffix is not None:
                 suffixes.append(suffix)
+        self._put_queue('END')
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
-        logger.info('下载%s' % '终止' if self.terminated else '完成')
-        logger.info('爬虫客户端Metric统计: %s' % self.metric)
+        logger.info('Web下载结束')
+        logger.info('Web爬虫客户端Metric统计: %s' % self.metric)
         logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
 
@@ -162,9 +149,6 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
 
     def crawling(self):
         for resp in self.scrape():
-            if self.terminated:
-                break
-            #
             if resp.filename:
                 # 文件链接单独处理,网页爬取完毕后再下载
                 self._file_urls_archive.write(resp.url + '\n')
@@ -180,11 +164,11 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 self.extractor.extract(resp.html_text, origin=resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
-        logger.info('爬取URL%s' % '终止' if self.terminated else '完成')
+        logger.info('爬取URL结束')
         logger.info('爬虫客户端Metric统计: %s' % self.metric)
         logger.info('发现文件URL: %s个' % len(self.urls))
 
-    def close(self):
+    def cleanup(self):
         self.session.close()
         if not self._file_urls_archive.closed:
             self._file_urls_archive.close()

@@ -58,8 +58,6 @@ class QCrawlExtProgress(QThread):
 
     def __init__(self):
         super().__init__()
-        #
-        self.terminated = False
 
     @staticmethod
     def metric():
@@ -81,14 +79,12 @@ class QCrawlExtProgress(QThread):
         return stat
 
     def run(self):
-        while not self.terminated:
-            time.sleep(2)
+        while True:
+            time.sleep(1)
             #
             metric = self.metric()
             if metric:
                 self.progress.emit(metric)
 
-    def stop(self):
-        self.terminated = True
 
 

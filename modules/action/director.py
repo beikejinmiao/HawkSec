@@ -183,8 +183,8 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
                                         defaultButton=QMessageBox.StandardButton.Cancel)
         if reply == QMessageBox.StandardButton.Cancel:
             return
-        self.metric_thread.stop()
-        self.task_manager.stop()
+        self.metric_thread.terminate()
+        self.task_manager.terminate()
         self.__toggle_state(enable=True)
         del self.metric_thread
         del self.task_manager
