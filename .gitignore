@@ -14,4 +14,4 @@ build/
 # PyCharm
 __pycache__/
 .idea/
-
+venv/
