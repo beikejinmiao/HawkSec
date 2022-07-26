@@ -57,7 +57,6 @@ class TextExtractor(SuicidalThread):
         }
         self.metric = ExtractMetric()
         #
-        self.sqlite = None
         self.db_rows = {
             TABLES.Extractor.value: list(),
             TABLES.Sensitives.value: list(),
@@ -69,16 +68,13 @@ class TextExtractor(SuicidalThread):
 
     @timer(2, 4)
     def _sync2db(self):
-        # sqlite3.ProgrammingError: SQLite objects created in a thread can only be used in that same thread.
-        # The object was created in thread id 4936 and this is thread id 6760.
-        if self.sqlite is None:
-            self.sqlite = Sqlite()
-
+        sqlite = Sqlite()
         for table in self.db_rows:
             left = self.__db_row_ix[table]
             right = len(self.db_rows[table])
-            self.sqlite.insert_many(table, self.db_rows[table][left:right])
+            sqlite.insert_many(table, self.db_rows[table][left:right])
             self.__db_row_ix[table] = right
+        sqlite.close()
 
     @timer(2, 1)
     def _dump_metric(self):

@@ -28,7 +28,6 @@ class Downloader(SuicidalThread):
         #
         self.metric = CrawlMetric()
         #
-        self.sqlite = None
         self.db_rows = list()
         self.__db_row_ix = 0    # 用于记录已插入数据库中的self.db_rows最后一条索引位置
 
@@ -52,14 +51,21 @@ class Downloader(SuicidalThread):
     def _log_stats(self):
         logger.info('爬虫客户端Metric统计: %s' % self.metric)
 
+    # TODO 终止线程时sqlite报错,后续无法重现
+    #  2022-07-26 10:05:34,016 - ERROR - file - timer.py:26 - Exception: Traceback (most recent call last):
+    #    File "libs\timer.py", line 24, in run
+    #    File "libs\client\downloader.py", line 61, in _sync2db
+    #    File "libs\pysqlite.py", line 52, in insert_many
+    #  SystemExit
     @timer(2, 4)
     def _sync2db(self):
-        if self.sqlite is None:
-            self.sqlite = Sqlite()
+        # 每次使用sqlite时都重新创建连接,尽量保证线程被kill时已关闭sqlite
+        sqlite = Sqlite()
         left = self.__db_row_ix
         right = len(self.db_rows)
-        self.sqlite.insert_many(TABLES.CrawlStat.value, self.db_rows[left:right])
+        sqlite.insert_many(TABLES.CrawlStat.value, self.db_rows[left:right])
         self.__db_row_ix = right
+        sqlite.close()
 
     @timer(2, 1)
     def _dump_metric(self):

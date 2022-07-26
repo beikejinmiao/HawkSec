@@ -67,6 +67,9 @@ class Sqlite(object):
         df = pd.read_sql_query("SELECT * FROM `%s`" % table, self.__conn)
         df.to_csv(filepath, index=False)
 
+    def command(self, cmd):
+        self.__conn.execute(cmd)
+
     def close(self):
         self.__conn.close()
 
@@ -76,6 +79,7 @@ if __name__ == '__main__':
     sqlite.truncate('crawlstat')
     sqlite.truncate('extractor')
     sqlite.truncate('sensitives')
+    sqlite.command('VACUUM')
     # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 
