@@ -1,5 +1,5 @@
 # 监控对象
-target: https://www.ncut.edu.cn/
+target:
 # 访问协议
 protocol: https
 
@@ -11,8 +11,8 @@ charset: auto   # auto, utf-8, gbk
 
 # SSH
 ssh:
-  host: 106.13.202.41
-  port: 61001
+  host:
+  port: 22
   username: root
   password:
   path: /tmp
