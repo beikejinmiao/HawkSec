@@ -39,6 +39,8 @@ class TaskManager(object):
         client = None
         if self.protocol in ('http', 'https', 'ftp'):
             hsts = True if self.protocol == 'https' else False
+            if not re.match(r'^\w+://', self.target):
+                self.target = self.protocol + '://' + self.target
             client = WebCrawlDownloader(self.target, hsts=hsts, extractor=self.extractor, queue=self.queue)
         elif self.protocol == 'sftp':
             if not isinstance(self.auth_config, dict) or 'password' not in self.auth_config:

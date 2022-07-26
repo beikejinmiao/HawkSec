@@ -112,7 +112,7 @@ class TextExtractor(SuicidalThread):
 
     def extract(self, text, origin=None):
         result = dict()
-        for flag in self.__funcs:
+        for flag in self.sensitive_flags:
             if flag == SENSITIVE_FLAG.URL:
                 if not (origin and re.match(r'^http[s]://', origin)):
                     # 只在网页中提取提取外链,下载的文件中不提取

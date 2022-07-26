@@ -96,6 +96,9 @@
      <height>111</height>
     </rect>
    </property>
+   <property name="placeholderText">
+    <string>多个域名请以逗号或者换行符分割; 格式错误域名将被忽略</string>
+   </property>
   </widget>
   <widget class="QCheckBox" name="whiteDomEnableBox">
    <property name="geometry">
@@ -151,6 +154,9 @@
      <height>111</height>
     </rect>
    </property>
+   <property name="placeholderText">
+    <string>多个文件路径请以逗号或者换行符分割; 不校验文件名</string>
+   </property>
   </widget>
   <widget class="Line" name="line">
    <property name="geometry">
@@ -191,7 +197,7 @@
     <string>保存</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="cancelBtn">
+  <widget class="QPushButton" name="exitBtn">
    <property name="geometry">
     <rect>
      <x>390</x>
@@ -201,7 +207,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>取消</string>
+    <string>退出</string>
    </property>
   </widget>
   <widget class="QPushButton" name="checkWhiteFileBtn">
