@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>782</width>
-    <height>446</height>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
     <string>超时时间</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="timeout">
+  <widget class="QLineEdit" name="timeoutLineEdit">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -87,7 +87,7 @@
     <string>域名白名单</string>
    </property>
   </widget>
-  <widget class="QPlainTextEdit" name="whiteDomains">
+  <widget class="QPlainTextEdit" name="whiteDomTextEdit">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -110,12 +110,12 @@
     <string>内置白名单</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="checkExistedDomBtn">
+  <widget class="QPushButton" name="checkWhiteDomBtn">
    <property name="geometry">
     <rect>
-     <x>490</x>
-     <y>130</y>
-     <width>41</width>
+     <x>390</x>
+     <y>220</y>
+     <width>61</width>
      <height>24</height>
     </rect>
    </property>
@@ -142,40 +142,14 @@
     <string>文件白名单</string>
    </property>
   </widget>
-  <widget class="QPlainTextEdit" name="whiteFiles">
+  <widget class="QPlainTextEdit" name="whiteFileTextEdit">
    <property name="geometry">
     <rect>
      <x>40</x>
      <y>300</y>
      <width>331</width>
-     <height>101</height>
+     <height>111</height>
     </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="importWhiteDomBtn">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>220</y>
-     <width>61</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>导入TXT</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="importWhiteFileBtn">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>380</y>
-     <width>61</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>导入TXT</string>
    </property>
   </widget>
   <widget class="Line" name="line">
@@ -204,17 +178,43 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="Line" name="line_3">
+  <widget class="QPushButton" name="saveBtn">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>410</y>
-     <width>631</width>
-     <height>16</height>
+     <x>310</x>
+     <y>440</y>
+     <width>61</width>
+     <height>24</height>
     </rect>
    </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+   <property name="text">
+    <string>保存</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="cancelBtn">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>440</y>
+     <width>61</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>取消</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="checkWhiteFileBtn">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>390</y>
+     <width>61</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>查看</string>
    </property>
   </widget>
  </widget>

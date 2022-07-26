@@ -28,7 +28,7 @@ class SshConfigWindow(Ui_Dialog, QtWidgets.QWidget):
                         ('path', '路径', self.pathLineEdit)
         for field, name, ele in self.elements:
             value = configure['ssh'][field]
-            if field not in ('host', 'password') and value:
+            if field != 'password' and value:
                 ele.setText(str(value))
 
     SSH_CONFIG = namedtuple('SSH_CONFIG', ['host', 'port', 'username', 'password', 'path'])

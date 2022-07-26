@@ -11,8 +11,8 @@ from modules.action.dbmodel import TablePageModel
 
 
 class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
-    def __init__(self, table, columns, column_modes=None):
-        TablePageModel.__init__(self, table, columns)
+    def __init__(self, table, columns, init_where=None, column_modes=None):
+        TablePageModel.__init__(self, table, columns, init_where=init_where)
         Ui_Form.__init__(self)
         QtWidgets.QWidget.__init__(self)
         # super().__init__(table, columns)
@@ -77,13 +77,14 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
         #     QtWidgets.QMessageBox.information(self, "提示", "请输入查询内容")
         #     return
         code = self.searchCodeComboBox.currentText()
-        if code.upper() != 'ALL':
+        if code.upper() == 'ALL':
+            self.db_where = None
+        else:
             if self.table == TABLES.CrawlStat.value:
                 self.db_where = 'resp_code=%s' % code
             elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
                 self.db_where = 'sensitive_name="%s"' % code
-        else:
-            self.db_where = None
+
         self.update_total_count()
         self.cur_page = 1
         self.query_page(page=1)
@@ -163,9 +164,17 @@ class SensitiveDataWindow(DataGridWindow):
 
 
 class WhiteListDataWindow(DataGridWindow):
-    def __init__(self):
+    def __init__(self, white_type='domain'):
         columns = dict(zip(
-            ['id', 'white_type', 'ioc', 'create_time'],
-            ['ID', '种类', '内容', '创建时间']
+            ['id', 'ioc', 'desc', 'create_time'],
+            ['ID', '内容', '描述', '创建时间']
         ))
-        super().__init__(table=TABLES.WhiteList.value, columns=columns)
+        column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
+        db_where = 'white_type="%s"' % white_type
+        super().__init__(table=TABLES.WhiteList.value, columns=columns, init_where=db_where, column_modes=column_modes)
+
+    def custom_ui(self):
+        self.searchCodeLabel.hide()
+        self.searchCodeComboBox.hide()
+        self.searchBtn.hide()

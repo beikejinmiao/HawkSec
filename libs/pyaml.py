@@ -23,6 +23,11 @@ class Config(object):
     def __delitem__(self, key):
         del self.cfg[key]
 
+    def get(self, key, default=None):
+        if key not in self.cfg:
+            return default
+        return self.cfg[key]
+
     def save(self):
         with open(self.filename, "w") as f:
             yaml.dump(self.cfg, f)

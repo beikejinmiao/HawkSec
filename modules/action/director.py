@@ -21,7 +21,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.settingWindow = SettingWindow()
+        self.settingWindow = None
         self.sshConfigWindow = SshConfigWindow()
         self.progressWindow = None  # ProgressDataWindow()
         self.extractWindow = None   # ExtractDataWindow()
@@ -42,7 +42,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.extUrlCheckBox.setChecked(True)
         self.stopBtn.setEnabled(False)
         #
-        self.menuActionGeneral.triggered.connect(self.settingWindow.show)
+        self.menuActionGeneral.triggered.connect(self.show_setting_win)
         self.sftpRadioBtn.clicked.connect(self.show_sshconf_win)
         self.startBtn.clicked.connect(self.start)
         self.stopBtn.clicked.connect(self.terminate)
@@ -122,6 +122,10 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
             QMessageBox.warning(self, "提醒", "未选择监控内容！")
             return False
         return True
+
+    def show_setting_win(self):
+        self.settingWindow = SettingWindow()
+        self.settingWindow.show()
 
     def show_sshconf_win(self):
         self.sshConfigWindow.hostLineEdit.setText(self.targetLineEdit.text().strip())
