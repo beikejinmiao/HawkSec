@@ -1,29 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import sys
-import os
 import yaml
 from libs.singleton import Singleton
-from conf.paths import WORK_NAME, CONF_HOME
-
-LINUX = sys.platform.startswith('linux')
-PY3 = sys.version_info[0] == 3
-
-
-def system_config_dir():
-    r"""Return the system-wide config dir (full path).
-    - Linux: /etc/hawksec
-    """
-    path = None
-    if LINUX:
-        path = '/etc'
-
-    if path is None:
-        path = ''
-    else:
-        path = os.path.join(path, WORK_NAME)
-
-    return path
+from conf.paths import CONF_PATH
 
 
 class Config(object):
@@ -49,4 +28,4 @@ class Config(object):
             yaml.dump(self.cfg, f)
 
 
-configure = Config(os.path.join(CONF_HOME, WORK_NAME+'.yaml'))
+configure = Config(CONF_PATH)

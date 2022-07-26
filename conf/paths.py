@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
+import shutil
 from conf.config import Platform
 from libs.enums import SYSTEM
 
@@ -20,21 +21,41 @@ else:
 #
 CONF_HOME = os.path.join(MAIN_HOME, 'conf')
 TOOLS_HOME = os.path.join(MAIN_HOME, 'tools')
-PRIVATE_RESOURCE_HOME = os.path.join(MAIN_HOME, 'resources')
-
 DUMP_HOME = os.path.join(MAIN_HOME, 'zdump')
-if stage == 'exe':
-    if Platform == SYSTEM.WINDOWS or Platform == SYSTEM.DARWIN:
-        DUMP_HOME = os.path.join(os.path.expanduser('~'), WORK_NAME)        # C:\\Users\\mozi\\hawksec
-    elif Platform == SYSTEM.LINUX:
-        DUMP_HOME = os.path.join('/tmp', WORK_NAME)
-if not os.path.exists(DUMP_HOME):
-    os.mkdir(DUMP_HOME)
-DOWNLOADS = os.path.join(DUMP_HOME, 'downloads')
-if not os.path.exists(DOWNLOADS):
-    os.mkdir(DOWNLOADS)
+USER_HOME = os.path.expanduser('~')
+RUNTIME_HOME = os.path.join(USER_HOME, WORK_NAME)
+PRIVATE_RESOURCE_HOME = os.path.join(MAIN_HOME, 'resources')
+RUNTIME_RESOURCE_HOME = os.path.join(RUNTIME_HOME, 'resources')
+if not os.path.exists(RUNTIME_RESOURCE_HOME):
+    os.makedirs(RUNTIME_RESOURCE_HOME)
 
-LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
+
+CONF_PATH = os.path.join(CONF_HOME, WORK_NAME+'.yaml')
 DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
 CRAWL_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'crawl.metric.json')
 EXTRACT_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'extract.metric.json')
+LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
+
+if stage == 'exe':
+    LOG_FILEPATH = os.path.join(RUNTIME_HOME, "%s.log" % WORK_NAME)
+    #
+    runtime_paths = list()
+    for path in [CONF_PATH, DB_PATH, CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH]:
+        runtime_path = os.path.join(RUNTIME_RESOURCE_HOME, os.path.basename(path))
+        if os.path.exists(path) and not os.path.exists(runtime_path):
+            shutil.copy(path, runtime_path)
+        runtime_paths.append(runtime_path)
+    CONF_PATH, DB_PATH, CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH = tuple(runtime_paths)
+    #
+    if Platform == SYSTEM.WINDOWS or Platform == SYSTEM.DARWIN:
+        DUMP_HOME = os.path.join(RUNTIME_HOME, 'zdump')        # C:\\Users\\mozi\\hawksec\\zdump
+    elif Platform == SYSTEM.LINUX:
+        DUMP_HOME = os.path.join('/tmp', WORK_NAME)
+#
+DOWNLOADS = os.path.join(DUMP_HOME, 'downloads')
+if not os.path.exists(DOWNLOADS):
+    os.makedirs(DOWNLOADS)
+
+
+
+
