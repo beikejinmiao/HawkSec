@@ -58,9 +58,14 @@ class Sqlite(object):
         return self.__cursor.execute('SELECT count(*) FROM `%s` %s' %
                                      (table, '' if not where else 'WHERE '+where)).fetchone()[0]
 
-    def truncate(self, table):
-        self.__cursor.execute('DELETE FROM %s' % table)
-        self.__cursor.execute('DELETE FROM SQLITE_SEQUENCE WHERE name="%s"' % table)
+    def truncate(self, tables):
+        if isinstance(tables, str):
+            tables = [tables]
+        #
+        for table in tables:
+            self.__cursor.execute('DELETE FROM %s' % table)
+            self.__cursor.execute('DELETE FROM SQLITE_SEQUENCE WHERE name="%s"' % table)
+        self.__conn.execute('VACUUM')
         self.__conn.commit()
 
     def dump(self, table, filepath):
@@ -76,11 +81,7 @@ class Sqlite(object):
 
 if __name__ == '__main__':
     sqlite = Sqlite()
-    sqlite.truncate('crawlstat')
-    sqlite.truncate('extractor')
-    sqlite.truncate('sensitives')
-    sqlite.truncate('whitelist')
-    sqlite.command('VACUUM')
+    sqlite.truncate(['crawlstat', 'extractor', 'sensitives', 'whitelist'])
     # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 
