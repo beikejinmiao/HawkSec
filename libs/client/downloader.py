@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from libs.timer import timer
 from libs.regex import img, video, executable
 from libs.client.crawler import Spider
+from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.thread import SuicidalThread
@@ -142,12 +143,12 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
     def __init__(self, start_url,
                  same_site=True,
                  headers=None,
-                 timeout=10,
                  hsts=False,
                  out_dir=DOWNLOADS,
                  extractor=None,
                  queue=None):
         #
+        timeout = configure.get('timeout', 5)
         Spider.__init__(self, start_url, same_site=same_site, headers=headers, timeout=timeout, hsts=hsts)
         WebFileDownloader.__init__(self, out_dir=out_dir, queue=queue)
         self.extractor = extractor

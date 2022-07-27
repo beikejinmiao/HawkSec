@@ -34,7 +34,6 @@ class TextExtractor(SuicidalThread):
             else:
                 self.files.append(root)
         #
-        self._white_domain = dict()
         self._keywords = set() if keywords is None else set(keywords)
         self.queue = queue
         self.sensitive_flags = sensitive_flags
@@ -57,6 +56,11 @@ class TextExtractor(SuicidalThread):
         }
         self.metric = ExtractMetric()
         #
+        self.sqlite = Sqlite()
+        self._white_domain = set()
+        self._white_file = set()
+        self.__load_whitelist()
+        #
         self.db_rows = {
             TABLES.Extractor.value: list(),
             TABLES.Sensitives.value: list(),
@@ -65,6 +69,14 @@ class TextExtractor(SuicidalThread):
             TABLES.Extractor.value: 0,
             TABLES.Sensitives.value: 0,
         }
+
+    def __load_whitelist(self):
+        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
+        for record in records:
+            self._white_domain.add(record[0])
+        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        for record in records:
+            self._white_file.add(record[0])
 
     @timer(2, 4)
     def _sync2db(self):

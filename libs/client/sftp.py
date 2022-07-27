@@ -10,6 +10,7 @@ from collections import Counter
 from conf.paths import DUMP_HOME, DOWNLOADS
 from libs.regex import img, video, executable
 from libs.client.downloader import Downloader
+from libs.pyaml import configure
 from libs.logger import logger
 
 
@@ -26,7 +27,9 @@ class SSHSession(Downloader):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((hostname, port))
         self.t = paramiko.Transport(self.sock)
-        self.t.banner_timeout = timeout
+        _timeout = configure.get('timeout')
+        self.timeout = _timeout if _timeout else timeout
+        self.t.banner_timeout = self.timeout
         self.t.start_client()
         if password is not None:
             self.t.auth_password(username, password, fallback=False)
@@ -40,7 +43,7 @@ class SSHSession(Downloader):
         # HostKeys object(in case of missing)
         # AutoAddPolicy for missing host key to be set before connection setup.
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(hostname, port=port, username=username, password=password, timeout=timeout)
+        self.ssh.connect(hostname, port=port, username=username, password=password, timeout=self.timeout)
         #
         self.files = []
         self._filepath_archive = open(os.path.join(DUMP_HOME, 'filepath.txt'), 'w')
