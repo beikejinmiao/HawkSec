@@ -112,6 +112,9 @@ class SSHSession(Downloader):
         self.metric.file_ignored = self.metric.crawl_ignored
         #
         for remote_filepath in self.files:
+            # 过滤白名单
+            if remote_filepath in self._white_url_file:
+                continue
             # 创建本地目录
             local_filepath = os.path.join(self.out_dir, remote_filepath[1:])   # 注意: 两个绝对路径join之后是最后一个绝对路径
             local_dir = os.path.dirname(local_filepath)
@@ -120,12 +123,12 @@ class SSHSession(Downloader):
             # 下载
             self.metric.file_total += 1
             try:
+                logger.info('Download: %s' % remote_filepath)
                 self.sftp.get(remote_filepath, local_filepath)
                 suffix.append(local_filepath.split('.')[-1].lower())
                 self.metric.file_success += 1
                 # 将下载文件的本地路径放入队列中
                 self._put_queue(local_filepath)
-                logger.info('Download: %s' % remote_filepath)
                 self.db_rows.append({'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'})
             except Exception as e:
                 self.metric.file_failed += 1
@@ -135,8 +138,6 @@ class SSHSession(Downloader):
         # 统计文件类型数量
         self._put_queue('END')
         file_types = dict(Counter(suffix).most_common())
-        logger.info('SFTP下载结束')
-        logger.info('SFTP Metric统计: %s' % self.metric)
         logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
     def cleanup(self):

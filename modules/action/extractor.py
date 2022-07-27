@@ -58,7 +58,7 @@ class TextExtractor(SuicidalThread):
         #
         self.sqlite = Sqlite()
         self._white_domain = set()
-        self._white_file = set()
+        self._white_url_file = set()
         self.__load_whitelist()
         #
         self.db_rows = {
@@ -76,7 +76,7 @@ class TextExtractor(SuicidalThread):
             self._white_domain.add(record[0])
         records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
         for record in records:
-            self._white_file.add(record[0])
+            self._white_url_file.add(record[0])
 
     @timer(2, 4)
     def _sync2db(self):

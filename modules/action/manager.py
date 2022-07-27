@@ -11,19 +11,26 @@ from libs.client.sftp import SSHSession
 from modules.action.extractor import TextExtractor
 from libs.logger import logger
 
+browser_protocols = ('http', 'https', 'ftp')
+support_protocols = ('http', 'https', 'ftp', 'sftp')
+
 
 class TaskManager(object):
     def __init__(self, target, flags, keywords=None, protocol=None, auth_config=None):
         self.queue = Queue(100000)
         #
         self.target = target
-        self.protocol = protocol
+        self.protocol = None
+        proto_candidates = re.findall(r'(\w+)://', self.target)  # https://  http://  ftp://  sftp://
+        # 优先使用链接中的协议
+        if len(proto_candidates) >= 1:
+            proto = proto_candidates[0].lower()
+            if proto in browser_protocols:
+                self.protocol = proto
         if not self.protocol:
-            candidates = re.findall(r'(\w+)://', self.target)     # https://  http://  ftp://  sftp://
-            if len(candidates) >= 1:
-                self.protocol = candidates[0].lower()
-        if not self.protocol:
-            raise Exception('can not confirm the protocol.')
+            self.protocol = protocol
+        if self.protocol not in support_protocols:
+            raise Exception('protocol of \'%s\' is not supported')
         #
         if isinstance(flags, (list, type)) and len(flags) > 0:
             self.sensitive_flags = list(flags)
@@ -37,7 +44,7 @@ class TaskManager(object):
 
     def __init_crawler(self):
         client = None
-        if self.protocol in ('http', 'https', 'ftp'):
+        if self.protocol in browser_protocols:
             hsts = True if self.protocol == 'https' else False
             if not re.match(r'^\w+://', self.target):
                 self.target = self.protocol + '://' + self.target
@@ -78,8 +85,7 @@ class TaskManager(object):
     @staticmethod
     def clear():
         sqlite = Sqlite()
-        sqlite.truncate([TABLES.CrawlStat.value. TABLES.Extractor.value,
-                         TABLES.Sensitives.value, TABLES.WhiteList.value])
+        sqlite.truncate([TABLES.CrawlStat.value, TABLES.Extractor.value, TABLES.Sensitives.value])
         sqlite.close()
         # TODO 清空文件会导致GUI日志线程无法读取内容
         # if os.path.exists(LOG_FILEPATH):

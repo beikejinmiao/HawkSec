@@ -9,6 +9,9 @@ from conf.paths import DB_PATH
 class Sqlite(object):
     def __init__(self):
         self.__conn = sqlite3.connect(DB_PATH)
+        # https://www.cnblogs.com/animalize/p/6215744.html
+        # https://bugs.python.org/issue10740
+        self.__conn.isolation_level = None
         self.__cursor = self.__conn.cursor()
 
     @staticmethod
@@ -81,7 +84,7 @@ class Sqlite(object):
 
 if __name__ == '__main__':
     sqlite = Sqlite()
-    sqlite.truncate(['crawlstat', 'extractor', 'sensitives', 'whitelist'])
+    sqlite.truncate(['crawlstat', 'extractor', 'sensitives'])
     # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 

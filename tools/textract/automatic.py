@@ -59,7 +59,7 @@ def windows(filepath):
 
 def linux(filepath):
     content = plaintext(filepath)
-    logger.info('Extract text success: %s' % filepath)
+    logger.info('提取文本成功: %s' % filepath)
     return content
 
 
@@ -73,6 +73,6 @@ def extract(filepath):
         else:
             logger.warning('Not supported system: %s' % Platform)
     except:
-        logger.error('Extract text error: %s' % filepath)
+        logger.error('提取文本失败: %s' % filepath)
         logger.error(traceback.format_exc())
     return content

@@ -29,6 +29,10 @@ class Downloader(SuicidalThread):
         #
         self.metric = CrawlMetric()
         #
+        self.sqlite = Sqlite()
+        self._white_url_file = set()
+        self.__load_whitelist()
+        #
         self.db_rows = list()
         self.__db_row_ix = 0    # 用于记录已插入数据库中的self.db_rows最后一条索引位置
 
@@ -47,6 +51,11 @@ class Downloader(SuicidalThread):
         if self.metric.queue_put < 0:
             self.metric.queue_put = 0
         self.metric.queue_put += 1
+
+    def __load_whitelist(self):
+        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        for record in records:
+            self._white_url_file.add(record[0])
 
     @timer(120, 120)
     def _log_stats(self):
@@ -83,7 +92,10 @@ class Downloader(SuicidalThread):
         self.add_sub_thd(self._sync2db())
         self.add_sub_thd(self._dump_metric())
         self.crawling()
+        logger.info('爬虫开始下载')
         self.downloads()
+        logger.info('爬虫下载结束')
+        logger.info('爬虫Metric统计: %s' % self.metric)
         self.cleanup()
         logger.info('爬虫客户端任务结束')
 
@@ -103,20 +115,25 @@ class WebFileDownloader(Downloader):
             self.urls.extend(list(urls))
 
     def download(self, url):
+        # 过滤白名单
+        if url in self._white_url_file:
+            return None
+        #
         path = urlparse(url.strip()).path
         suffix = None
         # 默认不下载图片和可执行文件
         self.metric.file_total += 1
         if img.match(path) or video.match(path) or executable.match(path):
             self.metric.file_ignored += 1
+            return None
         try:
+            logger.info('Download: %s' % url)
             filename = wget.download(url, out=self.out_dir)
             self.db_rows.append({'origin': url, 'resp_code': 0, 'desc': 'Success'})
             suffix = path.split('.')[-1].lower()
             self.metric.file_success += 1
             # 将下载文件的本地路径放入队列中
             self._put_queue(os.path.join(self.out_dir, filename))
-            logger.info('Download: %s' % url)
         except Exception as e:
             self.metric.file_failed += 1
             self.db_rows.append({'origin': url, 'resp_code': -1, 'desc': str(e)})
@@ -134,8 +151,6 @@ class WebFileDownloader(Downloader):
         self._put_queue('END')
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
-        logger.info('Web下载结束')
-        logger.info('Web爬虫客户端Metric统计: %s' % self.metric)
         logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
 
 
