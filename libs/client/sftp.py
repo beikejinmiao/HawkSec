@@ -122,13 +122,13 @@ class SSHSession(Downloader):
                 os.makedirs(local_dir)
             # 下载
             self.metric.file_total += 1
+            logger.info('Download: %s' % remote_filepath)
             try:
-                logger.info('Download: %s' % remote_filepath)
                 self.sftp.get(remote_filepath, local_filepath)
                 suffix.append(local_filepath.split('.')[-1].lower())
                 self.metric.file_success += 1
-                # 将下载文件的本地路径放入队列中
-                self._put_queue(local_filepath)
+                # 将下载文件的本地路径和远程文件放入队列中
+                self._put_queue((local_filepath, remote_filepath))
                 self.db_rows.append({'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'})
             except Exception as e:
                 self.metric.file_failed += 1
@@ -136,7 +136,7 @@ class SSHSession(Downloader):
                 logger.error('Download Error: %s' % remote_filepath)
                 self.db_rows.append({'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)})
         # 统计文件类型数量
-        self._put_queue('END')
+        self._put_queue(('END', None))
         file_types = dict(Counter(suffix).most_common())
         logger.info('文件类型统计: %s' % json.dumps(file_types))
 

@@ -36,7 +36,7 @@ class Downloader(SuicidalThread):
         self.db_rows = list()
         self.__db_row_ix = 0    # 用于记录已插入数据库中的self.db_rows最后一条索引位置
 
-    def _put_queue(self, local_path):
+    def _put_queue(self, msg):
         if self.queue is None:
             return
         # 当queue长度大于1000时等待消费端处理,避免堆积过多导致占用过多磁盘空间
@@ -44,10 +44,10 @@ class Downloader(SuicidalThread):
             logger.debug('Queue size greater than 1000, sleep 1s.')
             time.sleep(1)
         try:
-            # self.queue.put(local_path, block=True)        # 阻塞至有空闲槽可用
-            self.queue.put(local_path, block=False)         # 可停止的线程不能阻塞
+            # self.queue.put(msg, block=True)        # 阻塞至有空闲槽可用
+            self.queue.put(msg, block=False)         # 可停止的线程不能阻塞
         except Full:
-            time.sleep(0.2)
+            time.sleep(1)
         if self.metric.queue_put < 0:
             self.metric.queue_put = 0
         self.metric.queue_put += 1
@@ -127,15 +127,20 @@ class WebFileDownloader(Downloader):
             self.metric.file_ignored += 1
             return None
         self.metric.crawl_total += 1
+        logger.info('Download: %s' % url)
         try:
-            logger.info('Download: %s' % url)
-            filename = pywget.download(url, out=self.out_dir)
-            self.db_rows.append({'origin': url, 'resp_code': 0, 'desc': 'Success'})
-            suffix = path.split('.')[-1].lower()
-            self.metric.file_success += 1
-            self.metric.crawl_success += 1
-            # 将下载文件的本地路径放入队列中
-            self._put_queue(os.path.join(self.out_dir, filename))
+            fileinfo = pywget.download(url, out=self.out_dir)
+            self.db_rows.append({'origin': url, 'resp_code': fileinfo.status_code, 'desc': fileinfo.desc})
+            if fileinfo.filepath is not None:
+                suffix = path.split('.')[-1].lower()
+                self.metric.file_success += 1
+                self.metric.crawl_success += 1
+                # 将下载文件的本地路径和文件URL放入队列中
+                self._put_queue((fileinfo.filepath, url))
+            else:
+                self.metric.file_failed += 1
+                self.metric.crawl_failed += 1
+                logger.error('Download Error(%s %s): %s' % (fileinfo.status_code, fileinfo.desc, url))
         except Exception as e:
             self.metric.file_failed += 1
             self.metric.crawl_failed += 1
@@ -151,7 +156,7 @@ class WebFileDownloader(Downloader):
             suffix = self.download(url)
             if suffix is not None:
                 suffixes.append(suffix)
-        self._put_queue('END')
+        self._put_queue(('END', None))
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
         logger.info('文件类型统计: %s' % json.dumps(file_types))

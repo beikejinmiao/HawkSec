@@ -6,6 +6,7 @@ import time
 import shutil
 import tldextract
 from queue import Empty
+from collections.abc import Iterable
 from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import img, video, executable, archive
@@ -28,14 +29,13 @@ class TextExtractor(SuicidalQThread):
 
     def __init__(self, root=None, sensitive_flags=None, keywords=None, queue=None):
         super().__init__()
-        self.files = list()
-        if isinstance(root, (list, tuple)):
-            self.files = list(root)
-        elif root and os.path.exists(root):
-            if os.path.isdir(root):
-                self.files = traverse(root)
-            else:
-                self.files.append(root)
+
+        if not root:
+            self.files = dict()
+        else:
+            local_files = self.__get_files(root)
+            # key:local file path,   value: remote file path or url
+            self.files = dict(zip(local_files, [None for i in range(len(local_files))]))
         #
         self.regex_keyword = None
         if keywords is not None and len(keywords) > 0:
@@ -74,6 +74,21 @@ class TextExtractor(SuicidalQThread):
             TABLES.Extractor.value: 0,
             TABLES.Sensitives.value: 0,
         }
+
+    def __get_files(self, root):
+        # 递归遍历所有本地文件路径
+        local_files = list()
+        if isinstance(root, (str, bytes)):
+            if not os.path.exists(root):
+                return local_files
+            if os.path.isdir(root):
+                local_files = traverse(root)
+            else:
+                local_files.append(root)
+        elif isinstance(root, Iterable):
+            for item in root:
+                local_files.extend(self.__get_files(item))
+        return local_files
 
     def __load_whitelist(self):
         records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
@@ -143,13 +158,13 @@ class TextExtractor(SuicidalQThread):
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
             self.db_rows[TABLES.Extractor.value].append({
-                'origin': origin,
+                'origin': self.files.get(origin, ''),       # 保存远程文件路径或者URL
                 'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 'content': ', '.join(values), 'count': len(values),
             })
             for value in values:
                 self.db_rows[TABLES.Sensitives.value].append({
-                    'content': value, 'origin': origin,
+                    'content': value, 'origin': self.files.get(origin, ''),
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 })
 
@@ -189,12 +204,13 @@ class TextExtractor(SuicidalQThread):
         while True:
             # filepath = self.queue.get(block=True)     # 阻塞至项目可得到
             try:
-                filepath = self.queue.get(block=False)      # 可停止的线程不能阻塞
-                if filepath == 'END':
+                local_path, remote_path = self.queue.get(block=False)      # 可停止的线程不能阻塞
+                if local_path == 'END':
                     break
+                self.files[local_path] = remote_path
                 self.counter['que_get'] = self.counter.get('que_get', 0) + 1
-                self.load2extract(filepath)
-                os.remove(filepath)
+                self.load2extract(local_path)
+                os.remove(local_path)
             except Empty:
                 time.sleep(0.2)
 
