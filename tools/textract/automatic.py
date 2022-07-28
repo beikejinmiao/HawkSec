@@ -53,7 +53,7 @@ def windows(filepath):
         content = plaintext(filepath)
     elif re.match(r'.*\.(doc[x]?|xls[x]?|ppt[x]?|pdf)$', filepath, re.I):
         content = __office_methods[suffix](filepath)
-    logger.info('Extract text success: %s' % filepath)
+    logger.info('提取文本成功: %s' % filepath)
     return content
 
 

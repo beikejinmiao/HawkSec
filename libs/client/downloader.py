@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import json
-import wget
 import time
 import traceback
 from queue import Full
@@ -15,6 +14,7 @@ from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.thread import SuicidalThread
+from utils import pywget
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
 from modules.action.metric import CrawlMetric
 from libs.logger import logger
@@ -126,16 +126,19 @@ class WebFileDownloader(Downloader):
         if img.match(path) or video.match(path) or executable.match(path):
             self.metric.file_ignored += 1
             return None
+        self.metric.crawl_total += 1
         try:
             logger.info('Download: %s' % url)
-            filename = wget.download(url, out=self.out_dir)
+            filename = pywget.download(url, out=self.out_dir)
             self.db_rows.append({'origin': url, 'resp_code': 0, 'desc': 'Success'})
             suffix = path.split('.')[-1].lower()
             self.metric.file_success += 1
+            self.metric.crawl_success += 1
             # 将下载文件的本地路径放入队列中
             self._put_queue(os.path.join(self.out_dir, filename))
         except Exception as e:
             self.metric.file_failed += 1
+            self.metric.crawl_failed += 1
             self.db_rows.append({'origin': url, 'resp_code': -1, 'desc': str(e)})
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
             logger.error(traceback.format_exc())

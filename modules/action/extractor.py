@@ -138,16 +138,15 @@ class TextExtractor(SuicidalThread):
 
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
-            sensitive_flag = flag.value
             self.db_rows[TABLES.Extractor.value].append({
                 'origin': origin,
-                'sensitive_type': sensitive_flag, 'sensitive_name': sensitive_name,
+                'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 'content': ', '.join(values), 'count': len(values),
             })
             for value in values:
                 self.db_rows[TABLES.Sensitives.value].append({
                     'content': value, 'origin': origin,
-                    'sensitive_type': sensitive_flag, 'sensitive_name': sensitive_name,
+                    'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 })
 
         if origin is not None and len(result) > 0:
