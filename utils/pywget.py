@@ -60,10 +60,15 @@ def filename_fix_existed(filename):
     """
     dirname = os.path.dirname(filename)
     if not dirname:
-        dirname = u'.'
+        dirname = '.'
     filename = os.path.basename(filename)
     if '.' in filename:
         name, ext = filename.rsplit('.', 1)
+        # tar.gz, tar.xz, tar.bz2, ...
+        for maybe_ext in ['.tar']:
+            if name.endswith(maybe_ext):
+                name = name[:len(maybe_ext)]
+                ext = maybe_ext + ext
     else:
         name, ext = filename, ''
     names = [x for x in os.listdir(dirname) if x.startswith(name)]
