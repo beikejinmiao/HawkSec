@@ -24,6 +24,9 @@ from modules.action.metric import ExtractMetric
 from libs.logger import logger
 
 
+LOCAL_ZIP_PATH_FLAG = '.unpack'   # 压缩文件解压后本地路径标志
+
+
 class TextExtractor(SuicidalQThread):
     finished = pyqtSignal()
 
@@ -135,30 +138,40 @@ class TextExtractor(SuicidalQThread):
             matches.extend(self.regex_keyword.findall(text))
         return matches
 
-    def extract(self, text, origin=None):
+    def extract(self, text, local_path=None, origin=''):
+        """
+        :param text:        文件文本提取结果
+        :param local_path:  本地文件路径
+        :param origin:      网页URL、文件URL、SFTP远程文件路径
+        :return:
+        """
         result = dict()
         for flag in self.sensitive_flags:
-            if flag == SENSITIVE_FLAG.URL:
-                if not (origin and re.match(r'^http[s]://', origin)):
-                    # 只在网页中提取提取外链,下载的文件中不提取
-                    continue
+            # 只在网页中提取提取外链,下载的文件中默认不提取
+            if flag == SENSITIVE_FLAG.URL and local_path is not None:
+                continue
             candidates = self.__funcs[flag](text)
             if len(candidates) > 0:
                 self.sensitives[flag]['find'] += len(candidates)
                 candidates = set(candidates)
                 result[flag] = candidates
                 self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
-
+        # 针对压缩文件,解压后的路径已发生变化,重新拼接来源地址
+        if local_path is not None and local_path not in self.files \
+                and LOCAL_ZIP_PATH_FLAG in local_path and origin:
+            # 示例 http://1.1.1.1/test.zip    >>   http://1.1.1.1/test.zip.unpack/file_in.txt
+            origin = origin + local_path[local_path.index(LOCAL_ZIP_PATH_FLAG):]
+        #
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
             self.db_rows[TABLES.Extractor.value].append({
-                'origin': self.files.get(origin, origin),       # 保存远程文件路径或者URL
+                'origin': self.files.get(local_path, origin),       # 保存远程文件路径或者URL
                 'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 'content': ', '.join(values), 'count': len(values),
             })
             for value in values:
                 self.db_rows[TABLES.Sensitives.value].append({
-                    'content': value, 'origin': self.files.get(origin, origin),
+                    'content': value, 'origin': self.files.get(local_path, origin),
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 })
 
@@ -168,47 +181,47 @@ class TextExtractor(SuicidalQThread):
                 self.results[origin] = result
         return result
 
-    def __extract_file(self, filepath):
-        if img.match(filepath) or video.match(filepath) or executable.match(filepath):
+    def __extract_file(self, local_path, origin=None):
+        if img.match(local_path) or video.match(local_path) or executable.match(local_path):
             return
-        self.extract(textract(filepath), origin=filepath)
+        self.extract(textract(local_path), local_path=local_path, origin=origin)
 
-    def __extract_dir(self, folder):
-        for filepath in traverse(folder):
-            self.__extract_file(filepath)
+    def __extract_dir(self, folder, origin=None):
+        for local_path in traverse(folder):
+            self.__extract_file(local_path, origin=origin)
 
-    def load2extract(self, filepath):
+    def load2extract(self, local_path, origin=None):
         """
         暂不支持自动遍历目录解析,如有需求请在初始化时通过root参数传入
         """
-        if archive.match(filepath):
+        if archive.match(local_path):
             self.counter['archive'] += 1
-            dstdir = filepath + '.unpack'
-            unpack(filepath, dstdir=dstdir)
-            self.__extract_dir(dstdir)
+            dstdir = local_path + LOCAL_ZIP_PATH_FLAG
+            unpack(local_path, dstdir=dstdir)
+            self.__extract_dir(dstdir, origin=origin)
             shutil.rmtree(dstdir, ignore_errors=True)
         else:
-            self.__extract_file(filepath)
+            self.__extract_file(local_path, origin=origin)
 
     def extfrom_root(self):
-        for filepath in self.files:
-            self.load2extract(filepath)
+        for local_path in self.files:
+            self.load2extract(local_path)
         return self.results
 
     def extfrom_queue(self):
         # 无法根据queue是否empty自动退出(如果处理快于下载导致queue多数时间为空)
         while True:
-            # filepath = self.queue.get(block=True)     # 阻塞至项目可得到
+            # local_path = self.queue.get(block=True)     # 阻塞至项目可得到
             try:
                 local_path, remote_path = self.queue.get(block=False)      # 可停止的线程不能阻塞
                 if local_path == 'END':
                     break
                 self.files[local_path] = remote_path
                 self.counter['que_get'] = self.counter.get('que_get', 0) + 1
-                self.load2extract(local_path)
+                self.load2extract(local_path, origin=remote_path)
                 os.remove(local_path)
             except Empty:
-                time.sleep(0.2)
+                time.sleep(1)
 
     def run(self):
         self.sqlite = Sqlite()
