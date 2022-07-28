@@ -138,7 +138,7 @@ class SSHSession(Downloader):
         # 统计文件类型数量
         self._put_queue('END')
         file_types = dict(Counter(suffix).most_common())
-        logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
+        logger.info('文件类型统计: %s' % json.dumps(file_types))
 
     def cleanup(self):
         self.t.close()

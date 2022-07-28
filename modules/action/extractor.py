@@ -6,12 +6,13 @@ import time
 import shutil
 import tldextract
 from queue import Empty
+from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import img, video, executable, archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
-from libs.thread import SuicidalThread
+from libs.thread import SuicidalQThread
 from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -22,7 +23,9 @@ from modules.action.metric import ExtractMetric
 from libs.logger import logger
 
 
-class TextExtractor(SuicidalThread):
+class TextExtractor(SuicidalQThread):
+    finished = pyqtSignal()
+
     def __init__(self, root=None, sensitive_flags=None, keywords=None, queue=None):
         super().__init__()
         self.files = list()
@@ -34,7 +37,9 @@ class TextExtractor(SuicidalThread):
             else:
                 self.files.append(root)
         #
-        self._keywords = set() if keywords is None else set(keywords)
+        self.regex_keyword = None
+        if keywords is not None and len(keywords) > 0:
+            self.regex_keyword = re.compile(r'(%s)' % '|'.join(keywords), re.I)
         self.queue = queue
         self.sensitive_flags = sensitive_flags
         self.results = dict()           # key:origin,  value:敏感内容类型以及content列表
@@ -117,9 +122,8 @@ class TextExtractor(SuicidalThread):
 
     def keyword(self, text):
         matches = list()
-        for word in self._keywords:
-            if len(re.findall(word, text)) > 0:
-                matches.append(word)
+        if not self.regex_keyword:
+            matches.extend(self.regex_keyword.findall(text))
         return matches
 
     def extract(self, text, origin=None):
@@ -195,10 +199,13 @@ class TextExtractor(SuicidalThread):
                 time.sleep(0.2)
 
     def run(self):
-        self.add_sub_thd(self._sync2db())
-        self.add_sub_thd(self._dump_metric())
+        self.add_thread(self._sync2db())
+        self.add_thread(self._dump_metric())
         if self.queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
         logger.info('敏感内容提取任务结束')
+        # 发送结束信号
+        self.finished.emit()
+

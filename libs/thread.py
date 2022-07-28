@@ -3,6 +3,7 @@
 import threading
 import inspect
 import ctypes
+from PyQt6.QtCore import QThread
 
 
 # https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread
@@ -34,7 +35,7 @@ class SuicidalThread(threading.Thread):
         self.daemon = daemon      # 默认随着父线程退出而退出
         self._sub_threads = list()
 
-    def add_sub_thd(self, thread):
+    def add_thread(self, thread):
         if not isinstance(thread, threading.Thread):
             raise ValueError('%s is not a thread' % thread)
         self._sub_threads.append(thread)
@@ -53,13 +54,55 @@ class SuicidalThread(threading.Thread):
             thread.cleanup()
         force_kill(thread)
 
-    def kill_all_sub(self):
+    def kill_all(self):
         for thread in self._sub_threads:
             self.safe_kill(thread)
 
     def terminate(self):
         # 1. Kill所有子线程
-        self.kill_all_sub()
+        self.kill_all()
         # 2. 自毁
         self.safe_kill(self)
+
+
+class SuicidalQThread(QThread):
+    """
+    有self-destroying倾向的QThread线程
+    """
+    def __init__(self):
+        super().__init__()
+        self._sub_threads = list()
+
+    def add_thread(self, thread):
+        if not isinstance(thread, (threading.Thread, QThread)):
+            raise ValueError('%s is not a thread' % thread)
+        self._sub_threads.append(thread)
+
+    def cleanup(self):
+        pass
+
+    @staticmethod
+    def safe_kill(thread):
+        if not isinstance(thread, (threading.Thread, QThread)):
+            return
+        if isinstance(thread, SuicidalThread):
+            if thread.is_alive():
+                thread.terminate()
+        if isinstance(thread, SuicidalQThread):
+            if thread.isRunning():
+                thread.cleanup()
+                thread.terminate()
+        if isinstance(thread, threading.Thread):
+            if thread.is_alive():
+                force_kill(thread)
+
+    def kill_all(self):
+        for thread in self._sub_threads:
+            self.safe_kill(thread)
+
+    def terminate(self):
+        # 1. Kill所有子线程
+        self.kill_all()
+        # 2. 自毁
+        super().terminate()
 

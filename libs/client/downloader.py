@@ -88,9 +88,9 @@ class Downloader(SuicidalThread):
         pass
 
     def run(self):
-        self.add_sub_thd(self._log_stats())
-        self.add_sub_thd(self._sync2db())
-        self.add_sub_thd(self._dump_metric())
+        self.add_thread(self._log_stats())
+        self.add_thread(self._sync2db())
+        self.add_thread(self._dump_metric())
         self.crawling()
         logger.info('爬虫开始下载')
         self.downloads()
@@ -154,7 +154,7 @@ class WebFileDownloader(Downloader):
         self._put_queue('END')
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
-        logger.info('文件类型统计: %s' % json.dumps(file_types, indent=4))
+        logger.info('文件类型统计: %s' % json.dumps(file_types))
 
 
 class WebCrawlDownloader(Spider, WebFileDownloader):

@@ -45,7 +45,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.menuActionGeneral.triggered.connect(self.show_setting_win)
         self.sftpRadioBtn.clicked.connect(self.show_sshconf_win)
         self.startBtn.clicked.connect(self.start)
-        self.stopBtn.clicked.connect(self.terminate)
+        self.stopBtn.clicked.connect(lambda: self.terminate(notice=True))
         self.exitBtn.clicked.connect(self.exit)
         self.checkProgressBtn.clicked.connect(self.show_progress_win)
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
@@ -179,14 +179,16 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
 
         self.task_manager.start()
         self.metric_thread.start()
+        self.task_manager.extractor.finished.connect(self.terminate)
         self.metric_thread.progress.connect(self.update_ui_metric)
 
-    def terminate(self):
-        reply = QMessageBox.information(self, "提醒", "请确认是否终止目前任务，任务终止后需重新开始。",
-                                        buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
-                                        defaultButton=QMessageBox.StandardButton.Cancel)
-        if reply == QMessageBox.StandardButton.Cancel:
-            return
+    def terminate(self, notice=False):
+        if notice:
+            reply = QMessageBox.information(self, "提醒", "请确认是否终止目前任务，任务终止后需重新开始。",
+                                            buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                                            defaultButton=QMessageBox.StandardButton.Cancel)
+            if reply == QMessageBox.StandardButton.Cancel:
+                return
         self.metric_thread.terminate()
         self.task_manager.terminate()
         self.__toggle_state(enable=True)

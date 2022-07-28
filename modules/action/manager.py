@@ -75,12 +75,11 @@ class TaskManager(object):
         # 线程
         self.crawler.start()
         self.extractor.start()
-        logger.info('%s Manager started %s' % ('=' * 18, '=' * 18))
 
     def terminate(self):
         self.crawler.terminate()
         self.extractor.terminate()
-        logger.info('%s Manager stopped %s' % ('=' * 18, '=' * 18))
+        logger.info('%s' % '='*50)
 
     @staticmethod
     def clear():
