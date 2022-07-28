@@ -49,10 +49,10 @@ class SuicidalThread(threading.Thread):
             return
         if not thread.is_alive():
             return
-        # Kill线程之前尝试清理占用资源
-        if isinstance(thread, SuicidalThread):
-            thread.cleanup()
-        force_kill(thread)
+        if hasattr(thread, 'terminate'):
+            thread.terminate()
+        else:
+            force_kill(thread)
 
     def kill_all(self):
         for thread in self._sub_threads:
@@ -61,8 +61,11 @@ class SuicidalThread(threading.Thread):
     def terminate(self):
         # 1. Kill所有子线程
         self.kill_all()
-        # 2. 自毁
-        self.safe_kill(self)
+        # 2. 清理占用资源
+        self.cleanup()
+        # 3. 自毁
+        if self.is_alive():
+            force_kill(self)
 
 
 class SuicidalQThread(QThread):
@@ -83,18 +86,19 @@ class SuicidalQThread(QThread):
 
     @staticmethod
     def safe_kill(thread):
-        if not isinstance(thread, (threading.Thread, QThread)):
-            return
-        if isinstance(thread, SuicidalThread):
-            if thread.is_alive():
-                thread.terminate()
-        if isinstance(thread, SuicidalQThread):
-            if thread.isRunning():
-                thread.cleanup()
-                thread.terminate()
         if isinstance(thread, threading.Thread):
-            if thread.is_alive():
-                force_kill(thread)
+            if not thread.is_alive():
+                return
+        elif isinstance(thread, QThread):
+            if not thread.isRunning():
+                return
+        else:
+            return
+        #
+        if hasattr(thread, 'terminate'):
+            thread.terminate()
+        else:
+            force_kill(thread)
 
     def kill_all(self):
         for thread in self._sub_threads:
@@ -103,6 +107,8 @@ class SuicidalQThread(QThread):
     def terminate(self):
         # 1. Kill所有子线程
         self.kill_all()
-        # 2. 自毁
+        # 2. 清理占用资源
+        self.cleanup()
+        # 3. 自毁
         super().terminate()
 

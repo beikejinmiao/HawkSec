@@ -61,7 +61,7 @@ class TextExtractor(SuicidalQThread):
         }
         self.metric = ExtractMetric()
         #
-        self.sqlite = Sqlite()
+        self.sqlite = None      # sqlite不能跨线程使用,在线程内部run方法内初始化
         self._white_domain = set()
         self._white_url_file = set()
         self.__load_whitelist()
@@ -69,10 +69,6 @@ class TextExtractor(SuicidalQThread):
         self.db_rows = {
             TABLES.Extractor.value: list(),
             TABLES.Sensitives.value: list(),
-        }
-        self.__db_row_ix = {
-            TABLES.Extractor.value: 0,
-            TABLES.Sensitives.value: 0,
         }
 
     def __get_files(self, root):
@@ -91,22 +87,20 @@ class TextExtractor(SuicidalQThread):
         return local_files
 
     def __load_whitelist(self):
-        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
+        sqlite = Sqlite()
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
         for record in records:
             self._white_domain.add(record[0])
-        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
         for record in records:
             self._white_url_file.add(record[0])
-
-    @timer(2, 4)
-    def _sync2db(self):
-        sqlite = Sqlite()
-        for table in self.db_rows:
-            left = self.__db_row_ix[table]
-            right = len(self.db_rows[table])
-            sqlite.insert_many(table, self.db_rows[table][left:right])
-            self.__db_row_ix[table] = right
         sqlite.close()
+
+    # @timer(1, 1)      # 定时器线程会导致任务结束时还有剩余数据未插入
+    def _sync2db(self):
+        for table in self.db_rows:
+            self.sqlite.insert_many(table, self.db_rows[table])
+            self.db_rows[table] = list()
 
     @timer(2, 1)
     def _dump_metric(self):
@@ -158,18 +152,20 @@ class TextExtractor(SuicidalQThread):
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
             self.db_rows[TABLES.Extractor.value].append({
-                'origin': self.files.get(origin, ''),       # 保存远程文件路径或者URL
+                'origin': self.files.get(origin, origin),       # 保存远程文件路径或者URL
                 'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 'content': ', '.join(values), 'count': len(values),
             })
             for value in values:
                 self.db_rows[TABLES.Sensitives.value].append({
-                    'content': value, 'origin': self.files.get(origin, ''),
+                    'content': value, 'origin': self.files.get(origin, origin),
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 })
 
-        if origin is not None and len(result) > 0:
-            self.results[origin] = result
+        if len(result) > 0:
+            self._sync2db()
+            if origin is not None:
+                self.results[origin] = result
         return result
 
     def __extract_file(self, filepath):
@@ -215,12 +211,15 @@ class TextExtractor(SuicidalQThread):
                 time.sleep(0.2)
 
     def run(self):
-        self.add_thread(self._sync2db())
+        self.sqlite = Sqlite()
+        # self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
         if self.queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
+        self.sqlite.close()
+        # time.sleep(2)     # 等待写入数据库结束(当sync2db是在定时器线程异步运行时)
         logger.info('敏感内容提取任务结束')
         # 发送结束信号
         self.finished.emit()

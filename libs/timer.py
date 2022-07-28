@@ -30,6 +30,10 @@ class SimpleTimer(SuicidalThread):
 
 
 class SqliteTimer(threading.Thread):
+    """
+    只适合静态方法调用
+    类普通函数无法在线程内部访问其类对象(self)资源
+    """
     def __init__(self, delay, period, target, *args, **kwargs):
         super().__init__()
         self.delay = delay

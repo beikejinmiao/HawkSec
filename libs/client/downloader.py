@@ -29,7 +29,7 @@ class Downloader(SuicidalThread):
         #
         self.metric = CrawlMetric()
         #
-        self.sqlite = Sqlite()
+        self.sqlite = None
         self._white_url_file = set()
         self.__load_whitelist()
         #
@@ -53,9 +53,11 @@ class Downloader(SuicidalThread):
         self.metric.queue_put += 1
 
     def __load_whitelist(self):
-        records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        sqlite = Sqlite()
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
         for record in records:
             self._white_url_file.add(record[0])
+        sqlite.close()
 
     @timer(120, 120)
     def _log_stats(self):
@@ -67,17 +69,19 @@ class Downloader(SuicidalThread):
     #    File "libs\client\downloader.py", line 61, in _sync2db
     #    File "libs\pysqlite.py", line 52, in insert_many
     #  SystemExit
-    @timer(2, 4)
+    # @timer(1, 2, db_type='sqlite')  # 使用SqliteTimer无法访问类对象资源
+    @timer(1, 2)
     def _sync2db(self):
-        # 每次使用sqlite时都重新创建连接,尽量保证线程被kill时已关闭sqlite
-        sqlite = Sqlite()
+        # TODO 定时器线程内部初始化sqlite,永远无法关闭sqlite连接
+        if self.sqlite is None:
+            self.sqlite = Sqlite()
         left = self.__db_row_ix
         right = len(self.db_rows)
-        sqlite.insert_many(TABLES.CrawlStat.value, self.db_rows[left:right])
-        self.__db_row_ix = right
-        sqlite.close()
+        if right > left:
+            self.sqlite.insert_many(TABLES.CrawlStat.value, self.db_rows[left:right])
+            self.__db_row_ix = right
 
-    @timer(2, 1)
+    @timer(2, 2)
     def _dump_metric(self):
         self.metric.dump(CRAWL_METRIC_PATH)
 
@@ -92,9 +96,9 @@ class Downloader(SuicidalThread):
         self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
         self.crawling()
-        logger.info('爬虫开始下载')
+        logger.info('开始下载文件')
         self.downloads()
-        logger.info('爬虫下载结束')
+        logger.info('文件下载结束')
         logger.info('爬虫Metric统计: %s' % self.metric)
         self.cleanup()
         logger.info('爬虫客户端任务结束')
