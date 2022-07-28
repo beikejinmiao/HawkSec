@@ -8,7 +8,9 @@ __version__ = "1.0"
 
 import os
 import requests
+from requests import HTTPError
 import urllib.parse as urlparse
+from collections import namedtuple
 
 
 def filename_from_url(url):
@@ -100,30 +102,35 @@ header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36',
 }
 
+RespFileInfo = namedtuple('RespFileInfo', ['url', 'filepath', 'status_code', 'desc'])
+
 
 def download(url, out=None):
-    # urllib.error.HTTPError: HTTP Error 403: Forbidden
     # https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
     # NOTE the stream=True parameter below
     parsed = urlparse.urlparse(url)
     header['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
-    with requests.get(url, stream=True, headers=header) as r:
-        r.raise_for_status()
-        if out and os.path.isdir(out):
-            filename = os.path.join(out, detect_filename(url, None, r.headers))
-        else:
-            filename = detect_filename(url, out, r.headers)
-        if os.path.exists(filename):
-            filename = filename_fix_existed(filename)
-        with open(filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-    return filename     # filename is filepath
+    try:
+        with requests.get(url, stream=True, headers=header) as resp:
+            resp.raise_for_status()
+            if out and os.path.isdir(out):
+                filename = os.path.join(out, detect_filename(url, None, resp.headers))
+            else:
+                filename = detect_filename(url, out, resp.headers)
+            if os.path.exists(filename):
+                filename = filename_fix_existed(filename)
+            with open(filename, 'wb') as f:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    f.write(chunk)
+    except HTTPError:
+        # urllib.error.HTTPError: HTTP Error 403: Forbidden
+        return RespFileInfo(url=url, filepath=None, status_code=resp.status_code, desc=resp.reason)
+    return RespFileInfo(url=url, filepath=filename, status_code=resp.status_code, desc=resp.reason)
 
 
 if __name__ == "__main__":
     from conf.paths import DOWNLOADS
     file_url = 'http://106.13.202.41/downloads/docs/test.ppt'
-    filepath = download(file_url, out=DOWNLOADS)
+    filepath = download(file_url, out=DOWNLOADS).filepath
     print("")
     print("Saved under %s" % filepath)
