@@ -33,7 +33,7 @@ alexa = Alexa()
 class TextExtractor(SuicidalQThread):
     finished = pyqtSignal()
 
-    def __init__(self, root=None, sensitive_flags=None, keywords=None, queue=None):
+    def __init__(self, root=None, sensitive_flags=None, keywords=None, path_queue=None, db_queue=None):
         super().__init__()
 
         if not root:
@@ -46,7 +46,8 @@ class TextExtractor(SuicidalQThread):
         self.regex_keyword = None
         if keywords is not None and len(keywords) > 0:
             self.regex_keyword = re.compile(r'(%s)' % '|'.join(keywords), re.I)
-        self.queue = queue
+        self.path_queue = path_queue
+        self.db_queue = db_queue
         self.sensitive_flags = sensitive_flags
         self.results = dict()           # key:origin,  value:敏感内容类型以及content列表
         #
@@ -71,14 +72,14 @@ class TextExtractor(SuicidalQThread):
         self._white_url_file = set()
         self.__load_whitelist()
         #
-        self.db_rows = {
-            TABLES.Extractor.value: list(),
-            TABLES.Sensitives.value: list(),
-        }
-        self.__db_row_ix = {
-            TABLES.Extractor.value: 0,
-            TABLES.Sensitives.value: 0,
-        }
+        # self.db_rows = {
+        #     TABLES.Extractor.value: list(),
+        #     TABLES.Sensitives.value: list(),
+        # }
+        # self.__db_row_ix = {
+        #     TABLES.Extractor.value: 0,
+        #     TABLES.Sensitives.value: 0,
+        # }
 
     def __get_files(self, root):
         # 递归遍历所有本地文件路径
@@ -105,16 +106,29 @@ class TextExtractor(SuicidalQThread):
             self._white_url_file.add(record[0])
         sqlite.close()
 
-    @timer(1, 2)      # 定时器线程会导致任务结束时还有剩余数据未插入,需在主线程结束后等待一段时间
-    def _sync2db(self):
-        sqlite = Sqlite()   # sqlite不能跨线程使用,在线程内部初始化
-        for table in self.db_rows:
-            left = self.__db_row_ix[table]
-            right = len(self.db_rows[table])
-            if right > left:
-                sqlite.insert_many(table, self.db_rows[table][left:right])
-                self.__db_row_ix[table] = right
-        sqlite.close()
+    def _put_db_queue(self, table, record):
+        if self.db_queue is None:
+            return
+        self.db_queue.put((table, record), block=True)        # 阻塞至有空闲槽可用
+
+    # 2022-07-29 15:14:32,146 - ERROR - file - timer.py:28 - Exception: Traceback (most recent call last):
+    #   File "D:\PycharmProjects\HawkSec\libs\timer.py", line 26, in run
+    #     self._target(*self._args, **self._kwargs)
+    #   File "D:\PycharmProjects\HawkSec\modules\action\extractor.py", line 115, in _sync2db
+    #     sqlite.insert_many(table, self.db_rows[table][left:right])
+    #   File "D:\PycharmProjects\HawkSec\libs\pysqlite.py", line 54, in insert_many
+    #     self.__cursor.executemany(stmt, values[i*win:min((i+1)*win, size)])
+    # sqlite3.OperationalError: database is locked
+    # @timer(1, 2)      # 定时器线程会导致任务结束时还有剩余数据未插入,需在主线程结束后等待一段时间
+    # def _sync2db(self):
+    #     sqlite = Sqlite()   # sqlite不能跨线程使用,在线程内部初始化
+    #     for table in self.db_rows:
+    #         left = self.__db_row_ix[table]
+    #         right = len(self.db_rows[table])
+    #         if right > left:
+    #             sqlite.insert_many(table, self.db_rows[table][left:right])
+    #             self.__db_row_ix[table] = right
+    #     sqlite.close()
 
     @timer(2, 2)
     def _dump_metric(self):
@@ -148,7 +162,7 @@ class TextExtractor(SuicidalQThread):
 
     def keyword(self, text):
         matches = list()
-        if not self.regex_keyword:
+        if self.regex_keyword is not None:
             matches.extend(self.regex_keyword.findall(text))
         return matches
 
@@ -160,7 +174,7 @@ class TextExtractor(SuicidalQThread):
         :return:
         """
         if not text:
-            return
+            return None
         #
         result = dict()
         for flag in self.sensitive_flags:
@@ -181,21 +195,24 @@ class TextExtractor(SuicidalQThread):
         #
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
-            self.db_rows[TABLES.Extractor.value].append({
+            record = {
                 'origin': self.files.get(local_path, origin),       # 保存远程文件路径或者URL
                 'sensitive_type': flag, 'sensitive_name': sensitive_name,
                 'content': ', '.join(values), 'count': len(values),
-            })
+            }
+            self._put_db_queue(TABLES.Extractor.value, record)
+            # self.db_rows[TABLES.Extractor.value].append(record)
             for value in values:
-                self.db_rows[TABLES.Sensitives.value].append({
+                record = {
                     'content': value, 'origin': self.files.get(local_path, origin),
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,
-                })
+                }
+                self._put_db_queue(TABLES.Sensitives.value, record)
+                # self.db_rows[TABLES.Sensitives.value].append(record)
 
-        if len(result) > 0:
-            self._sync2db()
-            if origin is not None:
-                self.results[origin] = result
+        if len(result) > 0 and origin:
+            # self._sync2db()
+            self.results[origin] = result
         return result
 
     def __extract_file(self, local_path, origin=None):
@@ -226,26 +243,23 @@ class TextExtractor(SuicidalQThread):
     def extfrom_queue(self):
         # 无法根据queue是否empty自动退出(如果处理快于下载导致queue多数时间为空)
         while True:
-            # local_path = self.queue.get(block=True)     # 阻塞至项目可得到
-            try:
-                local_path, remote_path = self.queue.get(block=False)      # 可停止的线程不能阻塞
-                if local_path == 'END':
-                    break
-                self.files[local_path] = remote_path
-                self.counter['que_get'] = self.counter.get('que_get', 0) + 1
-                self.load2extract(local_path, origin=remote_path)
-                os.remove(local_path)
-            except Empty:
-                time.sleep(1)
+            local_path, remote_path = self.path_queue.get(block=True)      # 阻塞至项目可得到
+            if local_path == 'END':
+                break
+            self.files[local_path] = remote_path
+            self.counter['que_get'] = self.counter.get('que_get', 0) + 1
+            self.load2extract(local_path, origin=remote_path)
+            os.remove(local_path)
 
     def run(self):
-        self.add_thread(self._sync2db())
+        # self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
-        if self.queue is not None:
+        if self.path_queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
-        time.sleep(2)     # 等待写入数据库结束(当sync2db是在定时器线程异步运行时)
+        self._put_db_queue('END', None)
+        time.sleep(2)     # 等待写入数据库结束
         logger.info('敏感内容提取任务结束')
         # 发送结束信号
         self.finished.emit()

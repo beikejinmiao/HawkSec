@@ -11,6 +11,7 @@ from conf.paths import DUMP_HOME, DOWNLOADS
 from libs.regex import img, video, executable
 from libs.client.downloader import Downloader
 from libs.pyaml import configure
+from libs.enums import TABLES
 from libs.logger import logger
 
 
@@ -21,8 +22,8 @@ https://gist.github.com/johnfink8/2190472
 
 class SSHSession(Downloader):
     def __init__(self, hostname, username='root', password=None, port=22, timeout=5,
-                 remote_root=None, out_dir=DOWNLOADS, queue=None):
-        super().__init__(out_dir=out_dir, queue=queue)
+                 remote_root=None, out_dir=DOWNLOADS, path_queue=None, db_queue=None):
+        super().__init__(out_dir=out_dir, path_queue=path_queue, db_queue=db_queue)
         #
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((hostname, port))
@@ -128,15 +129,19 @@ class SSHSession(Downloader):
                 suffix.append(local_filepath.split('.')[-1].lower())
                 self.metric.file_success += 1
                 # 将下载文件的本地路径和远程文件放入队列中
-                self._put_queue((local_filepath, remote_filepath))
-                self.db_rows.append({'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'})
+                self._put_path_queue((local_filepath, remote_filepath))
+                record = {'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'}
+                self._put_db_queue(TABLES.CrawlStat.value, record)
+                # self.db_rows.append(record)
             except Exception as e:
                 self.metric.file_failed += 1
                 logger.error(traceback)
                 logger.error('Download Error: %s' % remote_filepath)
-                self.db_rows.append({'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)})
+                record = {'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)}
+                self._put_db_queue(TABLES.CrawlStat.value, record)
+                # self.db_rows.append(record)
         # 统计文件类型数量
-        self._put_queue(('END', None))
+        self._put_path_queue(('END', None))
         file_types = dict(Counter(suffix).most_common())
         logger.info('文件类型统计: %s' % json.dumps(file_types))
 

@@ -9,6 +9,7 @@ from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
 from modules.action.extractor import TextExtractor
+from modules.action.persistence import DbPersistence
 from libs.logger import logger
 
 browser_protocols = ('http', 'https', 'ftp')
@@ -17,7 +18,8 @@ support_protocols = ('http', 'https', 'ftp', 'sftp')
 
 class TaskManager(object):
     def __init__(self, target, flags, keywords=None, protocol=None, auth_config=None):
-        self.queue = Queue(100000)
+        self.path_queue = Queue(10000)
+        self.db_queue = Queue(10000)
         #
         self.target = target
         self.protocol = None
@@ -41,6 +43,7 @@ class TaskManager(object):
         self.auth_config = auth_config
         self.extractor = self.__init_extractor()
         self.crawler = self.__init_crawler()
+        self.persistencer = DbPersistence(db_queue=self.db_queue)
 
     def __init_crawler(self):
         client = None
@@ -48,7 +51,8 @@ class TaskManager(object):
             hsts = True if self.protocol == 'https' else False
             if not re.match(r'^\w+://', self.target):
                 self.target = self.protocol + '://' + self.target
-            client = WebCrawlDownloader(self.target, hsts=hsts, extractor=self.extractor, queue=self.queue)
+            client = WebCrawlDownloader(self.target, hsts=hsts, extractor=self.extractor,
+                                        path_queue=self.path_queue, db_queue=self.db_queue)
         elif self.protocol == 'sftp':
             if not isinstance(self.auth_config, dict) or 'password' not in self.auth_config:
                 raise ValueError('ssh auth config is empty or has not password.')
@@ -57,11 +61,12 @@ class TaskManager(object):
                                 username=self.auth_config.get('username', 'root'),
                                 password=self.auth_config['password'],
                                 remote_root=self.auth_config.get('path', '/tmp'),
-                                queue=self.queue)
+                                path_queue=self.path_queue, db_queue=self.db_queue)
         return client
 
     def __init_extractor(self):
-        return TextExtractor(queue=self.queue, sensitive_flags=self.sensitive_flags, keywords=self._keywords)
+        return TextExtractor(sensitive_flags=self.sensitive_flags, keywords=self._keywords,
+                             path_queue=self.path_queue, db_queue=self.db_queue)
 
     def start(self):
         # 进程
@@ -75,10 +80,12 @@ class TaskManager(object):
         # 线程
         self.crawler.start()
         self.extractor.start()
+        self.persistencer.start()
 
     def terminate(self):
         self.crawler.terminate()
         self.extractor.terminate()
+        self.persistencer.terminate()
         logger.info('%s' % '='*50)
 
     @staticmethod
