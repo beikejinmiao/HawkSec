@@ -118,7 +118,8 @@ class SettingWindow(Ui_Form, QtWidgets.QWidget):
                         {'white_type': 'file', 'ioc': file, 'desc': '自定义'} for file in new_white_file
                     ])
             self.sqlite.insert_many(TABLES.WhiteList.value, white_insert)
-            QtWidgets.QMessageBox.information(self, "提醒", "保存成功,请点击查看具体内容")
+            QtWidgets.QMessageBox.information(self, "提醒", "保存成功")
+            self.close()
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, "提醒", "保存失败，错误原因：" + str(e))
 

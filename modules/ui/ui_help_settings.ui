@@ -73,7 +73,7 @@
     <rect>
      <x>20</x>
      <y>100</y>
-     <width>121</width>
+     <width>111</width>
      <height>16</height>
     </rect>
    </property>
@@ -112,18 +112,21 @@
    <property name="text">
     <string>启用内置白名单</string>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QPushButton" name="checkWhiteDomBtn">
    <property name="geometry">
     <rect>
-     <x>570</x>
-     <y>240</y>
-     <width>91</width>
+     <x>130</x>
+     <y>100</y>
+     <width>41</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string>查看已添加域名</string>
+    <string>查看</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
@@ -131,8 +134,8 @@
     <rect>
      <x>20</x>
      <y>290</y>
-     <width>201</width>
-     <height>16</height>
+     <width>181</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="font">
@@ -207,20 +210,20 @@
     </rect>
    </property>
    <property name="text">
-    <string>退出</string>
+    <string>关闭</string>
    </property>
   </widget>
   <widget class="QPushButton" name="checkWhiteFileBtn">
    <property name="geometry">
     <rect>
-     <x>570</x>
-     <y>430</y>
-     <width>101</width>
+     <x>210</x>
+     <y>290</y>
+     <width>41</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string>查看已添加路径</string>
+    <string>查看</string>
    </property>
   </widget>
  </widget>

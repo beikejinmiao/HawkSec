@@ -46,7 +46,7 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.sftpRadioBtn.clicked.connect(self.show_sshconf_win)
         self.startBtn.clicked.connect(self.start)
         self.stopBtn.clicked.connect(lambda: self.terminate(notice=True))
-        self.exitBtn.clicked.connect(self.exit)
+        self.exitBtn.clicked.connect(self.close)
         self.checkProgressBtn.clicked.connect(self.show_progress_win)
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
         self.checkSensitiveBtn.clicked.connect(self.show_sensitive_win)
@@ -195,21 +195,20 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         del self.metric_thread
         del self.task_manager
 
-    def exit(self):
-        reply = QMessageBox.information(self, "提醒", "请确认是否直接退出",
-                                        buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
-                                        defaultButton=QMessageBox.StandardButton.Cancel)
-        if reply == QMessageBox.StandardButton.Cancel:
-            return
-        self.close()
-
     def closeEvent(self, event):
-        if self.settingWindow:
-            self.settingWindow.close()
-        if self.sshConfigWindow:
-            self.sshConfigWindow.close()
-        if self.progressWindow:
-            self.progressWindow.close()
-        if self.extractWindow:
-            self.extractWindow.close()
+        reply = QMessageBox.warning(self, "提醒", "确认退出",
+                                    buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                                    defaultButton=QMessageBox.StandardButton.Cancel)
+        if reply == QMessageBox.StandardButton.Ok:
+            event.accept()
+            if self.settingWindow:
+                self.settingWindow.close()
+            if self.sshConfigWindow:
+                self.sshConfigWindow.close()
+            if self.progressWindow:
+                self.progressWindow.close()
+            if self.extractWindow:
+                self.extractWindow.close()
+        else:
+            event.ignore()
 
