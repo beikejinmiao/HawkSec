@@ -2,8 +2,9 @@
 # -*- coding:utf-8 -*-
 import os
 import re
+import shutil
 from queue import Queue
-from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, LOG_FILEPATH
+from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, DOWNLOADS
 from libs.enums import SENSITIVE_FLAG, TABLES
 from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
@@ -101,6 +102,9 @@ class TaskManager(object):
             os.remove(CRAWL_METRIC_PATH)
         if os.path.exists(EXTRACT_METRIC_PATH):
             os.remove(EXTRACT_METRIC_PATH)
+        if os.path.exists(DOWNLOADS):
+            shutil.rmtree(DOWNLOADS)
+        os.makedirs(DOWNLOADS)
         logger.info('成功清除历史数据')
 
 

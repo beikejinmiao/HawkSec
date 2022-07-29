@@ -45,7 +45,7 @@ class TextExtractor(SuicidalQThread):
         #
         self.regex_keyword = None
         if keywords is not None and len(keywords) > 0:
-            self.regex_keyword = re.compile(r'(%s)' % '|'.join(keywords), re.I)
+            self.regex_keyword = re.compile(r'(%s)' % '|'.join(keywords))
         self.path_queue = path_queue
         self.db_queue = db_queue
         self.sensitive_flags = sensitive_flags
@@ -151,7 +151,6 @@ class TextExtractor(SuicidalQThread):
             if is_gov_edu(reg_domain) or reg_domain in self._white_domain:
                 continue
             if setting.builtin_alexa is True and reg_domain in alexa:
-                logger.info('命中默认白名单: ' + item)
                 continue
             candidates.add(item)
         return list(candidates)
@@ -259,7 +258,7 @@ class TextExtractor(SuicidalQThread):
         else:
             self.extfrom_root()
         self._put_db_queue('END', None)
-        time.sleep(2)     # 等待写入数据库结束
+        time.sleep(3)     # 等待写入数据库结束
         logger.info('敏感内容提取任务结束')
         # 发送结束信号
         self.finished.emit()

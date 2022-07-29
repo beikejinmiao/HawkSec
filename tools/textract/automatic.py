@@ -64,6 +64,7 @@ def extract(filepath):
         logger.error('提取文本失败: %s' % filepath)
         logger.error(traceback.format_exc())
     #
+    content = content.strip()
     if content:
         logger.info('提取文本成功: %s' % filepath)
     return content

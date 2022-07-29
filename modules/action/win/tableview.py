@@ -22,8 +22,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
         # self.tableView.horizontalHeader().setStretchLastSection(True)
         # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         header = self.tableView.horizontalHeader()
-        for i, mode in enumerate(column_modes):
-            header.setSectionResizeMode(i, mode)
+        if column_modes is not None:
+            for i, mode in enumerate(column_modes):
+                header.setSectionResizeMode(i, mode)
         # self.tableView.showRow(0)
 
         self.set_connect()

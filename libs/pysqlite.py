@@ -98,7 +98,7 @@ class Sqlite(object):
 
 if __name__ == '__main__':
     sqlite = Sqlite()
-    sqlite.truncate(['crawlstat', 'extractor', 'sensitives'])
+    sqlite.truncate(['crawlstat', 'extractor', 'sensitives', 'whitelist'])
     # print(sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % 'crawlstat'))
     sqlite.close()
 
