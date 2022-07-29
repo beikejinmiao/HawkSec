@@ -7,6 +7,8 @@ protocol: https
 timeout: 5  # seconds
 # 编码类型
 charset: auto   # auto, utf-8, gbk
+# 是否启动内置域名白名单
+builtin_alexa: true
 
 
 # SSH

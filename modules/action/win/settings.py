@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import re
-from collections import namedtuple
 from PyQt6 import QtWidgets
 from modules.ui.ui_help_settings import Ui_Form
 from libs.enums import TABLES
@@ -12,24 +11,24 @@ from modules.action.win.tableview import WhiteListDataWindow
 
 
 class Setting(object):
-    def __init__(self, timeout=5, enable_builtin_domain=0, white_domain=None, white_file=None):
-        self.timeout = timeout
-        self.enable_builtin_domain = enable_builtin_domain
+    def __init__(self, timeout=5, builtin_alexa=True, white_domain=None, white_file=None):
+        self.timeout = configure.get('timeout', timeout)
+        self.builtin_alexa = configure.get('builtin_alexa', builtin_alexa)
         self.white_domain = set() if white_domain is None else set(white_domain)
         self.white_file = set() if white_file is None else set(white_file)
 
 
+setting = Setting()
+
+
 class SettingWindow(Ui_Form, QtWidgets.QWidget):
-
-    Config = namedtuple('Config', ['timeout', 'enable_builtin_domain', 'white_domain', 'white_file'])
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-
+        self.setting = setting
         self.__init_state()
+        #
         self.sqlite = Sqlite()
-        self.setting = Setting()
         self.whiteDomWindow = None
         self.whiteFileWindow = None
 
@@ -37,7 +36,8 @@ class SettingWindow(Ui_Form, QtWidgets.QWidget):
         self._existed_file = None
 
     def __init_state(self):
-        self.timeoutLineEdit.setText(str(configure.get('timeout', 5)))
+        self.timeoutLineEdit.setText(str(self.setting.timeout))
+        self.builtinAlexaEnableBox.setChecked(self.setting.builtin_alexa)
         # self.whiteDomTextEdit.setPlainText('')
         # self.whiteFileTextEdit.setPlainText('')
         self.saveBtn.clicked.connect(self.save)
@@ -73,6 +73,11 @@ class SettingWindow(Ui_Form, QtWidgets.QWidget):
                 item = item.strip()
                 if len(item) > 0:
                     self.setting.white_file.add(item)
+        #
+        if self.builtinAlexaEnableBox.isChecked():
+            self.setting.builtin_alexa = True
+        else:
+            self.setting.builtin_alexa = False
 
     def __load_existed(self):
         if self._existed_domain is None:
@@ -92,6 +97,7 @@ class SettingWindow(Ui_Form, QtWidgets.QWidget):
         #
         try:
             configure['timeout'] = self.setting.timeout
+            configure['builtin_alexa'] = self.setting.builtin_alexa
             configure.save()
             #
             self.__load_existed()

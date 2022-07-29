@@ -84,7 +84,7 @@
     </font>
    </property>
    <property name="text">
-    <string>域名白名单</string>
+    <string>外链域名白名单</string>
    </property>
   </widget>
   <widget class="QPlainTextEdit" name="whiteDomTextEdit">
@@ -97,20 +97,20 @@
     </rect>
    </property>
    <property name="placeholderText">
-    <string>多个域名请以逗号或者换行符分割; 格式错误域名将被忽略</string>
+    <string>新加域名,多个域名请以逗号或者换行符分割; 格式错误域名将被忽略</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="whiteDomEnableBox">
+  <widget class="QCheckBox" name="builtinAlexaEnableBox">
    <property name="geometry">
     <rect>
      <x>570</x>
      <y>130</y>
-     <width>80</width>
+     <width>111</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>内置白名单</string>
+    <string>启用内置白名单</string>
    </property>
   </widget>
   <widget class="QPushButton" name="checkWhiteDomBtn">
@@ -118,12 +118,12 @@
     <rect>
      <x>570</x>
      <y>240</y>
-     <width>61</width>
+     <width>91</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string>查看</string>
+    <string>查看已添加域名</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
@@ -131,7 +131,7 @@
     <rect>
      <x>20</x>
      <y>290</y>
-     <width>121</width>
+     <width>201</width>
      <height>16</height>
     </rect>
    </property>
@@ -142,7 +142,7 @@
     </font>
    </property>
    <property name="text">
-    <string>文件白名单</string>
+    <string>文件URL和远程路径白名单</string>
    </property>
   </widget>
   <widget class="QPlainTextEdit" name="whiteFileTextEdit">
@@ -155,7 +155,7 @@
     </rect>
    </property>
    <property name="placeholderText">
-    <string>多个文件路径请以逗号或者换行符分割; 不校验文件名</string>
+    <string>新加路径,多个文件URL和路径请以逗号或者换行符分割; 不校验输入内容</string>
    </property>
   </widget>
   <widget class="Line" name="line">
@@ -163,7 +163,7 @@
     <rect>
      <x>20</x>
      <y>80</y>
-     <width>631</width>
+     <width>651</width>
      <height>16</height>
     </rect>
    </property>
@@ -176,7 +176,7 @@
     <rect>
      <x>20</x>
      <y>270</y>
-     <width>631</width>
+     <width>651</width>
      <height>16</height>
     </rect>
    </property>
@@ -187,7 +187,7 @@
   <widget class="QPushButton" name="saveBtn">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>210</x>
      <y>470</y>
      <width>61</width>
      <height>24</height>
@@ -200,7 +200,7 @@
   <widget class="QPushButton" name="exitBtn">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>290</x>
      <y>470</y>
      <width>61</width>
      <height>24</height>
@@ -215,12 +215,12 @@
     <rect>
      <x>570</x>
      <y>430</y>
-     <width>61</width>
+     <width>101</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
-    <string>查看</string>
+    <string>查看已添加路径</string>
    </property>
   </widget>
  </widget>

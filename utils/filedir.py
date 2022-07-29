@@ -16,7 +16,7 @@ def writer(path, texts, method="w", encoding='utf-8'):
             fout.write('\n'.join(texts))
 
 
-def _reader_(path, encoding, strip="\r\n ", skip_blank=True):
+def _reader_(path, encoding, skip_blank=True):
     with io.open(path, encoding=encoding) as fopen:
         while True:
             try:
@@ -27,13 +27,13 @@ def _reader_(path, encoding, strip="\r\n ", skip_blank=True):
             if not line:
                 break
             # check the line whether is blank or not
-            line = line.strip(strip)
+            line = line.strip()
             if skip_blank and not line:
                 continue
             yield line
 
 
-def reader(path, encoding='utf-8', strip="\r\n ", skip_blank=True, raisexp=False):
+def reader(path, encoding='utf-8', skip_blank=True, raisexp=False):
     charsets = ['gbk', 'utf-8']
     if encoding not in charsets:
         charsets.append(encoding)
@@ -41,7 +41,7 @@ def reader(path, encoding='utf-8', strip="\r\n ", skip_blank=True, raisexp=False
     # 尝试多种编码方式
     for charset in charsets:
         try:
-            for line in _reader_(path, charset, strip=strip, skip_blank=skip_blank):
+            for line in _reader_(path, charset, skip_blank=skip_blank):
                 yield line
         except UnicodeDecodeError as e:
             logger.warning(e)

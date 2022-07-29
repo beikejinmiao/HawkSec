@@ -14,6 +14,7 @@ from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
 from libs.thread import SuicidalQThread
+from libs.filter import Alexa
 from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
@@ -21,10 +22,12 @@ from tools.textract.automatic import extract as textract
 from libs.regex import find_ioc, is_valid_ip, is_gov_edu
 from utils.idcard import find_idcard
 from modules.action.metric import ExtractMetric
+from modules.action.win.settings import setting
 from libs.logger import logger
 
 
 LOCAL_ZIP_PATH_FLAG = '.unpack'   # 压缩文件解压后本地路径标志
+alexa = Alexa()
 
 
 class TextExtractor(SuicidalQThread):
@@ -64,7 +67,6 @@ class TextExtractor(SuicidalQThread):
         }
         self.metric = ExtractMetric()
         #
-        self.sqlite = None      # sqlite不能跨线程使用,在线程内部run方法内初始化
         self._white_domain = set()
         self._white_url_file = set()
         self.__load_whitelist()
@@ -72,6 +74,10 @@ class TextExtractor(SuicidalQThread):
         self.db_rows = {
             TABLES.Extractor.value: list(),
             TABLES.Sensitives.value: list(),
+        }
+        self.__db_row_ix = {
+            TABLES.Extractor.value: 0,
+            TABLES.Sensitives.value: 0,
         }
 
     def __get_files(self, root):
@@ -99,13 +105,18 @@ class TextExtractor(SuicidalQThread):
             self._white_url_file.add(record[0])
         sqlite.close()
 
-    # @timer(1, 1)      # 定时器线程会导致任务结束时还有剩余数据未插入
+    @timer(1, 2)      # 定时器线程会导致任务结束时还有剩余数据未插入,需在主线程结束后等待一段时间
     def _sync2db(self):
+        sqlite = Sqlite()   # sqlite不能跨线程使用,在线程内部初始化
         for table in self.db_rows:
-            self.sqlite.insert_many(table, self.db_rows[table])
-            self.db_rows[table] = list()
+            left = self.__db_row_ix[table]
+            right = len(self.db_rows[table])
+            if right > left:
+                sqlite.insert_many(table, self.db_rows[table][left:right])
+                self.__db_row_ix[table] = right
+        sqlite.close()
 
-    @timer(2, 1)
+    @timer(2, 2)
     def _dump_metric(self):
         self.metric.external_url_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
         self.metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
@@ -124,6 +135,9 @@ class TextExtractor(SuicidalQThread):
             ext = tldextract.extract(item)
             reg_domain = ext.registered_domain.lower()
             if is_gov_edu(reg_domain) or reg_domain in self._white_domain:
+                continue
+            if setting.builtin_alexa is True and reg_domain in alexa:
+                logger.info('命中默认白名单: ' + item)
                 continue
             candidates.add(item)
         return list(candidates)
@@ -225,15 +239,13 @@ class TextExtractor(SuicidalQThread):
                 time.sleep(1)
 
     def run(self):
-        self.sqlite = Sqlite()
-        # self.add_thread(self._sync2db())
+        self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
         if self.queue is not None:
             self.extfrom_queue()
         else:
             self.extfrom_root()
-        self.sqlite.close()
-        # time.sleep(2)     # 等待写入数据库结束(当sync2db是在定时器线程异步运行时)
+        time.sleep(2)     # 等待写入数据库结束(当sync2db是在定时器线程异步运行时)
         logger.info('敏感内容提取任务结束')
         # 发送结束信号
         self.finished.emit()
