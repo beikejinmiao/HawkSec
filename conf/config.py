@@ -3,6 +3,6 @@
 import platform
 
 Platform = platform.system().lower()
-TIKA = ''
+TIKA_SERVER = ''
 TIKA_SERVER_ACTIVE = False
 

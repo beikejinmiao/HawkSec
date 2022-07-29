@@ -135,3 +135,20 @@ def pdf(filepath):
     return set(texts)
 
 
+__office_methods = {
+    'doc': doc,
+    'docx': docx,
+    'xls': xls,
+    'xlsx': xlsx,
+    'ppt': ppt,
+    'pptx': pptx,
+    'pdf': pdf,
+}
+
+
+def autocheck(filepath):
+    suffix = os.path.basename(filepath).split('.')[-1].lower()
+    if suffix in __office_methods:
+        return __office_methods[suffix](filepath)
+    return ''
+

@@ -9,7 +9,7 @@ from queue import Empty
 from collections.abc import Iterable
 from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
-from libs.regex import img, video, executable, archive
+from libs.regex import archive
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
@@ -145,6 +145,9 @@ class TextExtractor(SuicidalQThread):
         :param origin:      网页URL、文件URL、SFTP远程文件路径
         :return:
         """
+        if not text:
+            return
+        #
         result = dict()
         for flag in self.sensitive_flags:
             # 只在网页中提取提取外链,下载的文件中默认不提取
@@ -182,8 +185,6 @@ class TextExtractor(SuicidalQThread):
         return result
 
     def __extract_file(self, local_path, origin=None):
-        if img.match(local_path) or video.match(local_path) or executable.match(local_path):
-            return
         self.extract(textract(local_path), local_path=local_path, origin=origin)
 
     def __extract_dir(self, folder, origin=None):
