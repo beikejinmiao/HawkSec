@@ -41,6 +41,22 @@ class TABLES(enum.Enum):
     Sensitives = "sensitives"
 
 
+class TABLES_CN(enum.Enum):
+    CrawlStat = "Url&File爬取状态统计"
+    Extractor = "Url&File敏感内容统计"
+    FileType = "压缩文件类型"
+    WhiteList = "Url&File白名单"
+    Sensitives = "敏感内容来源统计"
+
+
+tables_cn_name = {
+    TABLES.CrawlStat.value: TABLES_CN.CrawlStat.value,
+    TABLES.Extractor.value: TABLES_CN.Extractor.value,
+    TABLES.FileType.value: TABLES_CN.FileType.value,
+    TABLES.WhiteList.value: TABLES_CN.WhiteList.value,
+    TABLES.Sensitives.value: TABLES_CN.Sensitives.value,
+}
+
 if __name__ == '__main__':
     # print(SYSTEM('Windows') is SYSTEM.WINDOWS)
     print('windows' == SYSTEM.WINDOWS)

@@ -3,7 +3,7 @@
 import os
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QHeaderView
-from libs.enums import TABLES, SENSITIVE_NAME
+from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from libs.pysqlite import Sqlite
 from conf.paths import DUMP_HOME
 from modules.ui.ui_tableview import Ui_Form
@@ -28,8 +28,6 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
 
         self.set_connect()
         self.update_ui_state()
-        #
-        self.sqlite = Sqlite()
 
     def custom_ui(self):
         pass
@@ -95,11 +93,12 @@ class DataGridWindow(TablePageModel, Ui_Form, QtWidgets.QWidget):
         self.update_total_count()
 
     def dump(self):
-        filepath, ok = QtWidgets.QFileDialog.getSaveFileName(self, "保存文件",
-                                                             os.path.join(DUMP_HOME, "%s.csv" % self.table))
+        filepath, ok = QtWidgets.QFileDialog.getSaveFileName(
+            self, "保存文件", os.path.join(DUMP_HOME, "%s.csv" % tables_cn_name.get(self.table, self.table))
+        )
         if ok:
             try:
-                self.sqlite.dump(self.table, filepath)
+                self.sqlite.dump(self.table, filepath, columns=self.columns)
                 QtWidgets.QMessageBox.information(self, "提示", "保存成功. 文件路径: " + filepath)
             except Exception as e:
                 QtWidgets.QMessageBox.warning(self, "提示", "保存失败. 错误原因: " + str(e))

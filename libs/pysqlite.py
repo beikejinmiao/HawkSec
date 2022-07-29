@@ -71,8 +71,22 @@ class Sqlite(object):
         self.__conn.execute('VACUUM')
         self.__conn.commit()
 
-    def dump(self, table, filepath):
-        df = pd.read_sql_query("SELECT * FROM `%s`" % table, self.__conn)
+    def dump(self, table, filepath, columns=None):
+        _columns = '*'
+        if not columns:
+            _columns = '*'
+        elif isinstance(columns, str):
+            _columns = columns
+        elif isinstance(columns, (list, tuple, set)):
+            _columns = ','.join(columns)
+        elif isinstance(columns, dict):
+            # key:数据库字段名, value:前端显示表格字段名
+            _columns = ','.join(columns.keys())
+        #
+        df = pd.read_sql_query("SELECT %s FROM `%s`" % (_columns, table), self.__conn)
+        # 重命名字段
+        if isinstance(columns, dict):
+            df = df.rename(columns=columns)
         df.to_csv(filepath, index=False)
 
     def command(self, cmd):
