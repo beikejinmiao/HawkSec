@@ -60,7 +60,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>进度状态统计</string>
+     <string>URL和File爬取状态统计</string>
     </property>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
@@ -217,7 +217,7 @@
        <item row="0" column="1">
         <widget class="QLabel" name="extUrlCntLabel">
          <property name="text">
-          <string>0个/0次     </string>
+          <string>0个</string>
          </property>
         </widget>
        </item>

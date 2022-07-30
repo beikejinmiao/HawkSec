@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import re
-from PyQt6 import QtWidgets
+from PyQt6 import QtWidgets, QtGui
 from modules.ui.ui_help_settings import Ui_Form
 from libs.enums import TABLES
 from libs.pyaml import configure
@@ -44,6 +44,13 @@ class SettingWindow(Ui_Form, QtWidgets.QWidget):
         self.exitBtn.clicked.connect(self.close)
         self.checkWhiteDomBtn.clicked.connect(self.show_white_dom_win)
         self.checkWhiteFileBtn.clicked.connect(self.show_white_file_win)
+        # 设置PlaceholderText字体颜色和透明度
+        palette = self.whiteDomTextEdit.palette()
+        palette.setColor(QtGui.QPalette.ColorRole.PlaceholderText, QtGui.QColor(0, 0, 0, 100))
+        self.whiteDomTextEdit.setPalette(palette)
+        palette = self.whiteFileTextEdit.palette()
+        palette.setColor(QtGui.QPalette.ColorRole.PlaceholderText, QtGui.QColor(0, 0, 0, 100))
+        self.whiteFileTextEdit.setPalette(palette)
 
     def __check_timeout(self):
         timeout = self.timeoutLineEdit.text().strip()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-from PyQt6 import QtWidgets
+from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtCore import QThread
 from conf.paths import LOG_FILEPATH
@@ -51,6 +51,10 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.checkExtractBtn.clicked.connect(self.show_extract_win)
         self.checkSensitiveBtn.clicked.connect(self.show_sensitive_win)
         self.update_ui_metric(QCrawlExtProgress.metric())
+        # 设置PlaceholderText字体颜色和透明度
+        palette = self.keywordLineEdit.palette()
+        palette.setColor(QtGui.QPalette.ColorRole.PlaceholderText, QtGui.QColor(0, 0, 0, 100))
+        self.keywordLineEdit.setPalette(palette)
         # self.__pre_load_log()
 
     def __toggle_state(self, enable=True):
@@ -149,7 +153,8 @@ class MainWindow(UiMainWindow, QtWidgets.QWidget):
         self.crawledCntLabel.setText(str(stat.get('crawl_total', 0)))
         self.faieldCntLabel.setText(str(stat.get('crawl_failed', 0)))
         self.hitCntLabel.setText(str(stat.get('origin_hit', 0)))
-        self.extUrlCntLabel.setText('%s个/%s次' % (stat.get('external_url_count', 0), stat.get('external_url_find', 0)))
+        # self.extUrlCntLabel.setText('%s个/%s次' % (stat.get('external_url_count', 0), stat.get('external_url_find', 0)))
+        self.extUrlCntLabel.setText('%s个' % stat.get('external_url_count', 0))
         self.idcardCntLabel.setText('%s个/%s次' % (stat.get('idcard_count', 0), stat.get('idcard_find', 0)))
         self.keywordCntLabel.setText('%s个/%s次' % (stat.get('keyword_count', 0), stat.get('keyword_find', 0)))
 
