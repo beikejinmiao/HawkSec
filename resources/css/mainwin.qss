@@ -1,0 +1,82 @@
+#mainFrame {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid #FFFFFF;
+    border-radius: 20px;
+}
+
+
+#robotTipsLabel {
+    background: #FFFFFF;
+    border-radius: 30px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+
+#startBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #9AA4BB;
+    border-radius: 4px;
+}
+#startBtn:pressed {
+    background: #2358DE;
+    border-radius: 4px;
+}
+
+
+QLineEdit {
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+}
+
+
+QCheckBox {
+    font-size: 14px;
+    color: #4E5463;
+}
+QCheckBox::indicator:unchecked {
+    background: #FFFFFF;
+    border: 2px solid #C6CCD6;
+    border-radius: 1px;
+}
+/* https://stackoverflow.com/questions/63878026/changing-background-color-of-qcheckbox */
+QCheckBox::indicator:checked {
+    background: #2358DE;
+    background-image: url('IMAGE_HOME/icon/checkbox_hook.png');
+    border: 2px solid #C6CCD6;
+    border-radius: 1px;
+}
+
+
+QRadioButton {
+    font-size: 14px;
+    color: #4E5463;
+}
+QRadioButton::indicator {
+    width:                  10px;
+    height:                 10px;
+    border-radius:          7px;
+    border: 2px solid #C6CCD6;
+}
+/* https://stackoverflow.com/questions/67710219/how-to-make-the-qradiobutton-circle-bold-in-pyqt */
+QRadioButton::indicator:checked {
+    background: qradialgradient(    /*渐变色*/
+        cx:0.5, cy:0.5, radius: 0.6,
+        fx:0.5, fy:0.5,
+        stop:0 #2358DE,
+        stop:0.45 #2358DE,
+        stop:0.5 transparent,
+        stop:1 transparent
+    );
+}
+
+
+
+
+
+
