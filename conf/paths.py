@@ -29,6 +29,7 @@ RUNTIME_RESOURCE_HOME = os.path.join(RUNTIME_HOME, 'resources')
 if not os.path.exists(RUNTIME_RESOURCE_HOME):
     os.makedirs(RUNTIME_RESOURCE_HOME)
 
+IMAGE_HOME = os.path.join(PRIVATE_RESOURCE_HOME, 'image')
 
 CONF_PATH = os.path.join(CONF_HOME, WORK_NAME+'.yaml')
 DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')

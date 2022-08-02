@@ -3,6 +3,7 @@
 import io
 import os
 import json
+from conf.paths import PRIVATE_RESOURCE_HOME
 from libs.logger import logger
 
 
@@ -70,4 +71,19 @@ def traverse(top, contains=None):
                 continue
             files.append(file_path)
     return files
+
+
+class StyleSheetHelper(object):
+    @staticmethod
+    def read_qss(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    mainwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'mainwin.qss')
+
+    @staticmethod
+    def mainwin():
+        return StyleSheetHelper.read_qss(StyleSheetHelper.mainwin_qss_path)
+
+
 
