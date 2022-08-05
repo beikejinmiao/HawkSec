@@ -130,14 +130,11 @@ class Spider(object):
                     new_url = site + href
                 else:
                     new_url = path + href
-                # 过滤链接
-                if self.filter_url(new_url):
+                if self.same_site and self.site not in new_url:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
                 if path_limit and path_limit not in new_url:
-                    continue
-                if self.same_site and self.site not in new_url:
                     continue
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
@@ -145,5 +142,3 @@ class Spider(object):
                     self.all_urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)
 
-    def filter_url(self, url):
-        return False
