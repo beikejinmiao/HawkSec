@@ -51,22 +51,26 @@ class Spider(object):
         self.same_site = same_site          # 是否限制只爬取同站网页
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
 
-    def abspath(self, url):
+    @staticmethod
+    def abspath(url, site=None):
         """
         获取绝对路径URL
         将相对路径URL转成绝对路径URL,避免同一URL被重复爬取
         """
+        if not site:
+            site = urlparse(url).netloc
         if "#" in url:
             # 移除页面内部定位符井号#,其实是同一个链接
             url = url[0:url.rfind('#')]
         while '/./' in url:
             url = url.replace('/./', '/')
-        while '/../' in url:
-            while re.search(r'%s/\.\./' % self.site, url):
-                # 如果/../前是目标网站,则直接移除/../
-                url = re.sub(r'%s/\.\.' % self.site, self.site, url)
-            url = re.sub(r'[^/]+/\.\./', '', url)
-        return url
+        ix = url.index(site) + len(site)
+        host, url_path = url[:ix], url[ix:]
+        while '/../' in url_path:
+            url_path = re.sub(r'(^|/[^/]+)/\.\./', '/', url_path)
+        return '{host}{connector}{path}'.format(host=host,
+                                                connector='' if url_path.startswith('/') else '/',
+                                                path=url_path)
 
     RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text', 'desc'])
 
@@ -129,7 +133,7 @@ class Spider(object):
                 # 过滤链接
                 if self.filter_url(new_url):
                     continue
-                new_url = self.abspath(new_url)
+                new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
                 if path_limit and path_limit not in new_url:
                     continue
