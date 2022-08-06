@@ -4,7 +4,6 @@ tldextract==3.2.0
 PyYAML==5.4.1
 BeautifulSoup4==4.10.0
 peewee==3.15.1
-python-magic==0.4.27
 python-magic-bin==0.4.14
 lxml==4.6.3
 xlrd==2.0.1

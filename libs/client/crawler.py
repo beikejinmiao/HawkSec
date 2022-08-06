@@ -66,6 +66,10 @@ class Spider(object):
             url = url.replace('/./', '/')
         ix = url.index(site) + len(site)
         host, url_path = url[:ix], url[ix:]
+        # path需以斜杠/开始,要不会陷入死循环
+        # https://cms.baidu.com../../images/2022-07/f9593.png
+        if not url_path.startswith('/'):
+            url_path = '/' + url_path
         while '/../' in url_path:
             url_path = re.sub(r'(^|/[^/]+)/\.\./', '/', url_path)
         return '{host}{connector}{path}'.format(host=host,

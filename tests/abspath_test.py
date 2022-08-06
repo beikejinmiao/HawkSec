@@ -33,6 +33,7 @@ if __name__ == '__main__':
         'https://cms.baidu.com/../../../docs/2022-07/f9593.png',
         'https://cms.baidu.com../../../docs/2022-07/f9593.png',
         'https://cms.baidu.com/../1/./2//,/3/4/../../../docs/2022-07/f9593.png',
+        'https://cms.baidu.com../../images/2022-07/f9593.png',
     ]
     for u in urls:
         print(abspath(u))
