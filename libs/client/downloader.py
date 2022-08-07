@@ -100,13 +100,28 @@ class Downloader(SuicidalThread):
         self.add_thread(self._log_stats())
         # self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
-        self.crawling()
+        try:
+            self.crawling()
+        except SystemExit:
+            return
+        except:
+            logger.error('爬取任务异常终止, 错误详情:')
+            logger.error(traceback.format_exc())
         logger.info('开始下载文件')
-        self.downloads()
+        try:
+            self.downloads()
+        except SystemExit:
+            pass
+        except:
+            logger.error('文件下载任务异常终止, 错误详情:')
+            logger.error(traceback.format_exc())
         logger.info('文件下载结束')
-        logger.info('爬虫Metric统计: %s' % self.metric)
-        self.cleanup()
+        try:
+            self.cleanup()
+        except:
+            logger.error(traceback.format_exc())
         logger.info('爬虫客户端任务结束')
+        logger.info('爬虫Metric统计: %s' % self.metric)
 
 
 class WebFileDownloader(Downloader):
@@ -193,21 +208,28 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
 
     def crawling(self):
         for resp in self.scrape():
-            if resp.filename:
-                # 文件链接单独处理,网页爬取完毕后再下载
-                self._file_urls_archive.write(resp.url + '\n')
-                continue
-            record = {'origin': resp.url, 'resp_code': resp.status_code, 'desc': resp.desc}
-            self._put_db_queue(TABLES.CrawlStat.value, record)
-            # self.db_rows.append(record)
-            self.metric.crawl_total += 1
-            if resp.status_code == 200:
-                self.metric.crawl_success += 1
-            else:
-                self.metric.crawl_failed += 1
-            # 1.解析网页中的敏感内容
-            if resp.html_text and self.extractor is not None:
-                self.extractor.extract(resp.html_text, origin=resp.url)
+            try:
+                if resp.filename:
+                    # 文件链接单独处理,网页爬取完毕后再下载
+                    # UnicodeEncodeError: 'gbk' codec can't encode character '\xe6' in position 74: illegal multibyte sequence
+                    self._file_urls_archive.write(resp.url + '\n')
+                    continue
+                record = {'origin': resp.url, 'resp_code': resp.status_code, 'desc': resp.desc}
+                self._put_db_queue(TABLES.CrawlStat.value, record)
+                # self.db_rows.append(record)
+                self.metric.crawl_total += 1
+                if resp.status_code == 200:
+                    self.metric.crawl_success += 1
+                else:
+                    self.metric.crawl_failed += 1
+                # 1.解析网页中的敏感内容
+                if resp.html_text and self.extractor is not None:
+                    self.extractor.extract(resp.html_text, origin=resp.url)
+            except UnicodeEncodeError as e:
+                logger.error(str(e) + ': %s' % resp.url)
+            except:
+                logger.error(traceback.format_exc())
+                logger.error(resp.url)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
         logger.info('爬取URL结束')

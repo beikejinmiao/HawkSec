@@ -43,6 +43,7 @@ class Spider(object):
         self.all_urls[start_url] = start_url
         self.broken_urls = dict()
         self.file_urls = dict()
+        self.__parsed_urls = set()
         #
         self.session = requests.session()
         self.session.headers = headers if isinstance(headers, dict) and len(headers) > 0 else default_headers
@@ -103,7 +104,8 @@ class Spider(object):
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
                     self.all_urls[url] = '302'
-                    url = self.abspath(resp.url)  # 更新重定向后的URL
+                    self.all_urls[resp.url] = url
+                    url = self.abspath(resp.url, site=self.site)  # 更新重定向后的URL
                 # if 400 <= resp.status_code < 500:
                 #     logger.info('!From: %s ' % self.all_urls.get(url))
             # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
@@ -112,6 +114,10 @@ class Spider(object):
                 self.broken_urls[url] = self.all_urls.get(url, '')
                 yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None, desc=type(e).__name__)
                 continue
+            # 针对已解析过的URL页面,忽略 -- 某些重定向页面(404/403等被重定向至固定页面)会反复出现
+            if url in self.__parsed_urls:
+                continue
+            self.__parsed_urls.add(url)
             # 提取url site和url路径
             parts = urlsplit(url)
             site = "{0.scheme}://{0.netloc}".format(parts)

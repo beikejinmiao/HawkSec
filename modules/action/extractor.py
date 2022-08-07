@@ -4,6 +4,7 @@ import os
 import re
 import time
 import shutil
+import traceback
 import tldextract
 from queue import Empty
 from collections.abc import Iterable
@@ -247,19 +248,30 @@ class TextExtractor(SuicidalQThread):
                 break
             self.files[local_path] = remote_path
             self.counter['que_get'] = self.counter.get('que_get', 0) + 1
-            self.load2extract(local_path, origin=remote_path)
-            os.remove(local_path)
+            try:
+                self.load2extract(local_path, origin=remote_path)
+            except Exception as e:
+                logger.error(str(e) + ': %s' % local_path)
+            if os.path.exists(local_path):
+                os.remove(local_path)
 
     def run(self):
         # self.add_thread(self._sync2db())
         self.add_thread(self._dump_metric())
-        if self.path_queue is not None:
-            self.extfrom_queue()
-        else:
-            self.extfrom_root()
-        self._put_db_queue('END', None)
+        # 捕获内部异常,防止异常导致无法发送结束信号
+        try:
+            if self.path_queue is not None:
+                self.extfrom_queue()
+            else:
+                self.extfrom_root()
+            self._put_db_queue('END', None)
+        except SystemExit:
+            pass
+        except:
+            logger.error('敏感内容提取任务异常终止, 错误详情:')
+            logger.error(traceback.format_exc())
         time.sleep(3)     # 等待写入数据库结束
-        logger.info('敏感内容提取任务结束')
         # 发送结束信号
         self.finished.emit()
+        logger.info('敏感内容提取任务结束')
 
