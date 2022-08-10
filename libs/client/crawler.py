@@ -43,6 +43,7 @@ class Spider(object):
         self.all_urls[start_url] = start_url
         self.broken_urls = dict()
         self.file_urls = dict()
+        self.__parsed_urls = set()
         #
         self.session = requests.session()
         self.session.headers = headers if isinstance(headers, dict) and len(headers) > 0 else default_headers
@@ -51,22 +52,30 @@ class Spider(object):
         self.same_site = same_site          # 是否限制只爬取同站网页
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
 
-    def abspath(self, url):
+    @staticmethod
+    def abspath(url, site=None):
         """
         获取绝对路径URL
         将相对路径URL转成绝对路径URL,避免同一URL被重复爬取
         """
+        if not site:
+            site = urlparse(url).netloc
         if "#" in url:
             # 移除页面内部定位符井号#,其实是同一个链接
             url = url[0:url.rfind('#')]
         while '/./' in url:
             url = url.replace('/./', '/')
-        while '/../' in url:
-            while re.search(r'%s/\.\./' % self.site, url):
-                # 如果/../前是目标网站,则直接移除/../
-                url = re.sub(r'%s/\.\.' % self.site, self.site, url)
-            url = re.sub(r'[^/]+/\.\./', '', url)
-        return url
+        ix = url.index(site) + len(site)
+        host, url_path = url[:ix], url[ix:]
+        # path需以斜杠/开始,要不会陷入死循环
+        # https://cms.baidu.com../../images/2022-07/f9593.png
+        if not url_path.startswith('/'):
+            url_path = '/' + url_path
+        while '/../' in url_path:
+            url_path = re.sub(r'(^|/[^/]+)/\.\./', '/', url_path)
+        return '{host}{connector}{path}'.format(host=host,
+                                                connector='' if url_path.startswith('/') else '/',
+                                                path=url_path)
 
     RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text', 'desc'])
 
@@ -95,7 +104,8 @@ class Spider(object):
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
                     self.all_urls[url] = '302'
-                    url = self.abspath(resp.url)  # 更新重定向后的URL
+                    self.all_urls[resp.url] = url
+                    url = self.abspath(resp.url, site=self.site)  # 更新重定向后的URL
                 # if 400 <= resp.status_code < 500:
                 #     logger.info('!From: %s ' % self.all_urls.get(url))
             # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
@@ -104,6 +114,10 @@ class Spider(object):
                 self.broken_urls[url] = self.all_urls.get(url, '')
                 yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None, desc=type(e).__name__)
                 continue
+            # 针对已解析过的URL页面,忽略 -- 某些重定向页面(404/403等被重定向至固定页面)会反复出现
+            if url in self.__parsed_urls:
+                continue
+            self.__parsed_urls.add(url)
             # 提取url site和url路径
             parts = urlsplit(url)
             site = "{0.scheme}://{0.netloc}".format(parts)
@@ -126,14 +140,11 @@ class Spider(object):
                     new_url = site + href
                 else:
                     new_url = path + href
-                # 过滤链接
-                if self.filter_url(new_url):
+                if self.same_site and self.site not in new_url:
                     continue
-                new_url = self.abspath(new_url)
+                new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
                 if path_limit and path_limit not in new_url:
-                    continue
-                if self.same_site and self.site not in new_url:
                     continue
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
@@ -141,5 +152,3 @@ class Spider(object):
                     self.all_urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)
 
-    def filter_url(self, url):
-        return False
