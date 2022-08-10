@@ -88,115 +88,6 @@
       <string> 请输入监控地址</string>
      </property>
     </widget>
-    <widget class="QFrame" name="sensiTypeFrame">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>220</y>
-       <width>500</width>
-       <height>87</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>500</width>
-       <height>87</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">#sensiTypeFrame {
-	background: #FFFFFF;
-	border: 1px solid #C6CCD6;
-}</string>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QLabel" name="sensiTypeLabel">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>71</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 14px;</string>
-      </property>
-      <property name="text">
-       <string>监控内容</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="extUrlCheckBox">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>10</y>
-        <width>80</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>外链</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="idcardCheckBox">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>10</y>
-        <width>80</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>身份证</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="keywordCheckBox">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>50</y>
-        <width>80</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>关键词</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="keywordLineEdit">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>50</y>
-        <width>271</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: #000000;</string>
-      </property>
-     </widget>
-     <widget class="Line" name="line">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>60</y>
-        <width>261</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </widget>
     <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
@@ -236,6 +127,185 @@
         <property name="text">
          <string>SFTP</string>
         </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>225</y>
+       <width>502</width>
+       <height>231</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="dynGridLayout">
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>30</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLineEdit" name="portLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>158</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string> 请输入端口</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="userLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>158</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string> 请输入用户名</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="passwdLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>158</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string> 请输入密码</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QLineEdit" name="pathLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>500</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string> 请输入路径</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="3">
+       <widget class="QFrame" name="sensiTypeFrame">
+        <property name="minimumSize">
+         <size>
+          <width>500</width>
+          <height>87</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">#sensiTypeFrame {
+	background: #FFFFFF;
+	border: 1px solid #C6CCD6;
+}</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QLabel" name="sensiTypeLabel">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>71</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 14px;</string>
+         </property>
+         <property name="text">
+          <string>监控内容</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="extUrlCheckBox">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>10</y>
+           <width>80</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>外链</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="idcardCheckBox">
+         <property name="geometry">
+          <rect>
+           <x>190</x>
+           <y>10</y>
+           <width>80</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>身份证</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="keywordCheckBox">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>50</y>
+           <width>80</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>关键词</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="keywordLineEdit">
+         <property name="geometry">
+          <rect>
+           <x>190</x>
+           <y>50</y>
+           <width>271</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border: #000000;</string>
+         </property>
+        </widget>
+        <widget class="Line" name="line">
+         <property name="geometry">
+          <rect>
+           <x>190</x>
+           <y>60</y>
+           <width>261</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
        </widget>
       </item>
      </layout>

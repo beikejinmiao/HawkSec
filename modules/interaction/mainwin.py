@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QSizePolicy, QLayout
 from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor
@@ -17,9 +17,10 @@ class MainWindow(UiMainWindow, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.__init_gui()
         self.__init_state()
 
-    def __init_state(self):
+    def __init_gui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
         # StyleSheet中文件路径必须使用posix格式
         # https://stackoverflow.com/questions/51750501/do-not-insert-a-background-picture-into-widget-setstylesheet
@@ -47,12 +48,30 @@ class MainWindow(UiMainWindow, QWidget):
         self.settingLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         # 设置PlaceholderText字体颜色和透明度
-        palette = self.addressLineEdit.palette()
-        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
-        self.addressLineEdit.setPalette(palette)
+        self.line_edits = (self.addressLineEdit, self.portLineEdit,
+                           self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
+        for line_edit in self.line_edits:
+            palette = line_edit.palette()
+            palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
+            line_edit.setPalette(palette)
 
         main_win_sheet = StyleSheetHelper.mainwin().replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(main_win_sheet)
+
+    def __init_state(self):
+        # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
+        # https://stackoverflow.com/questions/2293708/pyqt4-hide-widget-and-resize-window
+        self.dynGridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+        #
+        self.__toggle_sftp()
+        self.httpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
+        self.httpsRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
+        self.sftpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=True))
+
+    def __toggle_sftp(self, visible=False):
+        sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
+        for line_edit in sftp_edits:
+            line_edit.setVisible(visible)
 
 
 if __name__ == "__main__":
