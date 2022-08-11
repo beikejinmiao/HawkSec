@@ -19,3 +19,9 @@ venv/
 # PyInstaller
 dist/
 *.spec
+
+
+#
+*.log
+pictures/
+zdump/*.csv
