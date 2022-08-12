@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException
 from conf.paths import DUMP_HOME, TOOLS_HOME
+from libs.logger import logger
 
 """
 https://chromedriver.chromium.org/downloads
@@ -45,6 +46,7 @@ def __webshot(url):
         exception_msg = str(e)
         if 'Stacktrace:' in exception_msg:
             exception_msg = exception_msg[:exception_msg.index('Stacktrace:')]
+        exception_msg = exception_msg.replace('\n', '\t')
         return ScreenStat(url=url, status_code=0, desc=exception_msg, picture_path='')
     except Exception as e:
         return ScreenStat(url=url, status_code=0, desc=str(e), picture_path='')
@@ -61,7 +63,9 @@ def webshot(urls):
     #
     url_pic_paths = dict()
     for url in urls:
-        url_pic_paths[url] = __webshot(url)
+        stat = __webshot(url)
+        url_pic_paths[url] = stat
+        logger.info(url + '' + stat.desc)
     return url_pic_paths
 
 

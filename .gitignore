@@ -22,6 +22,4 @@ dist/
 
 
 #
-*.log
-pictures/
-zdump/*.csv
+zdump/
