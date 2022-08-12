@@ -69,11 +69,21 @@ def webshot(urls):
     return url_pic_paths
 
 
+def hyperlink(value):
+    # https://stackoverflow.com/questions/31820069/add-hyperlink-to-excel-sheet-created-by-pandas-dataframe-to-excel-method
+    if not isinstance(value, str):
+        raise ValueError('hyper link in excel must be string.')
+    if not value:
+        return ''
+    return '=HYPERLINK("%s", "%s")' % (value, os.path.basename(value))
+
+
 if __name__ == '__main__':
     df = pd.read_csv(os.path.join(DUMP_HOME, '敏感内容来源统计.csv'))
     _url_pic_paths = webshot(df['敏感内容'].values)
     df_pic = pd.DataFrame([item._asdict() for item in _url_pic_paths.values()])
-    df_pic.to_csv(os.path.join(DUMP_HOME, '外链URL网站截图.csv'))
+    df_pic['picture_path'] = df_pic['picture_path'].apply(lambda x: hyperlink(x))
+    df_pic.to_excel(os.path.join(DUMP_HOME, '外链URL网站截图.xlsx'), index=False)
 
     # photo('https://www.cybj.cn')          # 提示不是私密连接,需手动点击前往,不会自动跳转,截图只有等待跳转页面
     # photo('www.baidu.com')                # 没有协议前缀会报错: invalid argument
