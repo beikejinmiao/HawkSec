@@ -55,8 +55,8 @@ class MainWindow(UiMainWindow, QWidget):
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             line_edit.setPalette(palette)
 
-        main_win_sheet = StyleSheetHelper.mainwin().replace('IMAGE_HOME', IMAGE_HOME)
-        self.setStyleSheet(main_win_sheet)
+        win_sheet = StyleSheetHelper.main_win().replace('IMAGE_HOME', IMAGE_HOME)
+        self.setStyleSheet(win_sheet)
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)

@@ -80,10 +80,20 @@ class StyleSheetHelper(object):
             return f.read()
 
     mainwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'mainwin.qss')
+    monitwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'monitwin.qss')
+    finishwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'finishwin.qss')
 
     @staticmethod
-    def mainwin():
+    def main_win():
         return StyleSheetHelper.read_qss(StyleSheetHelper.mainwin_qss_path)
+
+    @staticmethod
+    def monit_win():
+        return StyleSheetHelper.read_qss(StyleSheetHelper.monitwin_qss_path)
+
+    @staticmethod
+    def finish_win():
+        return StyleSheetHelper.read_qss(StyleSheetHelper.finishwin_qss_path)
 
 
 
