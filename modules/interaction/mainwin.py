@@ -17,11 +17,16 @@ class MainWindow(UiMainWindow, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.tabWidget.removeTab(1)
+        self.tabWidget.removeTab(1)
+        QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        #
         self.__init_gui()
         self.__init_state()
 
     def __init_gui(self):
-        QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        self.tabWidget.setDocumentMode(True)
+        self.tabWidget.setTabBarAutoHide(True)
         # StyleSheet中文件路径必须使用posix格式
         # https://stackoverflow.com/questions/51750501/do-not-insert-a-background-picture-into-widget-setstylesheet
         bg_pic_path = Path(os.path.join(IMAGE_HOME, 'bg.png')).as_posix()
@@ -30,22 +35,17 @@ class MainWindow(UiMainWindow, QWidget):
         # self.centralwidget.setStyleSheet(
         #     '#centralwidget {background-image: url(%s); background-repeat: no-repeat}' % bg_pic_path)
 
-        self.logoLabel.setPixmap(QPixmap("image:logo.png"))
-        # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
-        self.logoLabel.setScaledContents(True)
-        self.logoLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-
-        self.robotLabel.setPixmap(QPixmap("image:robot.png"))
-        self.robotLabel.setScaledContents(True)
-        self.robotLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-
-        self.helpLabel.setPixmap(QPixmap("image:icon/help.png"))
-        self.helpLabel.setScaledContents(True)
-        self.helpLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-
-        self.settingLabel.setPixmap(QPixmap("image:icon/setting.png"))
-        self.settingLabel.setScaledContents(True)
-        self.settingLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        label_images = zip([self.logoLabel, self.helpLabel, self.settingLabel,
+                            self.robotLabel, self.robotLabel2, self.waitforGifLabel, self.finishIconLabel,
+                            self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel],
+                           ['logo.png', 'icon/help.png', 'icon/setting.png',
+                            'robot.png', 'robot.png', 'icon/waitfor.png', 'icon/finish.png',
+                            'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png'])
+        for label, img in label_images:
+            label.setPixmap(QPixmap('image:%s' % img))
+            # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
+            label.setScaledContents(True)
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         # 设置PlaceholderText字体颜色和透明度
         self.line_edits = (self.addressLineEdit, self.portLineEdit,
@@ -67,11 +67,27 @@ class MainWindow(UiMainWindow, QWidget):
         self.httpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.httpsRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.sftpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=True))
+        self.startBtn.clicked.connect(self.start)
+        self.cancelBtn.clicked.connect(self.cancel)
+        self.stopBtn.clicked.connect(self.terminate)
+        self.returnBtn.clicked.connect(self.cancel)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
         for line_edit in sftp_edits:
             line_edit.setVisible(visible)
+
+    def start(self):
+        self.tabWidget.removeTab(0)
+        self.tabWidget.addTab(self.monitTab, '')
+
+    def cancel(self):
+        self.tabWidget.removeTab(0)
+        self.tabWidget.addTab(self.mainTab, '')
+
+    def terminate(self):
+        self.tabWidget.removeTab(0)
+        self.tabWidget.addTab(self.finishTab, '')
 
 
 if __name__ == "__main__":
