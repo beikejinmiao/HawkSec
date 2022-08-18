@@ -1,0 +1,78 @@
+#Form {
+    border-radius: 5px;
+    background: #FFFFFF;
+}
+
+#titleFrame {
+    border: 1px solid #C6CCD6;
+}
+
+#timeWidget {
+    background: #FFFFFF;
+}
+
+.QPushButton {
+    font-size: 14px;
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+    border-radius: 4px;
+}
+.QPushButton:pressed {
+    color:#2358DE;
+    background: #FFFFFF;
+    border-radius: 4px;
+    border: 1px solid #2358DE;
+}
+.QPushButton:disabled {
+    background: #C6CCD6;
+    border-radius: 4px;
+}
+
+#searchBtn, #dumpBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+#searchBtn:pressed, #dumpBtn:pressed {
+    color:#2358DE;
+    background: #FFFFFF;
+    border-radius: 4px;
+    border: 1px solid #2358DE;
+}
+
+
+#refreshBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color: #2358DE;
+
+    background: #FFFFFF;
+    border: 1px solid #2358DE;
+    border-radius: 4px;
+}
+#refreshBtn:pressed {
+    color: #FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+
+
+#timeLineEdit {
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+}
+
+
+#pageRecordComboBox, #switchPageLineEdit {
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+    border-radius: 4px;
+}
+
+

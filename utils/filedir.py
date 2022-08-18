@@ -75,25 +75,14 @@ def traverse(top, contains=None):
 
 class StyleSheetHelper(object):
     @staticmethod
-    def read_qss(path):
+    def __load_qss(path):
         with open(path, 'r', encoding='utf-8') as f:
             return f.read()
 
-    mainwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'mainwin.qss')
-    monitwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'monitwin.qss')
-    finishwin_qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', 'finishwin.qss')
-
     @staticmethod
-    def main_win():
-        return StyleSheetHelper.read_qss(StyleSheetHelper.mainwin_qss_path)
-
-    @staticmethod
-    def monit_win():
-        return StyleSheetHelper.read_qss(StyleSheetHelper.monitwin_qss_path)
-
-    @staticmethod
-    def finish_win():
-        return StyleSheetHelper.read_qss(StyleSheetHelper.finishwin_qss_path)
+    def load_qss(name):
+        qss_path = os.path.join(PRIVATE_RESOURCE_HOME, 'css', '%s.qss' % name)
+        return StyleSheetHelper.__load_qss(qss_path)
 
 
 

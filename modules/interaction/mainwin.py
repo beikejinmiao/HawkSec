@@ -6,8 +6,9 @@ from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
+from modules.interaction.win.tableview import ExtractDataWindow
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from utils.filedir import StyleSheetHelper
 
 IMAGE_HOME = Path(IMAGE_HOME).as_posix()
@@ -17,14 +18,15 @@ class MainWindow(UiMainWindow, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.tabWidget.removeTab(1)
-        self.tabWidget.removeTab(1)
-        QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        self.extractWindow = None
         #
         self.__init_gui()
         self.__init_state()
 
     def __init_gui(self):
+        QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        self.tabWidget.removeTab(1)
+        self.tabWidget.removeTab(1)
         self.tabWidget.setDocumentMode(True)
         self.tabWidget.setTabBarAutoHide(True)
         # StyleSheet中文件路径必须使用posix格式
@@ -55,7 +57,7 @@ class MainWindow(UiMainWindow, QWidget):
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             line_edit.setPalette(palette)
 
-        win_sheet = StyleSheetHelper.main_win().replace('IMAGE_HOME', IMAGE_HOME)
+        win_sheet = StyleSheetHelper.load_qss(name='mainwin').replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(win_sheet)
 
     def __init_state(self):
@@ -71,6 +73,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.cancelBtn.clicked.connect(self.cancel)
         self.stopBtn.clicked.connect(self.terminate)
         self.returnBtn.clicked.connect(self.cancel)
+        self.detailBtn.clicked.connect(self.show_extract_win)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
@@ -88,6 +91,10 @@ class MainWindow(UiMainWindow, QWidget):
     def terminate(self):
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
+
+    def show_extract_win(self):
+        self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
+        self.extractWindow.show()
 
 
 if __name__ == "__main__":
