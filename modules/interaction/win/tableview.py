@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 import os
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication
+from PyQt6.QtGui import QPixmap, QPalette, QColor
+from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication, QFrame
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME
 from utils.filedir import StyleSheetHelper
@@ -50,11 +50,13 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         self.timeWidget.hide()
-        self.timeIconLabel.setPixmap(QPixmap('image:icon/calendar.png'))
-        self.timeIconLabel.setScaledContents(True)
-        self.timeIconLabel.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        #
         win_sheet = StyleSheetHelper.load_qss(name='tableview')
         self.setStyleSheet(win_sheet)
+        # 设置PlaceholderText样式(必须在setStyleSheet后设置)
+        palette = self.timeLineEdit.palette()
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
+        self.timeLineEdit.setPalette(palette)
 
     def custom_ui(self):
         pass

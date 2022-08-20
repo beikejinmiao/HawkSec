@@ -4,7 +4,7 @@
 }
 
 #titleFrame {
-    border: 1px solid #C6CCD6;
+    border: 2px solid #f2f2f2;
 }
 
 #timeWidget {

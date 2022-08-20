@@ -164,7 +164,7 @@ class Ui_Form(object):
         self.searchBtn.setText(_translate("Form", "查询"))
         self.refreshBtn.setText(_translate("Form", "刷新"))
         self.timeOkBtn.setText(_translate("Form", "确定"))
-        self.timeLineEdit.setPlaceholderText(_translate("Form", "请选择时间范围"))
+        self.timeLineEdit.setPlaceholderText(_translate("Form", " 请选择时间范围"))
         self.timeIconLabel.setText(_translate("Form", "pic"))
         self.dumpBtn.setText(_translate("Form", "导出"))
         self.pageRecordComboBox.setItemText(0, _translate("Form", "10条/页"))

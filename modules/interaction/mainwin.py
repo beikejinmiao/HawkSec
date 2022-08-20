@@ -46,13 +46,14 @@ class MainWindow(UiMainWindow, QWidget):
                             'robot.png', 'robot.png', 'icon/waitfor.png', 'icon/finish.png',
                             'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png',
                             'icon/minimize.png', 'icon/maximize.png', 'icon/close.png'])
-
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))
             # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
             label.setScaledContents(True)
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-
+        # 设置整体样式
+        win_sheet = StyleSheetHelper.load_qss(name='mainwin').replace('IMAGE_HOME', IMAGE_HOME)
+        self.setStyleSheet(win_sheet)
         # 设置PlaceholderText字体颜色和透明度
         self.line_edits = (self.addressLineEdit, self.portLineEdit,
                            self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
@@ -60,9 +61,6 @@ class MainWindow(UiMainWindow, QWidget):
             palette = line_edit.palette()
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             line_edit.setPalette(palette)
-
-        win_sheet = StyleSheetHelper.load_qss(name='mainwin').replace('IMAGE_HOME', IMAGE_HOME)
-        self.setStyleSheet(win_sheet)
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
