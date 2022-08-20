@@ -7,11 +7,10 @@ from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.interaction.win.tableview import ExtractDataWindow
+from modules.interaction.win.settings import SettingsWindow
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from pathlib import Path
 from utils.filedir import StyleSheetHelper
-
-IMAGE_HOME = Path(IMAGE_HOME).as_posix()
 
 
 class MainWindow(UiMainWindow, QWidget):
@@ -19,6 +18,7 @@ class MainWindow(UiMainWindow, QWidget):
         super().__init__()
         self.setupUi(self)
         self.extractWindow = None
+        self.settingsWindow = None
         #
         self.__init_gui()
         self.__init_state()
@@ -80,6 +80,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.stopBtn.clicked.connect(self.terminate)
         self.returnBtn.clicked.connect(self.cancel)
         self.detailBtn.clicked.connect(self.show_extract_win)
+        self.settingLabel.clicked.connect(self.show_settings_win)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
@@ -101,6 +102,10 @@ class MainWindow(UiMainWindow, QWidget):
     def show_extract_win(self):
         self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
         self.extractWindow.show()
+
+    def show_settings_win(self):
+        self.settingsWindow = SettingsWindow()        # 窗口关闭后销毁对象
+        self.settingsWindow.show()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,73 @@
+#Form {
+    border-radius: 5px;
+    background: #FFFFFF;
+}
+
+
+#titleFrame {
+    border: 2px solid #f2f2f2;
+}
+
+
+#timeoutComboBox {
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+}
+
+
+#saveBtn, #checkWhiteDomBtn, #checkWhiteFileBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+#saveBtn:pressed, #checkWhiteDomBtn:pressed, #checkWhiteFileBtn:pressed {
+    color:#2358DE;
+    background: #FFFFFF;
+    border-radius: 4px;
+    border: 1px solid #2358DE;
+}
+
+#cancelBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color: #2358DE;
+
+    background: #FFFFFF;
+    border: 1px solid #2358DE;
+    border-radius: 4px;
+}
+#cancelBtn:pressed {
+    color: #FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+
+
+QPlainTextEdit {
+    background: #F8FAFF;
+    border: 1px solid #C6CCD6;
+}
+
+QCheckBox {
+    font-size: 14px;
+    color: #4E5463;
+}
+QCheckBox::indicator:unchecked {
+    background: #FFFFFF;
+    border: 2px solid #C6CCD6;
+    border-radius: 1px;
+}
+/* https://stackoverflow.com/questions/63878026/changing-background-color-of-qcheckbox */
+QCheckBox::indicator:checked {
+    background: #2358DE;
+    background-image: url('IMAGE_HOME/icon/checkbox_hook.png');
+    border: 2px solid #C6CCD6;
+    border-radius: 1px;
+}
+

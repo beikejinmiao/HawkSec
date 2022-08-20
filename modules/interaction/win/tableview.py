@@ -34,7 +34,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             for i, mode in enumerate(column_modes):
                 header.setSectionResizeMode(i, mode)
 
-        self.set_connect()
+        self.__init_state()
         self.update_ui_state()
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
@@ -61,7 +61,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
     def custom_ui(self):
         pass
 
-    def set_connect(self):
+    def __init_state(self):
         self.prePageBtn.clicked.connect(self.on_prev_page)
         self.nextPageBtn.clicked.connect(self.on_next_page)
         self.switchPageBtn.clicked.connect(self.go_switch_page)
