@@ -25,6 +25,8 @@ class MainWindow(UiMainWindow, QWidget):
 
     def __init_gui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.tabWidget.removeTab(1)
         self.tabWidget.removeTab(1)
         self.tabWidget.setDocumentMode(True)
@@ -36,13 +38,15 @@ class MainWindow(UiMainWindow, QWidget):
         # 使用border-image而不是background-image会让图片自适应widget大小
         # self.centralwidget.setStyleSheet(
         #     '#centralwidget {background-image: url(%s); background-repeat: no-repeat}' % bg_pic_path)
-
         label_images = zip([self.logoLabel, self.helpLabel, self.settingLabel,
                             self.robotLabel, self.robotLabel2, self.waitforGifLabel, self.finishIconLabel,
-                            self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel],
+                            self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel,
+                            self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel],
                            ['logo.png', 'icon/help.png', 'icon/setting.png',
                             'robot.png', 'robot.png', 'icon/waitfor.png', 'icon/finish.png',
-                            'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png'])
+                            'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png',
+                            'icon/minimize.png', 'icon/maximize.png', 'icon/close.png'])
+
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))
             # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
@@ -64,6 +68,10 @@ class MainWindow(UiMainWindow, QWidget):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
         # https://stackoverflow.com/questions/2293708/pyqt4-hide-widget-and-resize-window
         self.dynGridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+        #
+        self.minimizeBtnLabel.clicked.connect(self.showMinimized)
+        self.closeBtnLabel.clicked.connect(self.showMaximized)
+        self.closeBtnLabel.clicked.connect(self.close)
         #
         self.__toggle_sftp()
         self.httpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))

@@ -40,6 +40,15 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        label_images = zip([self.timeIconLabel, self.closeBtnLabel],
+                           ['icon/calendar.png', 'icon/close.png'])
+        for label, img in label_images:
+            label.setPixmap(QPixmap('image:%s' % img))
+            # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
+            label.setScaledContents(True)
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+
         self.timeWidget.hide()
         self.timeIconLabel.setPixmap(QPixmap('image:icon/calendar.png'))
         self.timeIconLabel.setScaledContents(True)
@@ -57,6 +66,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.searchBtn.clicked.connect(self.go_search)
         self.refreshBtn.clicked.connect(self.refresh)
         self.dumpBtn.clicked.connect(self.dump)
+        self.closeBtnLabel.clicked.connect(self.close)
         self.timeLineEdit.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.timeLineEdit.calendar_focus_in.connect(self.timeWidget.show)
         self.timeLineEdit.calendar_focus_out.connect(self.timeWidget.hide)

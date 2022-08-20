@@ -68,7 +68,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>30</y>
+      <y>20</y>
       <width>146</width>
       <height>24</height>
      </rect>
@@ -119,9 +119,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>80</y>
         <width>951</width>
-        <height>581</height>
+        <height>601</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -404,7 +404,7 @@
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>70</y>
+        <y>50</y>
         <width>474</width>
         <height>60</height>
        </rect>
@@ -423,7 +423,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>40</y>
+        <y>20</y>
         <width>129</width>
         <height>115</height>
        </rect>
@@ -890,9 +890,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>80</y>
         <width>951</width>
-        <height>581</height>
+        <height>601</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -951,7 +951,7 @@
          <x>230</x>
          <y>330</y>
          <width>134</width>
-         <height>101</height>
+         <height>81</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -966,52 +966,11 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QLabel" name="extUrlIconLabel">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>14</width>
-          <height>14</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>14</width>
-          <height>14</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>14</width>
-          <height>14</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>pic</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_13">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>10</y>
-          <width>71</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 16px; color: #000000;</string>
-        </property>
-        <property name="text">
-         <string>外链数量</string>
-        </property>
-       </widget>
        <widget class="QLabel" name="extUrlCntLabel2">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>70</y>
+          <x>30</x>
+          <y>50</y>
           <width>55</width>
           <height>16</height>
          </rect>
@@ -1022,6 +981,47 @@
         <property name="text">
          <string>0</string>
         </property>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>101</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="extUrlIconLabel">
+           <property name="minimumSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>pic</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_13">
+           <property name="styleSheet">
+            <string notr="true">font-size: 16px; color: #000000;</string>
+           </property>
+           <property name="text">
+            <string>外链数量</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QFrame" name="idcardFrame">
@@ -1030,7 +1030,7 @@
          <x>390</x>
          <y>330</y>
          <width>134</width>
-         <height>101</height>
+         <height>75</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1045,52 +1045,11 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QLabel" name="idcardIconLabel">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>15</width>
-          <height>15</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>15</width>
-          <height>15</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>15</width>
-          <height>15</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>pic</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_14">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>10</y>
-          <width>91</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 16px; color: #000000;</string>
-        </property>
-        <property name="text">
-         <string>身份证数量</string>
-        </property>
-       </widget>
        <widget class="QLabel" name="idcardCntLabel2">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>70</y>
+          <x>30</x>
+          <y>50</y>
           <width>55</width>
           <height>16</height>
          </rect>
@@ -1101,6 +1060,47 @@
         <property name="text">
          <string>0</string>
         </property>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>103</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="idcardIconLabel">
+           <property name="minimumSize">
+            <size>
+             <width>15</width>
+             <height>15</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>15</width>
+             <height>15</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>pic</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_14">
+           <property name="styleSheet">
+            <string notr="true">font-size: 16px; color: #000000;</string>
+           </property>
+           <property name="text">
+            <string>身份证数量</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QFrame" name="keywordFrame">
@@ -1109,7 +1109,7 @@
          <x>580</x>
          <y>330</y>
          <width>134</width>
-         <height>101</height>
+         <height>75</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1124,52 +1124,11 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QLabel" name="keywordIconLabel">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>12</width>
-          <height>12</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>12</width>
-          <height>12</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>12</width>
-          <height>12</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>pic</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_15">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>10</y>
-          <width>81</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 16px; color: #000000;</string>
-        </property>
-        <property name="text">
-         <string>关键词次数</string>
-        </property>
-       </widget>
        <widget class="QLabel" name="keywordCntLabel2">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>70</y>
+          <x>30</x>
+          <y>50</y>
           <width>55</width>
           <height>16</height>
          </rect>
@@ -1180,6 +1139,47 @@
         <property name="text">
          <string>0</string>
         </property>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>100</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="keywordIconLabel">
+           <property name="minimumSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>pic</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="styleSheet">
+            <string notr="true">font-size: 16px; color: #000000;</string>
+           </property>
+           <property name="text">
+            <string>关键词次数</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QWidget" name="layoutWidget_14">
@@ -1301,7 +1301,7 @@
         <rect>
          <x>360</x>
          <y>220</y>
-         <width>181</width>
+         <width>161</width>
          <height>20</height>
         </rect>
        </property>
@@ -1312,7 +1312,7 @@
            <string notr="true">font-size: 14px; color: #8B8B8B;</string>
           </property>
           <property name="text">
-           <string>监测总时长：</string>
+           <string>监测总时长:</string>
           </property>
          </widget>
         </item>
@@ -1332,7 +1332,7 @@
        <property name="geometry">
         <rect>
          <x>260</x>
-         <y>490</y>
+         <y>480</y>
          <width>441</width>
          <height>41</height>
         </rect>
@@ -1402,7 +1402,7 @@
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>70</y>
+        <y>50</y>
         <width>474</width>
         <height>60</height>
        </rect>
@@ -1424,7 +1424,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>40</y>
+        <y>20</y>
         <width>129</width>
         <height>115</height>
        </rect>
@@ -1446,6 +1446,60 @@
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>970</x>
+      <y>10</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="minimizeBtnLabel">
+       <property name="maximumSize">
+        <size>
+         <width>10</width>
+         <height>10</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>-</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="maximizeBtnLabel">
+       <property name="maximumSize">
+        <size>
+         <width>10</width>
+         <height>10</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>+</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="closeBtnLabel">
+       <property name="maximumSize">
+        <size>
+         <width>10</width>
+         <height>10</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>x</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
  </widget>
