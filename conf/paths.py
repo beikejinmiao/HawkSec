@@ -3,6 +3,7 @@
 import os
 import sys
 import shutil
+from pathlib import Path
 from conf.config import Platform
 from libs.enums import SYSTEM
 
@@ -29,7 +30,7 @@ RUNTIME_RESOURCE_HOME = os.path.join(RUNTIME_HOME, 'resources')
 if not os.path.exists(RUNTIME_RESOURCE_HOME):
     os.makedirs(RUNTIME_RESOURCE_HOME)
 
-IMAGE_HOME = os.path.join(PRIVATE_RESOURCE_HOME, 'image')
+IMAGE_HOME = Path(os.path.join(PRIVATE_RESOURCE_HOME, 'image')).as_posix()
 
 CONF_PATH = os.path.join(CONF_HOME, WORK_NAME+'.yaml')
 DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
