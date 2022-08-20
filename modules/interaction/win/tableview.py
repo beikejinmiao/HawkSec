@@ -5,7 +5,7 @@ from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor
 from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication, QFrame
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
-from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME
+from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
 from modules.gui.ui_tableview import Ui_Form
@@ -51,7 +51,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
         self.timeWidget.hide()
         #
-        win_sheet = StyleSheetHelper.load_qss(name='tableview')
+        win_sheet = StyleSheetHelper.load_qss(name='tableview').replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(win_sheet)
         # 设置PlaceholderText样式(必须在setStyleSheet后设置)
         palette = self.timeLineEdit.palette()

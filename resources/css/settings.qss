@@ -9,12 +9,6 @@
 }
 
 
-#timeoutComboBox {
-    background: #FFFFFF;
-    border: 1px solid #C6CCD6;
-}
-
-
 #saveBtn, #checkWhiteDomBtn, #checkWhiteFileBtn {
     font-style: normal;
     font-weight: 400;
@@ -69,5 +63,29 @@ QCheckBox::indicator:checked {
     background-image: url('IMAGE_HOME/icon/checkbox_hook.png');
     border: 2px solid #C6CCD6;
     border-radius: 1px;
+}
+
+
+/* https://stackoverflow.com/questions/33415621/style-qtcombobox-qlistviewitem-set-text-padding */
+/* https://stackoverflow.com/questions/11484776/qcombobox-down-arrow-image */
+QComboBox{
+    font-size: 14px;
+    background: #FFFFFF;
+    border: 1px solid #C6CCD6;
+}
+QComboBox::drop-down
+{
+    border: 0px; /* This seems to replace the whole arrow of the combo box */
+}
+
+QComboBox::down-arrow{
+    image: url('IMAGE_HOME/icon/down_arrow.png');
+    width: 8px;
+    height: 4px;
+}
+
+QListView::item:hover{
+    color: #2358DE;
+    background-color: rgba(35, 88, 222, 0.05);
 }
 
