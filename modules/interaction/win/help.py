@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QCursor
 from PyQt6.QtWidgets import QWidget, QSizePolicy
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
@@ -27,6 +27,8 @@ class HelpAboutWindow(Ui_Form, QWidget):
         #
         win_sheet = StyleSheetHelper.load_qss(name='help').replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(win_sheet)
+        #
+        self.closeBtnLabel.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def __init_state(self):
         self.closeBtnLabel.clicked.connect(self.close)

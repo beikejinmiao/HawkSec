@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap, QPalette, QColor
+from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication, QTableView
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
@@ -62,6 +62,12 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         palette = self.timeLineEdit.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
         self.timeLineEdit.setPalette(palette)
+        #
+        for button in [self.closeBtnLabel, self.calendarWidgetFrom, self.calendarWidgetTo,
+                       self.searchBtn, self.dumpBtn, self.refreshBtn, self.timeOkBtn,
+                       self.prePageBtn, self.nextPageBtn, self.switchPageBtn,
+                       self.pageRecordComboBox, self.searchCodeComboBox]:
+            button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def custom_ui(self):
         pass

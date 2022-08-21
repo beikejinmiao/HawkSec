@@ -2,9 +2,8 @@
 # -*- coding:utf-8 -*-
 import os
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap, QPalette, QColor
-from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication, QFrame
-from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
+from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
+from PyQt6.QtWidgets import QWidget, QSizePolicy
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.gui.ui_settings import Ui_Form
@@ -35,6 +34,11 @@ class SettingsWindow(Ui_Form, QWidget):
             palette = text_edit.palette()
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             text_edit.setPalette(palette)
+        #
+        for button in [self.closeBtnLabel, self.importDomLabel, self.importFileLabel,
+                       self.checkWhiteDomBtn, self.checkWhiteFileBtn, self.builtinAlexaEnableBox,
+                       self.timeoutComboBox, self.saveBtn, self.cancelBtn]:
+            button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def __init_state(self):
         self.closeBtnLabel.clicked.connect(self.close)

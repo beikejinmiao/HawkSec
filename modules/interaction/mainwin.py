@@ -4,7 +4,7 @@ import os
 from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QSizePolicy, QLayout
 from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor
+from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor, QCursor
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.interaction.win.tableview import ExtractDataWindow
 from modules.interaction.win.settings import SettingsWindow
@@ -63,6 +63,15 @@ class MainWindow(UiMainWindow, QWidget):
             palette = line_edit.palette()
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             line_edit.setPalette(palette)
+        # 设置可点击组件悬浮手型按钮
+        for button in [self.startBtn, self.cancelBtn, self.stopBtn, self.returnBtn,
+                       self.dumpBtn, self.detailBtn, self.settingLabel, self.helpLabel,
+                       self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel,
+                       self.crawledCntLabel, self.hitCntLabel, self.faieldCntLabel,
+                       self.extUrlCntLabel, self.idcardCntLabel, self.keywordCntLabel,
+                       self.crawledCntLabel2, self.hitCntLabel2, self.faieldCntLabel2,
+                       self.extUrlCntLabel2, self.idcardCntLabel2, self.keywordCntLabel2]:
+            button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
