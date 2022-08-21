@@ -3,7 +3,8 @@
 import os
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
-from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QFileDialog, QApplication, QTableView
+from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy
+from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
@@ -55,6 +56,12 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         self.timeWidget.hide()
+        self.timeWidget.setWindowFlag(self.timeWidget.windowFlags() | Qt.WindowType.SubWindow)
+        self.calendarWidgetFrom.setFirstDayOfWeek(Qt.DayOfWeek.Sunday)
+        # 隐藏左侧当前第几周
+        self.calendarWidgetFrom.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
+        self.calendarWidgetTo.setFirstDayOfWeek(Qt.DayOfWeek.Sunday)
+        self.calendarWidgetTo.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
         #
         win_sheet = StyleSheetHelper.load_qss(name='tableview').replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(win_sheet)
@@ -82,7 +89,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.closeBtnLabel.clicked.connect(self.close)
         self.timeLineEdit.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.timeLineEdit.calendar_focus_in.connect(self.timeWidget.show)
-        self.timeLineEdit.calendar_focus_out.connect(self.timeWidget.hide)
+        # self.timeLineEdit.calendar_focus_out.connect(self.timeWidget.hide)
+        self.timeCloseBtn.clicked.connect(self.timeWidget.hide)
 
     def update_ui_state(self):
         self.totalRecordLabel.setText('共%s条' % self.total_record)
