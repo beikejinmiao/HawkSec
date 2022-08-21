@@ -23,7 +23,6 @@
 
 #extUrlFrame, #idcardFrame, #keywordFrame {
     background: #FFFFFF;
-    box-shadow: 0px 0px 4px #B5CAFE;
     border-radius: 10px;
 }
 
@@ -97,6 +96,18 @@
     color: #FFFFFF;
     background: #2358DE;
     border-radius: 4px;
+}
+
+#minimizeBtnLabel:hover, #maximizeBtnLabel:hover {
+    background: #FFFFFF;
+}
+#closeBtnLabel {
+    background: transparent;
+    border-image: url('IMAGE_HOME/icon/close.png');
+}
+#closeBtnLabel:hover {
+    background: #F41717;
+    border-image: url('IMAGE_HOME/icon/close_hover.png');
 }
 
 

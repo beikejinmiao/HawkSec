@@ -20,12 +20,7 @@ class SettingsWindow(Ui_Form, QWidget):
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
-        label_images = zip([self.closeBtnLabel], ['icon/close.png'])
-        for label, img in label_images:
-            label.setPixmap(QPixmap('image:%s' % img))
-            # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
-            label.setScaledContents(True)
-            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        self.closeBtnLabel.setText('')
         #
         win_sheet = StyleSheetHelper.load_qss(name='settings').replace('IMAGE_HOME', IMAGE_HOME)
         self.setStyleSheet(win_sheet)

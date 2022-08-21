@@ -42,6 +42,14 @@
     border-radius: 4px;
 }
 
+#closeBtnLabel {
+    background: transparent;
+    border-image: url('IMAGE_HOME/icon/close.png');
+}
+#closeBtnLabel:hover {
+    background: #F41717;
+    border-image: url('IMAGE_HOME/icon/close_hover.png');
+}
 
 QPlainTextEdit {
     background: #F8FAFF;

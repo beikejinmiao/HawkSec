@@ -6,3 +6,13 @@
 #titleFrame {
     border: 2px solid #f2f2f2;
 }
+
+
+#closeBtnLabel {
+    background: transparent;
+    border-image: url('IMAGE_HOME/icon/close.png');
+}
+#closeBtnLabel:hover {
+    background: #F41717;
+    border-image: url('IMAGE_HOME/icon/close_hover.png');
+}

@@ -46,8 +46,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.tableView.verticalHeader().hide()          # 隐藏行号
         self.tableView.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
 
-        label_images = zip([self.timeIconLabel, self.closeBtnLabel],
-                           ['icon/calendar.png', 'icon/close.png'])
+        self.closeBtnLabel.setText('')
+        label_images = zip([self.timeIconLabel], ['icon/calendar.png'])
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))
             # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size

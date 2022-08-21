@@ -18,6 +18,7 @@ class HelpAboutWindow(Ui_Form, QWidget):
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.closeBtnLabel.setText('')
         label_images = zip([self.companyLogoLabel, self.appIconLabel], ['company.png', 'app_logo_blue.png'])
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))

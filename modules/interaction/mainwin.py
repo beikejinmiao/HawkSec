@@ -40,14 +40,15 @@ class MainWindow(UiMainWindow, QWidget):
         # 使用border-image而不是background-image会让图片自适应widget大小
         # self.centralwidget.setStyleSheet(
         #     '#centralwidget {background-image: url(%s); background-repeat: no-repeat}' % bg_pic_path)
+        self.closeBtnLabel.setText('')
         label_images = zip([self.logoLabel, self.helpLabel, self.settingLabel,
                             self.robotLabel, self.robotLabel2, self.waitforGifLabel, self.finishIconLabel,
                             self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel,
-                            self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel],
+                            self.minimizeBtnLabel, self.maximizeBtnLabel],
                            ['logo.png', 'icon/help.png', 'icon/setting.png',
                             'robot.png', 'robot.png', 'icon/waitfor.png', 'icon/finish.png',
                             'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png',
-                            'icon/minimize.png', 'icon/maximize.png', 'icon/close.png'])
+                            'icon/minimize.png', 'icon/maximize.png'])
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))
             # https://stackoverflow.com/questions/5653114/display-image-in-qt-to-fit-label-size
