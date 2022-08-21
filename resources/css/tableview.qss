@@ -69,7 +69,7 @@
 }
 
 
-#pageRecordComboBox, #switchPageLineEdit {
+#switchPageLineEdit {
     background: #FFFFFF;
     border: 1px solid #C6CCD6;
     border-radius: 4px;
@@ -80,6 +80,7 @@
 /* https://stackoverflow.com/questions/11484776/qcombobox-down-arrow-image */
 QComboBox{
     font-size: 14px;
+    color:  #5C5C5C;
     background: #FFFFFF;
     border: 1px solid #C6CCD6;
 }
@@ -87,14 +88,33 @@ QComboBox::drop-down
 {
     border: 0px; /* This seems to replace the whole arrow of the combo box */
 }
-
 QComboBox::down-arrow{
     image: url('IMAGE_HOME/icon/down_arrow.png');
     width: 8px;
     height: 4px;
 }
-
+QListView::item{
+    color: #5C5C5C;
+}
 QListView::item:hover{
     color: #2358DE;
     background-color: rgba(35, 88, 222, 0.05);
+}
+
+
+QTableView {
+    border: 0px;
+    background-color: #FFFFFF;
+    alternate-background-color: #F8F9FE;
+    selection-color: #000000;                             /*选中区域的文字颜色*/
+    selection-background-color: rgba(35, 88, 222, 0.12);  /*选中区域的背景色*/
+}
+
+QHeaderView {
+    font: bold;
+    font-size: 14px;
+    background: #EBF0FC;
+}
+QHeaderView::section{
+    background: transparent;    /*表头显示背景色*/
 }

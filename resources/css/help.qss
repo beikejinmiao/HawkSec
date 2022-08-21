@@ -1,6 +1,6 @@
 #Form {
     border-radius: 5px;
-    background: #F8FAFF;
+    background: #FFFFFF;
 }
 
 #titleFrame {
