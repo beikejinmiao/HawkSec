@@ -6,6 +6,7 @@ from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor, QCursor
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
+from modules.interaction.widget import WaitingSpinner
 from modules.interaction.win.tableview import ExtractDataWindow
 from modules.interaction.win.settings import SettingsWindow
 from modules.interaction.win.help import HelpAboutWindow
@@ -41,12 +42,14 @@ class MainWindow(UiMainWindow, QWidget):
         # self.centralwidget.setStyleSheet(
         #     '#centralwidget {background-image: url(%s); background-repeat: no-repeat}' % bg_pic_path)
         self.closeBtnLabel.setText('')
-        label_images = zip([self.logoLabel, self.helpLabel, self.settingLabel,
-                            self.robotLabel, self.robotLabel2, self.waitforGifLabel, self.finishIconLabel,
+        self.helpBtnLabel.setText('')
+        self.settingBtnLabel.setText('')
+        label_images = zip([self.logoLabel, self.robotLabel, self.robotLabel2,
+                            self.waitforGifLabel, self.finishIconLabel,
                             self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel,
                             self.minimizeBtnLabel, self.maximizeBtnLabel],
-                           ['logo.png', 'icon/help.png', 'icon/setting.png',
-                            'robot.png', 'robot.png', 'icon/waitfor.png', 'icon/finish.png',
+                           ['logo.png', 'robot.png', 'robot.png',
+                            'icon/waitfor.png', 'icon/finish.png',
                             'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png',
                             'icon/minimize.png', 'icon/maximize.png'])
         for label, img in label_images:
@@ -66,13 +69,18 @@ class MainWindow(UiMainWindow, QWidget):
             line_edit.setPalette(palette)
         # 设置可点击组件悬浮手型按钮
         for button in [self.startBtn, self.cancelBtn, self.stopBtn, self.returnBtn,
-                       self.dumpBtn, self.detailBtn, self.settingLabel, self.helpLabel,
+                       self.dumpBtn, self.detailBtn, self.settingBtnLabel, self.helpBtnLabel,
                        self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel,
                        self.crawledCntLabel, self.hitCntLabel, self.faieldCntLabel,
                        self.extUrlCntLabel, self.idcardCntLabel, self.keywordCntLabel,
                        self.crawledCntLabel2, self.hitCntLabel2, self.faieldCntLabel2,
                        self.extUrlCntLabel2, self.idcardCntLabel2, self.keywordCntLabel2]:
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        for waiting_layout in (self.extUrlWaitingLayout, self.idcardGridLayout, self.keywordGridLayout):
+            spinner = WaitingSpinner(self, lines=16, radius=4, line_length=7, speed=1, color=(35, 88, 222))
+            waiting_layout.addWidget(spinner)
+            spinner.start()
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
@@ -92,8 +100,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.stopBtn.clicked.connect(self.terminate)
         self.returnBtn.clicked.connect(self.cancel)
         self.detailBtn.clicked.connect(self.show_extract_win)
-        self.settingLabel.clicked.connect(self.show_settings_win)
-        self.helpLabel.clicked.connect(self.show_help_win)
+        self.settingBtnLabel.clicked.connect(self.show_settings_win)
+        self.helpBtnLabel.clicked.connect(self.show_help_win)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)

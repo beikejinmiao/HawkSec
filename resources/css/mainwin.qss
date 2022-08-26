@@ -109,7 +109,18 @@
     background: #F41717;
     border-image: url('IMAGE_HOME/icon/close_hover.png');
 }
-
+#helpBtnLabel {
+    border-image: url('IMAGE_HOME/icon/help.png');
+}
+#helpBtnLabel:hover {
+    border-image: url('IMAGE_HOME/icon/help_hover.png');
+}
+#settingBtnLabel {
+    border-image: url('IMAGE_HOME/icon/setting.png');
+}
+#settingBtnLabel:hover {
+    border-image: url('IMAGE_HOME/icon/setting_hover.png');
+}
 
 QLineEdit {
     background: #FFFFFF;

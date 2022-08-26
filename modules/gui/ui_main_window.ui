@@ -26,7 +26,7 @@
    <property name="styleSheet">
     <string notr="true"/>
    </property>
-   <widget class="QLabel" name="helpLabel">
+   <widget class="QLabel" name="helpBtnLabel">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -45,19 +45,19 @@
      <string>help</string>
     </property>
    </widget>
-   <widget class="QLabel" name="settingLabel">
+   <widget class="QLabel" name="settingBtnLabel">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>730</y>
-      <width>17</width>
-      <height>17</height>
+      <width>18</width>
+      <height>18</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>17</width>
-      <height>17</height>
+      <width>18</width>
+      <height>18</height>
      </size>
     </property>
     <property name="text">
@@ -109,7 +109,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="mainTab">
      <attribute name="title">
@@ -736,9 +736,9 @@
       <widget class="QWidget" name="layoutWidget_13">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>50</x>
          <y>10</y>
-         <width>901</width>
+         <width>881</width>
          <height>501</height>
         </rect>
        </property>
@@ -880,6 +880,87 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="extUrlWaitingWidget" native="true">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>17</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>21</width>
+         <height>21</height>
+        </size>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_4">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="extUrlWaitingLayout"/>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="idcardWaitingWidgt" native="true">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>188</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>21</width>
+         <height>21</height>
+        </size>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_6">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="idcardWaitingLayout"/>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="keywordWaitingWidget" native="true">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>362</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>21</width>
+         <height>21</height>
+        </size>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_7">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="keywordWaitingLayout"/>
+       </widget>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="finishTab">
@@ -982,7 +1063,7 @@
          <string>0</string>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1061,7 +1142,7 @@
          <string>0</string>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1140,7 +1221,7 @@
          <string>0</string>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1447,7 +1528,7 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>970</x>
