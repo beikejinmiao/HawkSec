@@ -77,7 +77,7 @@ class MainWindow(UiMainWindow, QWidget):
                        self.extUrlCntLabel2, self.idcardCntLabel2, self.keywordCntLabel2]:
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        for waiting_layout in (self.extUrlWaitingLayout, self.idcardGridLayout, self.keywordGridLayout):
+        for waiting_layout in (self.extUrlWaitingLayout, self.idcardWaitingLayout, self.keywordWaitingLayout):
             spinner = WaitingSpinner(self, lines=16, radius=4, line_length=7, speed=1, color=(35, 88, 222))
             waiting_layout.addWidget(spinner)
             spinner.start()
