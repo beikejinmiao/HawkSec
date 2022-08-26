@@ -6,7 +6,7 @@ from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor, QCursor
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
-from modules.interaction.widget import WaitingSpinner
+from modules.interaction.widget import WaitingSpinner, QInfoMessageBox, QuestionMessageBox
 from modules.interaction.win.tableview import ExtractDataWindow
 from modules.interaction.win.settings import SettingsWindow
 from modules.interaction.win.help import HelpAboutWindow

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import math
-from PyQt6.QtWidgets import QLineEdit, QWidget, QLabel
+from PyQt6.QtWidgets import QLineEdit, QWidget, QLabel, QMessageBox
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QRect
-from PyQt6.QtGui import QColor, QPainter
+from PyQt6.QtGui import QColor, QPainter, QPixmap
+from utils.filedir import StyleSheetHelper
+from libs.enums import QMSG_BOX_REPLY_YES, QMSG_BOX_REPLY_NO
 
 
 class QClickLabel(QLabel):
@@ -30,6 +32,43 @@ class QTimeLineEdit(QLineEdit):
 class QNotClickWidget(QWidget):
     def mousePressEvent(self, event):
         pass
+
+
+class QInfoMessageBox(object):
+    def __init__(self, parent: QWidget, text: str):
+        self.msgbox = QMessageBox(parent)
+        self.msgbox.setText(text)
+        self.msgbox.setWindowTitle('提示')
+        self.msgbox.setIconPixmap(QPixmap('image:icon/msgbox_information.png'))
+        self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
+        # self.msgbox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
+        # 在最后设置样式无法生效？！
+        # self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
+
+    def show(self):
+        self.msgbox.exec()
+        return QMSG_BOX_REPLY_YES
+
+
+class QuestionMessageBox(object):
+    def __init__(self, parent: QWidget, text: str):
+        self.msgbox = QMessageBox(parent)
+        self.msgbox.setText(text)
+        self.msgbox.setWindowTitle('提示')
+        self.msgbox.setIconPixmap(QPixmap('image:icon/msgbox_question.png'))
+        self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
+        # self.msgbox.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        self.btn_yes = self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
+        self.btn_no = self.msgbox.addButton(parent.tr('取消'), QMessageBox.ButtonRole.NoRole)
+        # TODO 消息框不同按钮不同样式
+        # https://stackoverflow.com/questions/66604761/is-there-a-way-to-change-the-stylesheet-of-just-ok-button-of-all-the-qmessagebox
+
+    def show(self):
+        self.msgbox.exec()
+        if self.msgbox.clickedButton() == self.btn_yes:
+            return QMSG_BOX_REPLY_YES
+        return QMSG_BOX_REPLY_NO
 
 
 # https://github.com/fbjorn/QtWaitingSpinner
