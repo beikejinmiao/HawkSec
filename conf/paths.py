@@ -38,6 +38,7 @@ CRAWL_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'crawl.metric.json')
 EXTRACT_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'extract.metric.json')
 LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
 ALEXA_FILEPATH = os.path.join(PRIVATE_RESOURCE_HOME, 'alexa-top-30k.txt')
+START_MOVIE_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'waitloading.mp4')
 
 if stage == 'exe':
     LOG_FILEPATH = os.path.join(RUNTIME_HOME, "%s.log" % WORK_NAME)
