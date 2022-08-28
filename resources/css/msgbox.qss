@@ -1,31 +1,52 @@
-.QMessageBox {
-    background: #FFFFFF;
-    border-radius: 5px;
+QWidget#centralWidget{
+	background: #FFFFFF;
+	border-radius: 5px;
 }
 
 
-QMessageBox QLabel {
-    min-width: 200px;
+#okBtn {
+    font-style: normal;
+    font-weight: 400;
     font-size: 14px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+#okBtn:pressed {
+    color:#2358DE;
+    background: #FFFFFF;
+    border-radius: 4px;
+    border: 1px solid #2358DE;
 }
 
-QMessageBox QPushButton {
+#cancelBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
     color: #2358DE;
-    font-size: 12px;
+
     background: #FFFFFF;
     border: 1px solid #2358DE;
     border-radius: 4px;
-    width: 48px;
-    height: 24px;
 }
-
-QMessageBox QPushButton:pressed {
+#cancelBtn:pressed {
     color: #FFFFFF;
-    font-size: 12px;
     background: #2358DE;
-    border: 1px solid #FFFFFF;
     border-radius: 4px;
-    width: 48px;
-    height: 24px;
 }
 
+#closeBtnLabel {
+    background: transparent;
+    border-image: url('IMAGE_HOME/icon/close.png');
+}
+#closeBtnLabel:hover {
+    background: #F41717;
+    border-image: url('IMAGE_HOME/icon/close_hover.png');
+}
+
+#msgLabel {
+    font-weight: 400;
+    font-size: 14px;
+}

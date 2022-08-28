@@ -4,13 +4,14 @@ import os
 import datetime
 from pathlib import Path
 from collections import namedtuple
-from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QSizePolicy, QLayout
+from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
 from libs.enums import sensitive_flag_name, SENSITIVE_FLAG, QMSG_BOX_REPLY_NO, QMSG_BOX_REPLY_YES
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
-from modules.interaction.widget import WaitingSpinner, QInfoMessageBox, QWarnMessageBox
+from modules.interaction.widget import WaitingSpinner
+from modules.interaction.win.msgbox import QWarnMessageBox
 from modules.interaction.win.tableview import ExtractDataWindow
 from modules.interaction.win.settings import SettingsWindow
 from modules.interaction.win.help import HelpAboutWindow
@@ -37,7 +38,22 @@ class MainWindow(UiMainWindow, QWidget):
         self.auth_config = None
         self._keywords = None
         self.task_manager = None
-        # self.metric_thread = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._move_flag = True
+            self._move_position = event.pos() - self.pos()                      # 获取鼠标相对窗口的位置
+            event.accept()
+            self.setCursor(QCursor(Qt.CursorShape.OpenHandCursor))          # 更改鼠标图标
+
+    def mouseMoveEvent(self, event):
+        if Qt.MouseButton.LeftButton and self._move_flag:
+            self.move(event.pos() - self._move_position)                        # 更改窗口位置
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self._move_flag = False
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
 
     def __init_gui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
@@ -101,7 +117,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.dynGridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         #
         self.minimizeBtnLabel.clicked.connect(self.showMinimized)
-        self.closeBtnLabel.clicked.connect(self.showMaximized)
+        self.maximizeBtnLabel.clicked.connect(self.showFullScreen)
         self.closeBtnLabel.clicked.connect(self.close)
         #
         self.__toggle_sftp()
@@ -191,7 +207,7 @@ class MainWindow(UiMainWindow, QWidget):
             ssh_accessible(config.host, port=config.port, username=config.username, password=config.password)
         except Exception as e:
             self.accessible = False
-            QWarnMessageBox(self, '访问SSH服务器错误！原因: ' + str(e)).show()
+            QWarnMessageBox('访问SSH服务器错误！原因: ' + str(e))
             return None
         self.accessible = True      # 在已校验访问成功后,保存配置时无需再次校验
         self.auth_config = config._asdict()
@@ -253,8 +269,8 @@ class MainWindow(UiMainWindow, QWidget):
             return
         if self.protocol == 'sftp' and not self._check_ssh_accessible():
             return
-        reply = QWarnMessageBox(self, '开始监测将清除历史数据').show()
-        if reply == QMSG_BOX_REPLY_NO:
+        box = QWarnMessageBox('开始监测将清除历史数据！')
+        if box.exec() == QDialog.DialogCode.Rejected:
             return
         # 恢复默认提示
         self._robot_tips(tips='default')
@@ -283,8 +299,8 @@ class MainWindow(UiMainWindow, QWidget):
 
     def terminate(self, notice=False):
         if notice:
-            reply = QWarnMessageBox(self, '请确认是否终止目前任务，任务终止后需重新开始。').show()
-            if reply == QMSG_BOX_REPLY_NO:
+            box = QWarnMessageBox("请确认是否终止目前任务。\n任务终止后需重新开始！")
+            if box.exec() == QDialog.DialogCode.Rejected:
                 return
         self.task_manager.terminate()
         del self.task_manager
@@ -305,8 +321,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.helpAboutWindow.show()
 
     def closeEvent(self, event):
-        reply = QWarnMessageBox(self, "确认退出").show()
-        if reply == QMSG_BOX_REPLY_YES:
+        box = QWarnMessageBox("确认退出！")
+        if box.exec() == QDialog.DialogCode.Accepted:
             event.accept()
             if self.helpAboutWindow:
                 self.helpAboutWindow.close()
