@@ -34,33 +34,49 @@ class QNotClickWidget(QWidget):
         pass
 
 
-class QInfoMessageBox(object):
-    def __init__(self, parent: QWidget, text: str):
+class QAbstractMessageBox(object):
+    def __init__(self, parent: QWidget, text: str, icon: str):
         self.msgbox = QMessageBox(parent)
         self.msgbox.setText(text)
         self.msgbox.setWindowTitle('提示')
-        self.msgbox.setIconPixmap(QPixmap('image:icon/msgbox_information.png'))
+        self.msgbox.setIconPixmap(QPixmap('image:%s' % icon))
         self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
-        # self.msgbox.setStandardButtons(QMessageBox.StandardButton.Ok)
-        self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
-        # 在最后设置样式无法生效？！
-        # self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
 
     def show(self):
         self.msgbox.exec()
         return QMSG_BOX_REPLY_YES
 
 
-class QuestionMessageBox(object):
+class QInfoMessageBox(QAbstractMessageBox):
     def __init__(self, parent: QWidget, text: str):
-        self.msgbox = QMessageBox(parent)
-        self.msgbox.setText(text)
-        self.msgbox.setWindowTitle('提示')
-        self.msgbox.setIconPixmap(QPixmap('image:icon/msgbox_question.png'))
-        self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
+        super().__init__(parent, text, 'icon/msgbox_information.png')
+        # self.msgbox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
+        # 在最后设置样式无法生效？！
+        # self.msgbox.setStyleSheet(StyleSheetHelper.load_qss(name='msgbox'))
+
+
+class QWarnMessageBox(QAbstractMessageBox):
+    def __init__(self, parent: QWidget, text: str):
+        super().__init__(parent, text, 'icon/msgbox_warning.png')
+        self.btn_yes = self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
+        self.btn_no = self.msgbox.addButton(parent.tr('取消'), QMessageBox.ButtonRole.NoRole)
+        self.msgbox.setDefaultButton(self.btn_no)
+
+    def show(self):
+        self.msgbox.exec()
+        if self.msgbox.clickedButton() == self.btn_yes:
+            return QMSG_BOX_REPLY_YES
+        return QMSG_BOX_REPLY_NO
+
+
+class QuestionMessageBox(QAbstractMessageBox):
+    def __init__(self, parent: QWidget, text: str):
+        super().__init__(parent, text, 'icon/msgbox_question.png')
         # self.msgbox.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         self.btn_yes = self.msgbox.addButton(parent.tr('确认'), QMessageBox.ButtonRole.YesRole)
         self.btn_no = self.msgbox.addButton(parent.tr('取消'), QMessageBox.ButtonRole.NoRole)
+        self.msgbox.setDefaultButton(self.btn_no)
         # TODO 消息框不同按钮不同样式
         # https://stackoverflow.com/questions/66604761/is-there-a-way-to-change-the-stylesheet-of-just-ok-button-of-all-the-qmessagebox
 

@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from PyQt6 import QtWidgets
-from modules.action.director import MainWindow
+import sys
+from PyQt6.QtWidgets import QApplication
+from modules.interaction.win.start import SplashScreen
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    # window.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
-    window.show()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    splash = SplashScreen()
+    splash.setMinimumSize(960, 680)
+    splash.show()
     sys.exit(app.exec())
-
 

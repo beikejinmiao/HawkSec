@@ -2,8 +2,10 @@
 # -*- coding:utf-8 -*-
 import os
 import re
+import time
 import shutil
 from queue import Queue
+from PyQt6.QtCore import QTimer, QObject, pyqtSignal
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, DOWNLOADS
 from libs.enums import SENSITIVE_FLAG, TABLES
 from libs.pysqlite import Sqlite
@@ -17,8 +19,11 @@ browser_protocols = ('http', 'https', 'ftp')
 support_protocols = ('http', 'https', 'ftp', 'sftp')
 
 
-class TaskManager(object):
+class TaskManager(QObject):
+    expend_time_signal = pyqtSignal(float)
+
     def __init__(self, target, flags, keywords=None, protocol=None, auth_config=None):
+        super().__init__()
         self.path_queue = Queue(10000)
         self.db_queue = Queue(10000)
         #
@@ -45,6 +50,12 @@ class TaskManager(object):
         self.extractor = self.__init_extractor()
         self.crawler = self.__init_crawler()
         self.persistencer = DbPersistence(db_queue=self.db_queue)
+        #
+        self.timer = QTimer(self)
+        self.timer.start(1000)
+        self.timer.timeout.connect(self._emit_expend_time)
+        self._expend_time = 0.0
+        self._start_time = time.time()
 
     def __init_crawler(self):
         client = None
@@ -82,6 +93,7 @@ class TaskManager(object):
         self.crawler.start()
         self.extractor.start()
         self.persistencer.start()
+        self._start_time = time.time()
 
     def terminate(self):
         self.crawler.terminate()
@@ -89,6 +101,10 @@ class TaskManager(object):
         self.persistencer.terminate()
         logger.info('%s' % '='*50)
 
+    def _emit_expend_time(self):
+        self._expend_time = time.time() - self._start_time
+        self.expend_time_signal.emit(self._expend_time)
+        
     @staticmethod
     def clear():
         sqlite = Sqlite()

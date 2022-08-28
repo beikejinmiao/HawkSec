@@ -125,6 +125,7 @@
 QLineEdit {
     background: #FFFFFF;
     border: 1px solid #C6CCD6;
+    font-size: 14px;
 }
 
 

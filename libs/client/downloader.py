@@ -7,20 +7,24 @@ import traceback
 from queue import Full
 from collections import Counter
 from urllib.parse import urlparse
+from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
-from libs.thread import SuicidalThread
+from libs.thread import SuicidalQThread
 from utils import pywget
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
 from modules.action.metric import CrawlMetric
 from libs.logger import logger
 
 
-class Downloader(SuicidalThread):
+class Downloader(SuicidalQThread):
+
+    metrics = pyqtSignal(CrawlMetric)
+
     def __init__(self, out_dir=DOWNLOADS, path_queue=None, db_queue=None):
         super().__init__()
         #
@@ -28,7 +32,7 @@ class Downloader(SuicidalThread):
         self.path_queue = path_queue
         self.db_queue = db_queue
         #
-        self.metric = CrawlMetric()
+        self._metric = CrawlMetric()
         self._white_url_file = set()
         self.__load_whitelist()
         #
@@ -48,9 +52,9 @@ class Downloader(SuicidalThread):
             self.path_queue.put(msg, block=False)         # 可停止的线程不能阻塞
         except Full:
             time.sleep(1)
-        if self.metric.queue_put < 0:
-            self.metric.queue_put = 0
-        self.metric.queue_put += 1
+        if self._metric.queue_put < 0:
+            self._metric.queue_put = 0
+        self._metric.queue_put += 1
 
     def _put_db_queue(self, table, record):
         if self.db_queue is None:
@@ -66,7 +70,7 @@ class Downloader(SuicidalThread):
 
     @timer(120, 120)
     def _log_stats(self):
-        logger.info('爬虫客户端Metric统计: %s' % self.metric)
+        logger.info('爬虫客户端Metric统计: %s' % self._metric)
 
     # # TODO 终止线程时sqlite报错,后续无法重现
     # #  2022-07-26 10:05:34,016 - ERROR - file - timer.py:26 - Exception: Traceback (most recent call last):
@@ -88,7 +92,7 @@ class Downloader(SuicidalThread):
 
     @timer(2, 2)
     def _dump_metric(self):
-        self.metric.dump(CRAWL_METRIC_PATH)
+        self._metric.dump(CRAWL_METRIC_PATH)
 
     def crawling(self):
         pass
@@ -99,7 +103,7 @@ class Downloader(SuicidalThread):
     def run(self):
         self.add_thread(self._log_stats())
         # self.add_thread(self._sync2db())
-        self.add_thread(self._dump_metric())
+        # self.add_thread(self._dump_metric())
         try:
             self.crawling()
         except SystemExit:
@@ -121,7 +125,7 @@ class Downloader(SuicidalThread):
         except:
             logger.error(traceback.format_exc())
         logger.info('爬虫客户端任务结束')
-        logger.info('爬虫Metric统计: %s' % self.metric)
+        logger.info('爬虫Metric统计: %s' % self._metric)
 
 
 class WebFileDownloader(Downloader):
@@ -146,11 +150,11 @@ class WebFileDownloader(Downloader):
         path = urlparse(url.strip()).path
         suffix = None
         # 默认不下载图片和可执行文件
-        self.metric.file_total += 1
+        self._metric.file_total += 1
         if img.match(path) or video.match(path) or executable.match(path):
-            self.metric.file_ignored += 1
+            self._metric.file_ignored += 1
             return None
-        self.metric.crawl_total += 1
+        self._metric.crawl_total += 1
         logger.info('Download: %s' % url)
         try:
             fileinfo = pywget.download(url, out=self.out_dir)
@@ -159,17 +163,17 @@ class WebFileDownloader(Downloader):
             # self.db_rows.append(record)
             if fileinfo.filepath is not None:
                 suffix = path.split('.')[-1].lower()
-                self.metric.file_success += 1
-                self.metric.crawl_success += 1
+                self._metric.file_success += 1
+                self._metric.crawl_success += 1
                 # 将下载文件的本地路径和文件URL放入队列中
                 self._put_path_queue((fileinfo.filepath, url))
             else:
-                self.metric.file_failed += 1
-                self.metric.crawl_failed += 1
+                self._metric.file_failed += 1
+                self._metric.crawl_failed += 1
                 logger.error('Download Error(%s %s): %s' % (fileinfo.status_code, fileinfo.desc, url))
         except Exception as e:
-            self.metric.file_failed += 1
-            self.metric.crawl_failed += 1
+            self._metric.file_failed += 1
+            self._metric.crawl_failed += 1
             record = {'origin': url, 'resp_code': -1, 'desc': str(e)}
             self._put_db_queue(TABLES.CrawlStat.value, record)
             # self.db_rows.append(record)
@@ -184,6 +188,7 @@ class WebFileDownloader(Downloader):
             suffix = self.download(url)
             if suffix is not None:
                 suffixes.append(suffix)
+            self.metrics.emit(self._metric)
         self._put_path_queue(('END', None))
         # 统计文件类型数量
         file_types = dict(Counter(suffixes).most_common())
@@ -217,11 +222,11 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 record = {'origin': resp.url, 'resp_code': resp.status_code, 'desc': resp.desc}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 # self.db_rows.append(record)
-                self.metric.crawl_total += 1
+                self._metric.crawl_total += 1
                 if resp.status_code == 200:
-                    self.metric.crawl_success += 1
+                    self._metric.crawl_success += 1
                 else:
-                    self.metric.crawl_failed += 1
+                    self._metric.crawl_failed += 1
                 # 1.解析网页中的敏感内容
                 if resp.html_text and self.extractor is not None:
                     self.extractor.extract(resp.html_text, origin=resp.url)
@@ -230,10 +235,11 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
             except:
                 logger.error(traceback.format_exc())
                 logger.error(resp.url)
+            self.metrics.emit(self._metric)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())
         logger.info('爬取URL结束')
-        logger.info('爬虫客户端Metric统计: %s' % self.metric)
+        logger.info('爬虫客户端Metric统计: %s' % self._metric)
         logger.info('发现文件URL: %s个' % len(self.urls))
 
     def cleanup(self):

@@ -597,7 +597,7 @@
            <string notr="true">font-size: 14px;color: #8B8B8B;</string>
           </property>
           <property name="text">
-           <string>00::00:00</string>
+           <string>00:00:00</string>
           </property>
          </widget>
         </item>

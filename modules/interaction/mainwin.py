@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
+import datetime
+from pathlib import Path
+from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QSizePolicy, QLayout
-from PyQt6.QtCore import QThread
 from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QIcon, QPixmap, QPalette, QColor, QCursor
+from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
+from libs.enums import sensitive_flag_name, SENSITIVE_FLAG, QMSG_BOX_REPLY_NO, QMSG_BOX_REPLY_YES
+from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
-from modules.interaction.widget import WaitingSpinner, QInfoMessageBox, QuestionMessageBox
+from modules.interaction.widget import WaitingSpinner, QInfoMessageBox, QWarnMessageBox
 from modules.interaction.win.tableview import ExtractDataWindow
 from modules.interaction.win.settings import SettingsWindow
 from modules.interaction.win.help import HelpAboutWindow
-from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
-from pathlib import Path
+from modules.action.manager import TaskManager
 from utils.filedir import StyleSheetHelper
+from utils.mixed import ssh_accessible
 
 
 class MainWindow(UiMainWindow, QWidget):
@@ -25,6 +29,15 @@ class MainWindow(UiMainWindow, QWidget):
         #
         self.__init_gui()
         self.__init_state()
+        #
+        self.target = ''
+        self.protocol = 'https'
+        self.sensitive_flags = list()
+        self.ssh_accessible = False
+        self.auth_config = None
+        self._keywords = None
+        self.task_manager = None
+        # self.metric_thread = None
 
     def __init_gui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
@@ -92,12 +105,16 @@ class MainWindow(UiMainWindow, QWidget):
         self.closeBtnLabel.clicked.connect(self.close)
         #
         self.__toggle_sftp()
+        self.httpsRadioBtn.setChecked(True)
+        self.extUrlTextEdit.setReadOnly(True)
+        self.idcardTextEdit.setReadOnly(True)
+        self.keywordTextEdit.setReadOnly(True)
         self.httpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.httpsRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.sftpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=True))
         self.startBtn.clicked.connect(self.start)
-        self.cancelBtn.clicked.connect(self.cancel)
-        self.stopBtn.clicked.connect(self.terminate)
+        self.cancelBtn.clicked.connect(self.terminate)
+        self.stopBtn.clicked.connect(lambda: self.terminate(notice=True))
         self.returnBtn.clicked.connect(self.cancel)
         self.detailBtn.clicked.connect(self.show_extract_win)
         self.settingBtnLabel.clicked.connect(self.show_settings_win)
@@ -108,7 +125,155 @@ class MainWindow(UiMainWindow, QWidget):
         for line_edit in sftp_edits:
             line_edit.setVisible(visible)
 
+    def _robot_tips(self, tips=''):
+        if not tips or tips == 'default':
+            self.robotTipsLabel.setStyleSheet('color: black; font-weight:400;')
+            tips = '您好，欢迎使用敏感信息监测系统！'
+        else:
+            self.robotTipsLabel.setStyleSheet('color: red; font-weight: bold;')
+        self.robotTipsLabel.setText('    %s' % tips)
+
+    def _check_inputs(self):
+        self.target = self.addressLineEdit.text().strip()
+        if len(self.target) <= 0:
+            self._robot_tips(tips='请输入监控地址')
+            return False
+        # 访问协议
+        for radio in (self.httpRadioBtn, self.httpsRadioBtn, self.sftpRadioBtn):
+            if radio.isChecked():
+                self.protocol = radio.text().lower()
+        # 监控内容/敏感类型
+        self.sensitive_flags = list()
+        for ix, check_box in enumerate([self.extUrlCheckBox, self.idcardCheckBox, self.keywordCheckBox]):
+            if check_box.isChecked():
+                self.sensitive_flags.append(ix)
+        if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
+            self._keywords = [item.strip() for item in self.keywordLineEdit.text().split(',')]
+        if len(self.sensitive_flags) <= 0:
+            self._robot_tips(tips='请选择监控内容：外链/身份证/关键字')
+            return False
+        return True
+
+    SSH_CONFIG = namedtuple('SSH_CONFIG', ['host', 'port', 'username', 'password', 'path'])
+
+    def get_ssh_config(self):
+        return self.SSH_CONFIG(
+            host=self.addressLineEdit.text().strip(),
+            port=int(self.portLineEdit.text().strip()),
+            username=self.userLineEdit.text().strip(),
+            password=self.passwdLineEdit.text().strip(),
+            path=self.pathLineEdit.text().strip()
+        )
+
+    def _check_ssh_input(self):
+        self.elements = ('host', '地址', self.addressLineEdit), ('port', '端口', self.portLineEdit), \
+                        ('username', '用户名', self.userLineEdit), ('password', '密码', self.passwdLineEdit), \
+                        ('path', '路径', self.pathLineEdit)
+        empty = []
+        for field, name, ele in self.elements:
+            if len(ele.text().strip()) <= 0:
+                empty.append(name)
+        if len(empty) > 0:
+            self._robot_tips('SFTP' + '/'.join(empty) + '内容为空！')
+            return False
+        if not self.portLineEdit.text().strip().isdigit():
+            self._robot_tips('SFTP端口格式错误！')
+            return False
+        return True
+
+    def _check_ssh_accessible(self):
+        if not self._check_ssh_input():
+            self.accessible = False
+            return None
+        #
+        config = self.get_ssh_config()
+        try:
+            ssh_accessible(config.host, port=config.port, username=config.username, password=config.password)
+        except Exception as e:
+            self.accessible = False
+            QWarnMessageBox(self, '访问SSH服务器错误！原因: ' + str(e)).show()
+            return None
+        self.accessible = True      # 在已校验访问成功后,保存配置时无需再次校验
+        self.auth_config = config._asdict()
+        return self.auth_config
+
+    def _hide_sensitive_layout(self):
+        sensitive_layouts = {
+            SENSITIVE_FLAG.URL: self.extUrlGridLayout,
+            SENSITIVE_FLAG.IDCARD: self.idcardGridLayout,
+            SENSITIVE_FLAG.KEYWORD: self.keywordGridLayout,
+        }
+        for flag in set(list(sensitive_layouts.keys())) - set(self.sensitive_flags):
+            layout = sensitive_layouts[flag]
+            for ix in range(layout.count()):
+                child = layout.itemAt(ix).widget()
+                child.setVisible(False)
+
+    def _log_extractor_result(self, result):
+        flag = result.flag
+        if flag == SENSITIVE_FLAG.URL:
+            text_edit = self.extUrlTextEdit
+        elif flag == SENSITIVE_FLAG.IDCARD:
+            text_edit = self.idcardTextEdit
+        elif flag == SENSITIVE_FLAG.KEYWORD:
+            text_edit = self.keywordTextEdit
+        else:
+            raise ValueError('不支持敏感内容Flag: %s' % flag)
+        text_edit.append('来源：{origin}\t{name}：{content}'.format(
+            origin=result.origin, name=sensitive_flag_name[flag].value, content=result.content))
+
+    def _set_expend_time(self, seconds):
+        seconds = int(seconds)
+        # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
+        expend_time = '{:0>8}'.format(str(datetime.timedelta(seconds=seconds)))
+        self.expendTimeLabel.setText(expend_time)
+        self.expendTimeLabel2.setText(expend_time)
+        self.progressBar.setValue(min(2+int(seconds/240), 99))
+
+    def _set_crawl_metric(self, metric):
+        self.crawledCntLabel.setText(str(metric.crawl_total))
+        self.faieldCntLabel.setText(str(metric.crawl_failed))
+        self.crawledCntLabel2.setText(str(metric.crawl_total))
+        self.faieldCntLabel2.setText(str(metric.crawl_failed))
+
+    def _set_extract_metric(self, metric):
+        self.extUrlCntLabel.setText('%s' % metric.external_url_count)
+        self.extUrlCntLabel2.setText('%s' % metric.external_url_count)
+        if metric.idcard_count > 0:
+            self.idcardCntLabel.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
+            self.idcardCntLabel2.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
+        self.keywordCntLabel.setText('%s' % metric.keyword_find)
+        self.keywordCntLabel2.setText('%s' % metric.keyword_find)
+        #
+        self.hitCntLabel.setText(str(metric.origin_hit))
+        self.hitCntLabel2.setText(str(metric.origin_hit))
+
     def start(self):
+        if not self._check_inputs():
+            return
+        if self.protocol == 'sftp' and not self._check_ssh_accessible():
+            return
+        reply = QWarnMessageBox(self, '开始监测将清除历史数据').show()
+        if reply == QMSG_BOX_REPLY_NO:
+            return
+        # 恢复默认提示
+        self._robot_tips(tips='default')
+        # 隐藏没有选中的监控内容
+        self._hide_sensitive_layout()
+        #
+        TaskManager.clear()
+        self.task_manager = TaskManager(self.target,
+                                        flags=self.sensitive_flags,
+                                        protocol=self.protocol,
+                                        keywords=self._keywords,
+                                        auth_config=self.auth_config)
+        self.task_manager.start()
+        self.task_manager.expend_time_signal.connect(self._set_expend_time)
+        self.task_manager.extractor.finished.connect(self.terminate)
+        self.task_manager.extractor.cur_result.connect(self._log_extractor_result)
+        self.task_manager.crawler.metrics.connect(self._set_crawl_metric)
+        self.task_manager.extractor.metrics.connect(self._set_extract_metric)
+        # 显示下一个Tab页
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.monitTab, '')
 
@@ -116,7 +281,14 @@ class MainWindow(UiMainWindow, QWidget):
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.mainTab, '')
 
-    def terminate(self):
+    def terminate(self, notice=False):
+        if notice:
+            reply = QWarnMessageBox(self, '请确认是否终止目前任务，任务终止后需重新开始。').show()
+            if reply == QMSG_BOX_REPLY_NO:
+                return
+        self.task_manager.terminate()
+        del self.task_manager
+        #
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
 
@@ -131,6 +303,19 @@ class MainWindow(UiMainWindow, QWidget):
     def show_help_win(self):
         self.helpAboutWindow = HelpAboutWindow()
         self.helpAboutWindow.show()
+
+    def closeEvent(self, event):
+        reply = QWarnMessageBox(self, "确认退出").show()
+        if reply == QMSG_BOX_REPLY_YES:
+            event.accept()
+            if self.helpAboutWindow:
+                self.helpAboutWindow.close()
+            if self.settingsWindow:
+                self.settingsWindow.close()
+            if self.extractWindow:
+                self.extractWindow.close()
+        else:
+            event.ignore()
 
 
 if __name__ == "__main__":

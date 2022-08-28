@@ -575,7 +575,7 @@ class Ui_MainWindow(object):
         self.stopBtn.setText(_translate("MainWindow", "停止"))
         self.cancelBtn.setText(_translate("MainWindow", "取消"))
         self.expendTimeTipsLabel.setText(_translate("MainWindow", "已监测时间 :"))
-        self.expendTimeLabel.setText(_translate("MainWindow", "00::00:00"))
+        self.expendTimeLabel.setText(_translate("MainWindow", "00:00:00"))
         self.label_7.setText(_translate("MainWindow", "含有监控内容:"))
         self.hitCntLabel.setText(_translate("MainWindow", "0"))
         self.label_8.setText(_translate("MainWindow", "已爬取:"))

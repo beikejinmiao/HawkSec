@@ -8,6 +8,7 @@ import traceback
 import tldextract
 from queue import Empty
 from collections.abc import Iterable
+from collections import namedtuple
 from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import archive
@@ -32,7 +33,10 @@ alexa = Alexa()
 
 
 class TextExtractor(SuicidalQThread):
+    Result = namedtuple('Result', ['flag', 'origin', 'content'])
     finished = pyqtSignal()
+    cur_result = pyqtSignal(Result)
+    metrics = pyqtSignal(ExtractMetric)
 
     def __init__(self, root=None, sensitive_flags=None, keywords=None, path_queue=None, db_queue=None):
         super().__init__()
@@ -67,7 +71,7 @@ class TextExtractor(SuicidalQThread):
             SENSITIVE_FLAG.IDCARD: self.idcard,
             SENSITIVE_FLAG.KEYWORD: self.keyword,
         }
-        self.metric = ExtractMetric()
+        self._metric = ExtractMetric()
         #
         self._white_domain = set()
         self._white_url_file = set()
@@ -131,16 +135,19 @@ class TextExtractor(SuicidalQThread):
     #             self.__db_row_ix[table] = right
     #     sqlite.close()
 
+    def _update_metric(self):
+        self._metric.external_url_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
+        self._metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
+        self._metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
+        self._metric.external_url_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
+        self._metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
+        self._metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
+        self._metric.origin_hit = len(self.results)
+
     @timer(2, 2)
     def _dump_metric(self):
-        self.metric.external_url_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
-        self.metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
-        self.metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
-        self.metric.external_url_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
-        self.metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
-        self.metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
-        self.metric.origin_hit = len(self.results)
-        self.metric.dump(EXTRACT_METRIC_PATH)
+        self._update_metric()
+        self._metric.dump(EXTRACT_METRIC_PATH)
 
     def external_url(self, text):
         candidates = set()
@@ -187,6 +194,7 @@ class TextExtractor(SuicidalQThread):
                 candidates = set(candidates)
                 result[flag] = candidates
                 self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
+                self.cur_result.emit(self.Result(flag=flag, origin=origin, content=','.join(candidates)))
         # 针对压缩文件,解压后的路径已发生变化,重新拼接来源地址
         if local_path is not None and local_path not in self.files \
                 and LOCAL_ZIP_PATH_FLAG in local_path and origin:
@@ -209,7 +217,10 @@ class TextExtractor(SuicidalQThread):
                 }
                 self._put_db_queue(TABLES.Sensitives.value, record)
                 # self.db_rows[TABLES.Sensitives.value].append(record)
-
+        #
+        self._update_metric()
+        self.metrics.emit(self._metric)
+        #
         if len(result) > 0 and origin:
             # self._sync2db()
             self.results[origin] = result
@@ -257,7 +268,7 @@ class TextExtractor(SuicidalQThread):
 
     def run(self):
         # self.add_thread(self._sync2db())
-        self.add_thread(self._dump_metric())
+        # self.add_thread(self._dump_metric())
         # 捕获内部异常,防止异常导致无法发送结束信号
         try:
             if self.path_queue is not None:
