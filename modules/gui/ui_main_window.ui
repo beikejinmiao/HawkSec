@@ -50,14 +50,14 @@
      <rect>
       <x>20</x>
       <y>730</y>
-      <width>18</width>
-      <height>18</height>
+      <width>17</width>
+      <height>17</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>18</width>
-      <height>18</height>
+      <width>17</width>
+      <height>17</height>
      </size>
     </property>
     <property name="text">
