@@ -38,13 +38,15 @@ class MainWindow(UiMainWindow, QWidget):
         self.auth_config = None
         self._keywords = None
         self.task_manager = None
+        self._move_flag = False
 
+    # https://blog.csdn.net/QW1540235670/article/details/111028331
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and event.position().y() < self.dragWidget.height():
             self._move_flag = True
             self._move_position = event.pos() - self.pos()                      # 获取鼠标相对窗口的位置
             event.accept()
-            self.setCursor(QCursor(Qt.CursorShape.OpenHandCursor))          # 更改鼠标图标
+            self.setCursor(QCursor(Qt.CursorShape.OpenHandCursor))              # 更改鼠标图标
 
     def mouseMoveEvent(self, event):
         if Qt.MouseButton.LeftButton and self._move_flag:

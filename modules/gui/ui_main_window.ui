@@ -1582,6 +1582,16 @@
      </item>
     </layout>
    </widget>
+   <widget class="QWidget" name="dragWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>10</y>
+      <width>771</width>
+      <height>61</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

@@ -540,6 +540,9 @@ class Ui_MainWindow(object):
         self.closeBtnLabel.setMaximumSize(QtCore.QSize(10, 10))
         self.closeBtnLabel.setObjectName("closeBtnLabel")
         self.horizontalLayout_2.addWidget(self.closeBtnLabel)
+        self.dragWidget = QtWidgets.QWidget(self.centralwidget)
+        self.dragWidget.setGeometry(QtCore.QRect(180, 10, 771, 61))
+        self.dragWidget.setObjectName("dragWidget")
         # MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
