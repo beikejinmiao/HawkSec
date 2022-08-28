@@ -3,7 +3,7 @@
 import os
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
-from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
@@ -41,7 +41,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)           # 隐藏边框
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # 设置窗口背景透明
         self.tableView.setAlternatingRowColors(True)    # 开启奇偶行交替背景色
         self.tableView.setShowGrid(False)               # 隐藏网格
         self.tableView.verticalHeader().hide()          # 隐藏行号
@@ -75,6 +76,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
                        self.prePageBtn, self.nextPageBtn, self.switchPageBtn,
                        self.pageRecordComboBox, self.searchCodeComboBox]:
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        # 窗体自定义阴影
+        self.render_shadow()
 
     def custom_ui(self):
         pass
@@ -155,6 +158,16 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
     def closeEvent(self, event):
         self.close_db()
+
+    def render_shadow(self):
+        """
+        https://blog.csdn.net/mahuatengmmp/article/details/113772969
+        """
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(0, 0)  # 偏移
+        shadow.setBlurRadius(12)  # 阴影半径
+        shadow.setColor(QColor(128, 128, 255))  # 阴影颜色
+        self.centralWidget.setGraphicsEffect(shadow)  # 将设置套用到widget窗口中
 
 
 class ProgressDataWindow(DataGridWindow):
