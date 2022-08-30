@@ -131,9 +131,9 @@ class MainWindow(UiMainWindow, QWidget):
         self.httpsRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.sftpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=True))
         self.startBtn.clicked.connect(self.start)
-        self.cancelBtn.clicked.connect(self.terminate)
+        self.cancelBtn.clicked.connect(self.cancel)
         self.stopBtn.clicked.connect(lambda: self.terminate(notice=True))
-        self.returnBtn.clicked.connect(self.cancel)
+        self.returnBtn.clicked.connect(self.return2main)
         self.detailBtn.clicked.connect(self.show_extract_win)
         self.settingBtnLabel.clicked.connect(self.show_settings_win)
         self.helpBtnLabel.clicked.connect(self.show_help_win)
@@ -226,6 +226,10 @@ class MainWindow(UiMainWindow, QWidget):
             for ix in range(layout.count()):
                 child = layout.itemAt(ix).widget()
                 child.setVisible(False)
+        #
+        self.extUrlTextEdit.setText('')
+        self.idcardTextEdit.setText('')
+        self.keywordTextEdit.setText('')
 
     def _log_extractor_result(self, result):
         flag = result.flag
@@ -295,9 +299,19 @@ class MainWindow(UiMainWindow, QWidget):
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.monitTab, '')
 
-    def cancel(self):
+    def return2main(self):
+        # 返回主页面
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.mainTab, '')
+
+    def cancel(self):
+        box = QWarnMessageBox("请确认是否取消目前任务！")
+        if box.exec() == QDialog.DialogCode.Rejected:
+            return
+        self.task_manager.terminate()
+        del self.task_manager
+        #
+        self.return2main()
 
     def terminate(self, notice=False):
         if notice:
