@@ -209,7 +209,7 @@ class MainWindow(UiMainWindow, QWidget):
             ssh_accessible(config.host, port=config.port, username=config.username, password=config.password)
         except Exception as e:
             self.accessible = False
-            QWarnMessageBox('访问SSH服务器错误！原因: ' + str(e))
+            QWarnMessageBox('访问SSH服务器错误！原因: ' + str(e)).exec()
             return None
         self.accessible = True      # 在已校验访问成功后,保存配置时无需再次校验
         self.auth_config = config._asdict()

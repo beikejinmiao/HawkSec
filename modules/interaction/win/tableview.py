@@ -239,4 +239,4 @@ class WhiteListDataWindow(DataGridWindow):
     def custom_ui(self):
         self.searchCodeLabel.hide()
         self.searchCodeComboBox.hide()
-        self.searchBtn.hide()
+        self.dumpBtn.hide()

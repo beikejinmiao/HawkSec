@@ -38,19 +38,23 @@ def reader(path, encoding='utf-8', skip_blank=True, raisexp=False):
     charsets = ['gbk', 'utf-8']
     if encoding not in charsets:
         charsets.append(encoding)
-    logger.info("Load: '%s'" % path)
     # 尝试多种编码方式
+    failed_charsets = set()
     for charset in charsets:
         try:
             for line in _reader_(path, charset, skip_blank=skip_blank):
                 yield line
         except UnicodeDecodeError as e:
-            logger.warning(e)
+            failed_charsets.add(charset)
             continue
         except Exception as e:
             if raisexp:
                 raise e
         break
+    if len(failed_charsets) == len(charsets):
+        logger.error("编码错误导致读取文件失败，目前只支持GBK和UFT-8编码: '%s'" % path)
+    else:
+        logger.info("读取文件成功成功: '%s'" % path)
 
 
 def traverse(top, contains=None):
