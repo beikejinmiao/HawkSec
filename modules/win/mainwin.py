@@ -7,15 +7,15 @@ from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
-from libs.enums import sensitive_flag_name, SENSITIVE_FLAG, QMSG_BOX_REPLY_NO, QMSG_BOX_REPLY_YES
+from libs.enums import sensitive_flag_name, SENSITIVE_FLAG
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.interaction.widget import WaitingSpinner
-from modules.interaction.win.msgbox import QWarnMessageBox
-from modules.interaction.win.tableview import ExtractDataWindow
-from modules.interaction.win.settings import SettingsWindow
-from modules.interaction.win.help import HelpAboutWindow
-from modules.action.manager import TaskManager
+from modules.win.msgbox import QWarnMessageBox
+from modules.win.tableview import ExtractDataWindow
+from modules.win.settings import SettingsWindow
+from modules.win.help import HelpAboutWindow
+from modules.interaction.manager import TaskManager
 from utils.filedir import StyleSheetHelper
 from utils.mixed import ssh_accessible
 

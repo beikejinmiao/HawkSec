@@ -6,7 +6,7 @@ from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout
 from PyQt6.QtCore import QUrl, Qt
 from conf.paths import START_MOVIE_PATH
-from modules.interaction.mainwin import MainWindow
+from modules.win.mainwin import MainWindow
 
 """
 PyQt6 视频播放器样例

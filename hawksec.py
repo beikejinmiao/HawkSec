@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import sys
 from PyQt6.QtWidgets import QApplication
-from modules.interaction.win.start import SplashScreen
+from modules.win.start import SplashScreen
 
 
 if __name__ == '__main__':

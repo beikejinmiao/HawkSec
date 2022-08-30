@@ -17,7 +17,7 @@ from libs.enums import TABLES
 from libs.thread import SuicidalQThread
 from utils import pywget
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
-from modules.action.metric import CrawlMetric
+from modules.interaction.metric import CrawlMetric
 from libs.logger import logger
 
 

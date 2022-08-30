@@ -5,8 +5,8 @@ from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPalette, QColor, QCursor
 from PyQt6.QtWidgets import QWidget, QGraphicsDropShadowEffect, QFileDialog
 from modules.gui.ui_settings import Ui_Form
-from modules.interaction.win.tableview import WhiteListDataWindow
-from modules.interaction.win.msgbox import QInfoMessageBox, QWarnMessageBox
+from modules.win.tableview import WhiteListDataWindow
+from modules.win.msgbox import QInfoMessageBox, QWarnMessageBox
 from libs.enums import TABLES
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite

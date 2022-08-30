@@ -6,7 +6,6 @@ import time
 import shutil
 import traceback
 import tldextract
-from queue import Empty
 from collections.abc import Iterable
 from collections import namedtuple
 from PyQt6.QtCore import pyqtSignal
@@ -23,8 +22,8 @@ from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_ioc, is_valid_ip, is_gov_edu
 from utils.idcard import find_idcard
-from modules.action.metric import ExtractMetric
-from modules.action.win.settings import setting
+from modules.interaction.metric import ExtractMetric
+from modules.win.settings import setting
 from libs.logger import logger
 
 

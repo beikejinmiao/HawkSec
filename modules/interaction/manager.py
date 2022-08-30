@@ -11,8 +11,8 @@ from libs.enums import SENSITIVE_FLAG, TABLES
 from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
-from modules.action.extractor import TextExtractor
-from modules.action.persistence import DbPersistence
+from modules.interaction.extractor import TextExtractor
+from modules.interaction.persistence import DbPersistence
 from libs.logger import logger
 
 browser_protocols = ('http', 'https', 'ftp')
