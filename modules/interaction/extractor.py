@@ -262,8 +262,17 @@ class TextExtractor(SuicidalQThread):
                 self.load2extract(local_path, origin=remote_path)
             except Exception as e:
                 logger.error(str(e) + ': %s' % local_path)
-            if os.path.exists(local_path):
-                os.remove(local_path)
+            # 处理删除文件时的错误
+            try_count = 2
+            while try_count > 0:
+                try_count -= 1
+                try:
+                    if os.path.exists(local_path):
+                        # PermissionError: [WinError 32] 另一个程序正在使用此文件，进程无法访问
+                        # 由于wps关闭文件需要一定时间，所以删除失败时尝试等待0.5秒再次删除
+                        os.remove(local_path)
+                except:
+                    time.sleep(0.5)
 
     def run(self):
         # self.add_thread(self._sync2db())

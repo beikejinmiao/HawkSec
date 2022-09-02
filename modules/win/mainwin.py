@@ -278,18 +278,23 @@ class MainWindow(UiMainWindow, QWidget):
         box = QWarnMessageBox('开始监测将清除历史数据！')
         if box.exec() == QDialog.DialogCode.Rejected:
             return
+        # 捕获启动时的错误
+        try:
+            TaskManager.clear()
+            self.task_manager = TaskManager(self.target,
+                                            flags=self.sensitive_flags,
+                                            protocol=self.protocol,
+                                            keywords=self._keywords,
+                                            auth_config=self.auth_config)
+            self.task_manager.start()
+        except Exception as e:
+            self._robot_tips(tips=str(e))
+            return
         # 恢复默认提示
         self._robot_tips(tips='default')
         # 隐藏没有选中的监控内容
         self._hide_sensitive_layout()
         #
-        TaskManager.clear()
-        self.task_manager = TaskManager(self.target,
-                                        flags=self.sensitive_flags,
-                                        protocol=self.protocol,
-                                        keywords=self._keywords,
-                                        auth_config=self.auth_config)
-        self.task_manager.start()
         self.task_manager.expend_time_signal.connect(self._set_expend_time)
         self.task_manager.extractor.finished.connect(self.terminate)
         self.task_manager.extractor.cur_result.connect(self._log_extractor_result)
