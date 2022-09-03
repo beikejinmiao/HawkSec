@@ -106,8 +106,12 @@ class Spider(object):
                     self.all_urls[url] = '302'
                     self.all_urls[resp.url] = url
                     url = self.abspath(resp.url, site=self.site)  # 更新重定向后的URL
-                # if 400 <= resp.status_code < 500:
-                #     logger.info('!From: %s ' % self.all_urls.get(url))
+                    # 再次处理文件链接
+                    filename = url_file(url)
+                    if filename:
+                        self.file_urls[url] = self.all_urls.get(url)
+                        yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
+                        continue
             # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
