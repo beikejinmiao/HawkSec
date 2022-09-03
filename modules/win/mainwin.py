@@ -12,7 +12,7 @@ from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.interaction.widget import WaitingSpinner
 from modules.win.msgbox import QWarnMessageBox
-from modules.win.tableview import ExtractDataWindow
+from modules.win.tableview import ProgressDataWindow, ExtractDataWindow, SensitiveDataWindow
 from modules.win.settings import SettingsWindow
 from modules.win.help import HelpAboutWindow
 from modules.interaction.manager import TaskManager
@@ -24,7 +24,9 @@ class MainWindow(UiMainWindow, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.progressWindow = None
         self.extractWindow = None
+        self.sensitiveWindow = None
         self.settingsWindow = None
         self.helpAboutWindow = None
         #
@@ -137,6 +139,18 @@ class MainWindow(UiMainWindow, QWidget):
         self.detailBtn.clicked.connect(self.show_extract_win)
         self.settingBtnLabel.clicked.connect(self.show_settings_win)
         self.helpBtnLabel.clicked.connect(self.show_help_win)
+        self.crawledCntLabel.clicked.connect(lambda: self.show_progress_win(target='total'))
+        self.crawledCntLabel2.clicked.connect(lambda: self.show_progress_win(target='total'))
+        self.faieldCntLabel.clicked.connect(lambda: self.show_progress_win(target='failed'))
+        self.faieldCntLabel2.clicked.connect(lambda: self.show_progress_win(target='failed'))
+        self.extUrlCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
+        self.extUrlCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
+        self.idcardCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
+        self.idcardCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
+        self.keywordCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
+        self.keywordCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
+        self.hitCntLabel.clicked.connect(self.show_extract_win)
+        self.hitCntLabel2.clicked.connect(self.show_extract_win)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
@@ -215,6 +229,15 @@ class MainWindow(UiMainWindow, QWidget):
         self.auth_config = config._asdict()
         return self.auth_config
 
+    def _init_sensitive_layout(self):
+        for layout in (self.extUrlGridLayout, self.idcardGridLayout, self.keywordGridLayout):
+            for ix in range(layout.count()):
+                child = layout.itemAt(ix).widget()
+                child.setVisible(True)
+        self.extUrlTextEdit.setText('')
+        self.idcardTextEdit.setText('')
+        self.keywordTextEdit.setText('')
+
     def _hide_sensitive_layout(self):
         sensitive_layouts = {
             SENSITIVE_FLAG.URL: self.extUrlGridLayout,
@@ -226,10 +249,6 @@ class MainWindow(UiMainWindow, QWidget):
             for ix in range(layout.count()):
                 child = layout.itemAt(ix).widget()
                 child.setVisible(False)
-        #
-        self.extUrlTextEdit.setText('')
-        self.idcardTextEdit.setText('')
-        self.keywordTextEdit.setText('')
 
     def _log_extractor_result(self, result):
         flag = result.flag
@@ -281,6 +300,7 @@ class MainWindow(UiMainWindow, QWidget):
         # 恢复默认提示
         self._robot_tips(tips='default')
         # 隐藏没有选中的监控内容
+        self._init_sensitive_layout()
         self._hide_sensitive_layout()
         #
         TaskManager.clear()
@@ -324,9 +344,26 @@ class MainWindow(UiMainWindow, QWidget):
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
 
-    def show_extract_win(self):
-        self.extractWindow = ExtractDataWindow()        # 窗口关闭后销毁对象
+    def show_progress_win(self, target='total'):
+        if target == 'failed':
+            self.progressWindow = ProgressDataWindow(resp_code='resp_code>=400 OR resp_code=-1')
+        else:
+            self.progressWindow = ProgressDataWindow()
+        self.progressWindow.show()
+
+    def show_extract_win(self, target=None):
+        if isinstance(target, SENSITIVE_FLAG):
+            self.extractWindow = ExtractDataWindow(sensitive_type=target.value)
+        else:
+            self.extractWindow = ExtractDataWindow()
         self.extractWindow.show()
+
+    def show_sensitive_win(self, target=None):
+        if isinstance(target, SENSITIVE_FLAG):
+            self.sensitiveWindow = SensitiveDataWindow(sensitive_type=target.value)
+        else:
+            self.sensitiveWindow = SensitiveDataWindow()
+        self.sensitiveWindow.show()
 
     def show_settings_win(self):
         self.settingsWindow = SettingsWindow()        # 窗口关闭后销毁对象

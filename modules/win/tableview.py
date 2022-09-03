@@ -22,8 +22,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             focused_widget.clearFocus()
         super().mousePressEvent(event)
 
-    def __init__(self, table, columns, init_where=None, column_modes=None):
-        TablePageModel.__init__(self, table, columns, init_where=init_where)
+    def __init__(self, table, columns, db_where=None, column_modes=None):
+        TablePageModel.__init__(self, table, columns, db_where=db_where)
         Ui_Form.__init__(self)
         QWidget.__init__(self)
         self.setupUi(self)
@@ -171,7 +171,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
 
 class ProgressDataWindow(DataGridWindow):
-    def __init__(self):
+    def __init__(self,  resp_code=None):
         columns = dict(zip(
             ['id', 'origin', 'resp_code', 'desc', 'create_time'],
             ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
@@ -179,18 +179,30 @@ class ProgressDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.ResizeToContents]
-        super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes)
+        db_where = ''
+        if resp_code is not None:
+            if ' ' in resp_code:
+                # 有空格，是完整的查询语句
+                db_where += resp_code
+            else:
+                # 没有空格，只是一个值
+                db_where += 'resp_code=%s' % resp_code
+        super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes,  db_where=db_where)
 
     def custom_ui(self):
-        self.searchCodeLabel.setText('状态码')
-        codes = self.sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % self.table)
-        codes = [item[0] for item in codes]
-        for i, code in enumerate(codes):
-            self.searchCodeComboBox.insertItem(i+1, str(code))
+        if not self.db_where:
+            self.searchCodeLabel.setText('状态码')
+            codes = self.sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % self.table)
+            codes = [item[0] for item in codes]
+            for i, code in enumerate(codes):
+                self.searchCodeComboBox.insertItem(i+1, str(code))
+        else:
+            self.searchCodeLabel.hide()
+            self.searchCodeComboBox.hide()
 
 
 class ExtractDataWindow(DataGridWindow):
-    def __init__(self):
+    def __init__(self, sensitive_type=None):
         columns = dict(zip(
             ['id', 'origin', 'sensitive_name', 'content', 'count', 'create_time'],
             ['ID', 'URL/FILE路径', '敏感类型', '敏感内容', '数量', '创建时间']
@@ -198,17 +210,24 @@ class ExtractDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
-        super().__init__(table=TABLES.Extractor.value, columns=columns, column_modes=column_modes)
+        db_where = ''
+        if sensitive_type is not None:
+            db_where += 'sensitive_type=%s' % sensitive_type
+        super().__init__(table=TABLES.Extractor.value, columns=columns, column_modes=column_modes, db_where=db_where)
 
     def custom_ui(self):
-        self.searchCodeLabel.setText('敏感类型')
-        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
-        for i, name in enumerate(names):
-            self.searchCodeComboBox.insertItem(i + 1, name)
+        if not self.db_where:
+            self.searchCodeLabel.setText('敏感类型')
+            names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+            for i, name in enumerate(names):
+                self.searchCodeComboBox.insertItem(i + 1, name)
+        else:
+            self.searchCodeLabel.hide()
+            self.searchCodeComboBox.hide()
 
 
 class SensitiveDataWindow(DataGridWindow):
-    def __init__(self):
+    def __init__(self, sensitive_type=None):
         columns = dict(zip(
             ['id',  'sensitive_name', 'content', 'origin', 'create_time'],
             ['ID',  '敏感类型', '敏感内容', 'URL/FILE来源', '创建时间']
@@ -216,13 +235,20 @@ class SensitiveDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents]
-        super().__init__(table=TABLES.Sensitives.value, columns=columns, column_modes=column_modes)
+        db_where = ''
+        if sensitive_type is not None:
+            db_where += 'sensitive_type=%s' % sensitive_type
+        super().__init__(table=TABLES.Sensitives.value, columns=columns, column_modes=column_modes,  db_where=db_where)
 
     def custom_ui(self):
-        self.searchCodeLabel.setText('敏感类型')
-        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
-        for i, name in enumerate(names):
-            self.searchCodeComboBox.insertItem(i + 1, name)
+        if not self.db_where:
+            self.searchCodeLabel.setText('敏感类型')
+            names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+            for i, name in enumerate(names):
+                self.searchCodeComboBox.insertItem(i + 1, name)
+        else:
+            self.searchCodeLabel.hide()
+            self.searchCodeComboBox.hide()
 
 
 class WhiteListDataWindow(DataGridWindow):
@@ -234,7 +260,7 @@ class WhiteListDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
         db_where = 'white_type="%s"' % white_type
-        super().__init__(table=TABLES.WhiteList.value, columns=columns, init_where=db_where, column_modes=column_modes)
+        super().__init__(table=TABLES.WhiteList.value, columns=columns, db_where=db_where, column_modes=column_modes)
 
     def custom_ui(self):
         self.searchCodeLabel.hide()

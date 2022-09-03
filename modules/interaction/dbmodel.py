@@ -17,10 +17,10 @@ class QueryModel(QSqlQueryModel):
 
 
 class TablePageModel(object):
-    def __init__(self, table, columns, init_where=None):
+    def __init__(self, table, columns, db_where=None):
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(DB_PATH)
-        self.db_where = init_where
+        self.db_where = db_where
         self.sqlite = Sqlite()
 
         # 当前页

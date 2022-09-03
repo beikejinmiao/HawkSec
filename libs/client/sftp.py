@@ -87,30 +87,30 @@ class SSHSession(Downloader):
         try:
             for path, _, files in self._sftp_walk(parent):
                 for filename in files:
-                    self.metric.crawl_total += 1
-                    self.metric.crawl_success += 1
-                    if self.metric.crawl_success % 100 == 0:
-                        self._filepath_archive.flush()
+                    # self._metric.crawl_total += 1
+                    # self._metric.crawl_success += 1
+                    # if self._metric.crawl_success % 100 == 0:
+                    #    self._filepath_archive.flush()
                     remote_filepath = self._path_join(home, path, filename)
                     self._filepath_archive.write(remote_filepath + '\n')
                     # 过滤图片、音视频、可执行程序
                     if img.match(remote_filepath) or video.match(remote_filepath) or executable.match(remote_filepath):
-                        self.metric.crawl_ignored += 1
+                        self._metric.crawl_ignored += 1
                         logger.debug('Ignore: %s' % remote_filepath)
                         continue
                     self.files.append(remote_filepath)
         except:
-            self.metric.crawl_total += 1
-            self.metric.crawl_failed += 1
+            # self._metric.crawl_total += 1
+            self._metric.crawl_failed += 1
             logger.error('sftp traverse error: %s' % self.remote_root)
             logger.info(traceback.format_exc())
         logger.info('SFTP遍历目录结束')
-        logger.info('SFTP Metric统计: %s' % self.metric)
+        logger.info('SFTP Metric统计: %s' % self._metric)
         self._filepath_archive.close()
 
     def downloads(self):
         suffix = list()
-        self.metric.file_ignored = self.metric.crawl_ignored
+        self._metric.file_ignored = self._metric.crawl_ignored
         #
         for remote_filepath in self.files:
             # 过滤白名单
@@ -122,24 +122,28 @@ class SSHSession(Downloader):
             if not os.path.exists(local_dir):
                 os.makedirs(local_dir)
             # 下载
-            self.metric.file_total += 1
+            self._metric.file_total += 1
+            self._metric.crawl_total += 1
             logger.info('Download: %s' % remote_filepath)
             try:
                 self.sftp.get(remote_filepath, local_filepath)
                 suffix.append(local_filepath.split('.')[-1].lower())
-                self.metric.file_success += 1
+                self._metric.crawl_success += 1
+                self._metric.file_success += 1
                 # 将下载文件的本地路径和远程文件放入队列中
                 self._put_path_queue((local_filepath, remote_filepath))
                 record = {'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 # self.db_rows.append(record)
             except Exception as e:
-                self.metric.file_failed += 1
+                self._metric.crawl_failed += 1
+                self._metric.file_failed += 1
                 logger.error(traceback)
                 logger.error('Download Error: %s' % remote_filepath)
                 record = {'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 # self.db_rows.append(record)
+            self.metrics.emit(self._metric)
         # 统计文件类型数量
         self._put_path_queue(('END', None))
         file_types = dict(Counter(suffix).most_common())
@@ -156,5 +160,5 @@ class SSHSession(Downloader):
 if __name__ == '__main__':
     s = SSHSession(hostname='106.13.202.41', port=61001, password='', remote_root='/root/xdocker')
     s.run()
-    print(s.metric)
+    print(s._metric)
     s.cleanup()
