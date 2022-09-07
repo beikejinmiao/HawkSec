@@ -170,9 +170,9 @@
    <widget class="QLineEdit" name="timeLineEdit">
     <property name="geometry">
      <rect>
-      <x>219</x>
+      <x>440</x>
       <y>76</y>
-      <width>141</width>
+      <width>251</width>
       <height>30</height>
      </rect>
     </property>
@@ -189,8 +189,8 @@
    <widget class="QLabel" name="timeIconLabel">
     <property name="geometry">
      <rect>
-      <x>339</x>
-      <y>86</y>
+      <x>670</x>
+      <y>85</y>
       <width>14</width>
       <height>14</height>
      </rect>
@@ -378,7 +378,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pageOneBtn">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -397,7 +397,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="pageTwoBtn">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -416,7 +416,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="pageThreeBtn">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -458,7 +458,7 @@
    <widget class="QWidget" name="timeWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>185</x>
       <y>110</y>
       <width>521</width>
       <height>271</height>

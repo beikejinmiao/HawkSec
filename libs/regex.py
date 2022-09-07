@@ -22,7 +22,7 @@ doc = re.compile(r".*\.("
                  r"ppt|pptx|pptm|pot|potx|potm|pps|ppsx|ppsm|"
                  r"wps|wpt|et|ett|dps|dpt|vsd|vsdx|pdf|odt|chm"
                  r")$", re.I)
-html = re.compile(r".*\.(html|htm|html5|shtml|shtm|xhtml|mht|mhtml|asp|aspx|jsp|jspx|php|do|psp)$", re.I)
+html = re.compile(r".*\.(html|htm|html5|shtml|shtm|xhtml|mht|mhtml|asp|aspx|jsp|jspx|php|do)$", re.I)
 js_css = re.compile(r".*\.(js|ts|tsx|css)$", re.I)
 img = re.compile(r".*\.(jpg|jpeg|jpgv|gif|png|pngc|ico|bmp|svg|pic|tif|tiff|psd|swf)$", re.I)
 video = re.compile(r".*\.(mp4|mp3|avi|mkv|flv|3gp|ts|m3u8|wav|mov|wmv|wmx|webm)$", re.I)

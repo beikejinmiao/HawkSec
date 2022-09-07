@@ -273,6 +273,8 @@ class TextExtractor(SuicidalQThread):
                         os.remove(local_path)
                 except:
                     time.sleep(0.5)
+            if try_count <= 0:
+                logger.error('删除文件失败: %s' % local_path)
 
     def run(self):
         # self.add_thread(self._sync2db())

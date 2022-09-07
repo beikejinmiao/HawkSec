@@ -3,6 +3,7 @@
 import os
 import datetime
 from pathlib import Path
+import traceback
 from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
@@ -18,6 +19,7 @@ from modules.win.help import HelpAboutWindow
 from modules.interaction.manager import TaskManager
 from utils.filedir import StyleSheetHelper
 from utils.mixed import ssh_accessible
+from libs.logger import logger
 
 
 class MainWindow(UiMainWindow, QWidget):
@@ -114,6 +116,7 @@ class MainWindow(UiMainWindow, QWidget):
             spinner = WaitingSpinner(self, lines=16, radius=4, line_length=7, speed=1, color=(35, 88, 222))
             waiting_layout.addWidget(spinner)
             spinner.start()
+        self.robotTipsLabel.adjustSize()
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
@@ -308,6 +311,7 @@ class MainWindow(UiMainWindow, QWidget):
             self.task_manager.start()
         except Exception as e:
             self._robot_tips(tips=str(e))
+            logger.error(traceback.format_exc())
             return
         # 恢复默认提示
         self._robot_tips(tips='default')
