@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import paramiko
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 
@@ -29,6 +29,29 @@ def cur_date(msec=False):
     if msec is True:
         return datetime.now().isoformat(timespec='milliseconds')
     return datetime.now().isoformat(timespec='seconds')
+
+
+def human_timedelta(seconds):
+    """
+    https://gist.github.com/dhrrgn/7255361
+    输入秒： 100000
+    输出：   1天3小时46分40秒
+    """
+    delta = timedelta(seconds=seconds)
+    d = dict(days=delta.days)
+    d['hour'], rem = divmod(delta.seconds, 3600)
+    d['min'], d['sec'] = divmod(rem, 60)
+
+    if d['min'] == 0:
+        fmt = '{sec}秒'
+    elif d['hour'] == 0:
+        fmt = '{min}分{sec}秒'
+    elif d['days'] == 0:
+        fmt = '{hour}小时{min}分{sec}秒'
+    else:
+        fmt = '{days}天{hour}小时{min}分{sec}秒'
+
+    return fmt.format(**d)
 
 
 def ssh_accessible(host, port=22, username=None, password=None):

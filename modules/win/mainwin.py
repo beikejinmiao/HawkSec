@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-import datetime
 from pathlib import Path
 import traceback
 from collections import namedtuple
@@ -19,7 +18,7 @@ from modules.win.help import HelpAboutWindow
 from modules.interaction.manager import TaskManager
 from modules.interaction.metric import CrawlMetric, ExtractMetric
 from utils.filedir import StyleSheetHelper
-from utils.mixed import ssh_accessible
+from utils.mixed import ssh_accessible, human_timedelta
 from libs.logger import logger
 
 
@@ -273,7 +272,8 @@ class MainWindow(UiMainWindow, QWidget):
     def _set_expend_time(self, seconds):
         seconds = int(seconds)
         # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
-        expend_time = '{:0>8}'.format(str(datetime.timedelta(seconds=seconds)))
+        # expend_time = '{:0>8}'.format(str(datetime.timedelta(seconds=seconds)))
+        expend_time = human_timedelta(seconds)
         self.expendTimeLabel.setText(expend_time)
         self.expendTimeLabel2.setText(expend_time)
         self.progressBar.setValue(min(2+int(seconds/240), 99))

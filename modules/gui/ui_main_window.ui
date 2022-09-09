@@ -576,13 +576,22 @@
         <rect>
          <x>380</x>
          <y>30</y>
-         <width>149</width>
+         <width>223</width>
          <height>20</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QLabel" name="expendTimeTipsLabel">
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">font-size: 14px;color: #8B8B8B;</string>
           </property>
@@ -608,11 +617,14 @@
         <rect>
          <x>320</x>
          <y>71</y>
-         <width>114</width>
+         <width>181</width>
          <height>20</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_7">
           <property name="maximumSize">
@@ -646,11 +658,14 @@
         <rect>
          <x>150</x>
          <y>71</y>
-         <width>96</width>
+         <width>161</width>
          <height>20</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_8">
           <property name="maximumSize">
@@ -684,11 +699,14 @@
         <rect>
          <x>510</x>
          <y>71</y>
-         <width>114</width>
+         <width>181</width>
          <height>20</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_9">
           <property name="maximumSize">
@@ -747,13 +765,35 @@
          <number>20</number>
         </property>
         <item>
-         <layout class="QGridLayout" name="extUrlGridLayout" columnstretch="1,0,0">
+         <layout class="QGridLayout" name="extUrlGridLayout" columnstretch="1,0,0,0">
           <property name="horizontalSpacing">
            <number>1</number>
           </property>
           <property name="verticalSpacing">
            <number>2</number>
           </property>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_10">
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size: 16px;</string>
+            </property>
+            <property name="text">
+             <string>外链数量</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QWidget" name="extUrlWaitingWidget" native="true">
             <property name="minimumSize">
@@ -781,11 +821,14 @@
             </widget>
            </widget>
           </item>
-          <item row="1" column="1" colspan="2">
-           <widget class="QTextEdit" name="extUrlTextEdit"/>
-          </item>
           <item row="0" column="2">
            <widget class="QLabel" name="extUrlCntLabel">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="styleSheet">
              <string notr="true">font-size: 20px;color: #2358DE;</string>
             </property>
@@ -794,51 +837,26 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_10">
-            <property name="minimumSize">
-             <size>
-              <width>70</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font-size: 16px;</string>
-            </property>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>外链数量</string>
+             <string/>
             </property>
            </widget>
+          </item>
+          <item row="1" column="1" colspan="3">
+           <widget class="QTextEdit" name="extUrlTextEdit"/>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QGridLayout" name="idcardGridLayout" columnstretch="1,0,0">
+         <layout class="QGridLayout" name="idcardGridLayout" columnstretch="1,0,0,0">
           <property name="horizontalSpacing">
            <number>3</number>
           </property>
           <property name="verticalSpacing">
            <number>2</number>
           </property>
-          <item row="0" column="2">
-           <widget class="QLabel" name="idcardCntLabel">
-            <property name="styleSheet">
-             <string notr="true">font-size: 20px;color: #2358DE;</string>
-            </property>
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" colspan="2">
-           <widget class="QTextEdit" name="idcardTextEdit"/>
-          </item>
           <item row="0" column="0">
            <widget class="QWidget" name="idcardWaitingWidget" native="true">
             <property name="minimumSize">
@@ -866,6 +884,22 @@
             </widget>
            </widget>
           </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="idcardCntLabel">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size: 20px;color: #2358DE;</string>
+            </property>
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QLabel" name="label_12">
             <property name="minimumSize">
@@ -888,16 +922,23 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="3">
+           <widget class="QTextEdit" name="idcardTextEdit"/>
+          </item>
          </layout>
         </item>
         <item>
-         <layout class="QGridLayout" name="keywordGridLayout" columnstretch="1,0,0">
+         <layout class="QGridLayout" name="keywordGridLayout" columnstretch="1,0,0,0">
           <property name="spacing">
            <number>2</number>
           </property>
-          <item row="1" column="1" colspan="2">
-           <widget class="QTextEdit" name="keywordTextEdit"/>
-          </item>
           <item row="0" column="1">
            <widget class="QLabel" name="label_17">
             <property name="minimumSize">
@@ -922,6 +963,12 @@
           </item>
           <item row="0" column="2">
            <widget class="QLabel" name="keywordCntLabel">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="styleSheet">
              <string notr="true">font-size: 20px;color: #2358DE;</string>
             </property>
@@ -956,6 +1003,16 @@
              <layout class="QVBoxLayout" name="keywordWaitingLayout"/>
             </widget>
            </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="3">
+           <widget class="QTextEdit" name="keywordTextEdit"/>
           </item>
          </layout>
         </item>
@@ -1052,7 +1109,7 @@
          <rect>
           <x>30</x>
           <y>50</y>
-          <width>55</width>
+          <width>91</width>
           <height>16</height>
          </rect>
         </property>
@@ -1131,7 +1188,7 @@
          <rect>
           <x>30</x>
           <y>50</y>
-          <width>55</width>
+          <width>91</width>
           <height>16</height>
          </rect>
         </property>
@@ -1210,7 +1267,7 @@
          <rect>
           <x>30</x>
           <y>50</y>
-          <width>55</width>
+          <width>91</width>
           <height>16</height>
          </rect>
         </property>
@@ -1266,9 +1323,9 @@
       <widget class="QWidget" name="layoutWidget_14">
        <property name="geometry">
         <rect>
-         <x>410</x>
+         <x>400</x>
          <y>280</y>
-         <width>114</width>
+         <width>171</width>
          <height>20</height>
         </rect>
        </property>
@@ -1304,9 +1361,9 @@
       <widget class="QWidget" name="layoutWidget_15">
        <property name="geometry">
         <rect>
-         <x>600</x>
+         <x>590</x>
          <y>280</y>
-         <width>114</width>
+         <width>161</width>
          <height>20</height>
         </rect>
        </property>
@@ -1342,9 +1399,9 @@
       <widget class="QWidget" name="layoutWidget_16">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>240</x>
          <y>280</y>
-         <width>96</width>
+         <width>141</width>
          <height>20</height>
         </rect>
        </property>
@@ -1382,13 +1439,19 @@
         <rect>
          <x>360</x>
          <y>220</y>
-         <width>161</width>
+         <width>231</width>
          <height>20</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_12">
         <item>
          <widget class="QLabel" name="expendTimeTipsLabel2">
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">font-size: 14px; color: #8B8B8B;</string>
           </property>
