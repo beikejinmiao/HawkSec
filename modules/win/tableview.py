@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-from PyQt6.QtCore import QDir, Qt
+import re
+import math
+from PyQt6.QtCore import QDir, Qt, QSize
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
-from PyQt6.QtWidgets import QWidget, QHeaderView, QMessageBox, QSizePolicy, QGraphicsDropShadowEffect
-from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView
+from PyQt6.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
+from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
 from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
 from modules.gui.ui_tableview import Ui_Form
 from modules.interaction.dbmodel import TablePageModel
+from modules.win.msgbox import QWarnMessageBox, QInfoMessageBox
 
 
 class DataGridWindow(TablePageModel, Ui_Form, QWidget):
@@ -28,13 +31,16 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         QWidget.__init__(self)
         self.setupUi(self)
         self.__init_ui()
-        self.custom_ui()
+        self.modify_ui()
+        #
+        self.page_buttons = (self.pageOneBtn, self.pageTwoBtn, self.pageThreeBtn, self.pageFourBtn, self.pageFiveBtn)
+        self.page_btn_ix_range = [1, 5]
+        #
         self.tableView.setModel(self.query_model)
         header = self.tableView.horizontalHeader()
         if column_modes is not None:
             for i, mode in enumerate(column_modes):
                 header.setSectionResizeMode(i, mode)
-
         self.__init_state()
         self.update_ui_state()
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -78,14 +84,24 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         # 窗体自定义阴影
         self.render_shadow()
+        # 时间选择弹窗阴影
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setOffset(0, 0)  # 偏移
+        shadow.setBlurRadius(6)  # 阴影半径
+        shadow.setColor(QColor(128, 128, 255))  # 阴影颜色
+        self.timeWidget.setGraphicsEffect(shadow)  # 将设置套用到widget窗口中
 
-    def custom_ui(self):
+    def modify_ui(self):
         pass
 
     def __init_state(self):
         self.prePageBtn.clicked.connect(self.on_prev_page)
         self.nextPageBtn.clicked.connect(self.on_next_page)
-        self.switchPageBtn.clicked.connect(self.go_switch_page)
+        self.switchPageBtn.clicked.connect(self.on_switch_page)
+        # for btn in self.page_buttons:
+        #     page_ix = int(btn.text())
+        #     btn.clicked.connect(lambda: self.on_switch_page(page=page_ix))
+        self._set_page_btn_event()
         self.searchBtn.clicked.connect(self.go_search)
         self.refreshBtn.clicked.connect(self.refresh)
         self.dumpBtn.clicked.connect(self.dump)
@@ -93,48 +109,160 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.timeLineEdit.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.timeLineEdit.calendar_focus_in.connect(self.timeWidget.show)
         # self.timeLineEdit.calendar_focus_out.connect(self.timeWidget.hide)
-        self.timeCloseBtn.clicked.connect(self.timeWidget.hide)
+        self.calendarWidgetFrom.selectionChanged.connect(self._update_time)
+        self.calendarWidgetTo.selectionChanged.connect(self._update_time)
+        self.timeEditFrom.timeChanged.connect(lambda: self._update_time(operation='change'))
+        self.timeEditTo.timeChanged.connect(lambda: self._update_time(operation='change'))
+        self.timeOkBtn.clicked.connect(lambda: self._update_time(operation='ok'))
+        self.timeCloseBtn.clicked.connect(lambda: self._update_time(operation='clear'))
+        self.pageRecordComboBox.currentTextChanged.connect(self._update_page_record)
+
+    def _update_time(self, operation='change'):
+        if operation == 'clear':
+            self.timeLineEdit.setText('')
+        elif operation == 'change' or (operation == 'ok' and not self.timeLineEdit.text()):
+            date_from = str(self.calendarWidgetFrom.selectedDate().toPyDate())
+            date_to = str(self.calendarWidgetTo.selectedDate().toPyDate())
+            time_from = str(self.timeEditFrom.time().toPyTime())
+            time_to = str(self.timeEditTo.time().toPyTime())
+            self.timeLineEdit.setText('{date_from} {time_from} - {date_to} {time_to}'.format(
+                date_from=date_from, time_from=time_from, date_to=date_to, time_to=time_to))
+        if operation == 'ok' or operation == 'clear':
+            self.timeWidget.hide()
+
+    def _update_page_record(self):
+        self.page_record = int(self.pageRecordComboBox.currentText()[:2])
+        self.total_page = math.ceil(self.total_record / self.page_record)
+        self.cur_page = min(self.cur_page, self.total_page)
+
+        if self.total_page <= 0:
+            return
+        if self.total_page >= 5 and self.cur_page >= 5:
+            for i, btn in enumerate(self.page_buttons):
+                btn.setText(str(self.cur_page-5+(i+1)))
+            self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        elif self.total_page >= 5 and self.cur_page < 5:
+            for i, btn in enumerate(self.page_buttons):
+                btn.setText(str(i+1))
+            self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        elif 0 < self.total_page < 5:
+            for i, btn in enumerate(self.page_buttons[:self.total_page]):
+                btn.setText(str(i+1))
+            self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[self.total_page].text())]
+
+        start_index = (self.cur_page - 1) * self.page_record
+        self.limit_query(start_index=start_index)
+        self.update_ui_state()
+        self._set_page_btn_event()
 
     def update_ui_state(self):
         self.totalRecordLabel.setText('共%s条' % self.total_record)
-        if self.cur_page <= 1:
-            self.prePageBtn.setEnabled(False)
-        else:
+        # 判断是否可以操作上一页、下一页
+        if self.page_btn_ix_range[0] > 1:
             self.prePageBtn.setEnabled(True)
-
-        if self.cur_page >= self.total_page:
-            self.nextPageBtn.setEnabled(False)
         else:
-            self.nextPageBtn.setEnabled(True)
+            self.prePageBtn.setEnabled(False)
 
-    def go_switch_page(self):
-        page = self.switchPageLineEdit.text().strip()
-        if page == "":
-            QMessageBox.information(self, "提示", "请输入跳转页面")
-            return
-        if not page.isdigit():
-            QMessageBox.information(self, "提示", "请输入数字")
-            return
-        page_idx = int(page)
-        if page_idx > self.total_page or page_idx < 1:
-            QMessageBox.information(self, "提示", "没有指定的页，清重新输入")
-            return
-        self.switch_page = page_idx
-        self.on_switch_page()
+        if self.page_btn_ix_range[1] < self.total_page:
+            self.nextPageBtn.setEnabled(True)
+        else:
+            self.nextPageBtn.setEnabled(False)
+        # 当总页数不足5个时，需判断隐藏多余按钮
+        buttons = self.page_buttons[1:]
+        if 0 < self.total_page < 5:
+            for btn in buttons[:self.total_page-1]:
+                btn.show()
+            for btn in buttons[self.total_page-1:]:
+                btn.hide()
+        elif self.total_page >= 5:
+            for btn in buttons:
+                btn.show()
+        if self.total_page > 0:
+            self.pageOneBtn.setEnabled(True)
+        else:
+            self.pageOneBtn.setEnabled(False)
+        # 高亮显示当前页面按钮
+        for btn in self.page_buttons:
+            if int(btn.text()) == self.cur_page:
+                btn.setStyleSheet('color: #2358DE; background: #FFFFFF; border: 1px solid #2358DE;')
+            else:
+                btn.setStyleSheet('color: #5C5C5C; background: #FFFFFF; border: 1px solid #C6CCD6;')
+
+    def _set_page_btn_event(self):
+        self.pageOneBtn.clicked.connect(lambda: self.on_switch_page(page=int(self.pageOneBtn.text())))
+        self.pageTwoBtn.clicked.connect(lambda: self.on_switch_page(page=int(self.pageTwoBtn.text())))
+        self.pageThreeBtn.clicked.connect(lambda: self.on_switch_page(page=int(self.pageThreeBtn.text())))
+        self.pageFourBtn.clicked.connect(lambda: self.on_switch_page(page=int(self.pageFourBtn.text())))
+        self.pageFiveBtn.clicked.connect(lambda: self.on_switch_page(page=int(self.pageFiveBtn.text())))
+
+    def on_next_page(self):
+        for btn in self.page_buttons:
+            btn.clicked.disconnect()
+            page_ix = int(btn.text()) + 1
+            btn.setText(str(page_ix))
+            # 无法生效....
+            # btn.clicked.connect(lambda: self.on_switch_page(page=page_ix))
+        self._set_page_btn_event()
+        self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        super().on_next_page()
+
+    def on_prev_page(self):
+        for btn in self.page_buttons:
+            btn.clicked.disconnect()
+            page_ix = int(btn.text()) - 1
+            btn.setText(str(page_ix))
+            # btn.clicked.connect(lambda: self.on_switch_page(page=page_ix))
+        self._set_page_btn_event()
+        self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        super().on_prev_page()
+
+    def on_switch_page(self, page=None):
+        if isinstance(page, int) and page > 0:
+            self.cur_page = page
+        else:
+            page = self.switchPageLineEdit.text().strip()
+            if page == "":
+                QWarnMessageBox("请输入跳转页面").exec()
+                return
+            if not page.isdigit():
+                QWarnMessageBox("请输入数字").exec()
+                return
+            page_idx = int(page)
+            if page_idx > self.total_page or page_idx < 1:
+                QWarnMessageBox("没有指定的页，请重新输入").exec()
+                return
+            self.cur_page = page_idx
+            # 跳转页大于5,变化页签
+            if self.cur_page > 5:
+                for i, btn in enumerate(self.page_buttons):
+                    btn.setText(str(self.cur_page-5+(i+1)))
+                self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        #
+        self.query_page()
 
     def go_search(self):
         # origin = self.originLineEidt.text().strip()
         # if origin == "":
         #     QtWidgets.QMessageBox.information(self, "提示", "请输入查询内容")
         #     return
-        code = self.searchCodeComboBox.currentText()
-        if code.upper() == 'ALL':
-            self.db_where = None
-        else:
-            if self.table == TABLES.CrawlStat.value:
-                self.db_where = 'resp_code=%s' % code
-            elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
-                self.db_where = 'sensitive_name="%s"' % code
+        self.db_where = self._db_where
+        if self.searchCodeComboBox.isVisible():
+            code = self.searchCodeComboBox.currentText()
+            if not(code == '' or code.upper() == 'ALL'):
+                _db_where = ''
+                if self.table == TABLES.CrawlStat.value:
+                    _db_where = 'resp_code=%s' % code
+                elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
+                    _db_where = 'sensitive_name="%s"' % code
+                if _db_where:
+                    self.db_where = _db_where + ('' if not self.db_where else ' AND ' + self.db_where)
+        if self.timeLineEdit.text():
+            time_range = re.findall(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', self.timeLineEdit.text())
+            if len(time_range) != 2:
+                QWarnMessageBox("查询日期格式错误，请重新输入").exec()
+                return
+            _db_where = 'create_time>= "%s" AND create_time<="%s"' % (time_range[0], time_range[1])
+            self.db_where = _db_where + ('' if not self.db_where else ' AND ' + self.db_where)
 
         self.update_total_count()
         self.cur_page = 1
@@ -152,9 +280,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         if ok:
             try:
                 self.sqlite.dump(self.table, filepath, columns=self.columns)
-                QMessageBox.information(self, "提示", "保存成功. 文件路径: " + filepath)
+                QInfoMessageBox("保存成功. 文件路径:\n" + filepath).exec()
             except Exception as e:
-                QMessageBox.warning(self, "提示", "保存失败. 错误原因: " + str(e))
+                QWarnMessageBox("保存失败. 错误原因:\n" + str(e)).exec()
 
     def closeEvent(self, event):
         self.close_db()
@@ -189,7 +317,7 @@ class ProgressDataWindow(DataGridWindow):
                 db_where += 'resp_code=%s' % resp_code
         super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes,  db_where=db_where)
 
-    def custom_ui(self):
+    def modify_ui(self):
         if not self.db_where:
             self.searchCodeLabel.setText('状态码')
             codes = self.sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % self.table)
@@ -197,6 +325,7 @@ class ProgressDataWindow(DataGridWindow):
             for i, code in enumerate(codes):
                 self.searchCodeComboBox.insertItem(i+1, str(code))
         else:
+            # 有初始条件的,目前不需要状态码查询框
             self.searchCodeLabel.hide()
             self.searchCodeComboBox.hide()
 
@@ -215,7 +344,7 @@ class ExtractDataWindow(DataGridWindow):
             db_where += 'sensitive_type=%s' % sensitive_type
         super().__init__(table=TABLES.Extractor.value, columns=columns, column_modes=column_modes, db_where=db_where)
 
-    def custom_ui(self):
+    def modify_ui(self):
         if not self.db_where:
             self.searchCodeLabel.setText('敏感类型')
             names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
@@ -240,7 +369,7 @@ class SensitiveDataWindow(DataGridWindow):
             db_where += 'sensitive_type=%s' % sensitive_type
         super().__init__(table=TABLES.Sensitives.value, columns=columns, column_modes=column_modes,  db_where=db_where)
 
-    def custom_ui(self):
+    def modify_ui(self):
         if not self.db_where:
             self.searchCodeLabel.setText('敏感类型')
             names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
@@ -262,7 +391,17 @@ class WhiteListDataWindow(DataGridWindow):
         db_where = 'white_type="%s"' % white_type
         super().__init__(table=TABLES.WhiteList.value, columns=columns, db_where=db_where, column_modes=column_modes)
 
-    def custom_ui(self):
+    def modify_ui(self):
         self.searchCodeLabel.hide()
         self.searchCodeComboBox.hide()
         self.dumpBtn.hide()
+
+
+if __name__ == '__main__':
+    import sys
+    from PyQt6.QtWidgets import QApplication
+    app = QApplication(sys.argv)
+    extractWindow = ExtractDataWindow()
+    extractWindow.show()
+    sys.exit(app.exec())
+

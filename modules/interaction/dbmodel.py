@@ -20,6 +20,7 @@ class TablePageModel(object):
     def __init__(self, table, columns, db_where=None):
         self.db = QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(DB_PATH)
+        self._db_where = db_where  # 保存原始查询条件
         self.db_where = db_where
         self.sqlite = Sqlite()
 
@@ -31,8 +32,6 @@ class TablePageModel(object):
         self.total_page = 0
         # 总记录数
         self.total_record = 0
-        # 跳转页数
-        self.switch_page = self.cur_page
         #
         self.table = table
         self.columns = columns
@@ -97,8 +96,7 @@ class TablePageModel(object):
         self.query_page()
 
     def on_switch_page(self):
-        self.cur_page = self.switch_page
-        self.query_page()
+        pass
 
     def close_db(self):
         if self.db.isOpen():

@@ -17,6 +17,7 @@ from modules.win.tableview import ProgressDataWindow, ExtractDataWindow, Sensiti
 from modules.win.settings import SettingsWindow
 from modules.win.help import HelpAboutWindow
 from modules.interaction.manager import TaskManager
+from modules.interaction.metric import CrawlMetric, ExtractMetric
 from utils.filedir import StyleSheetHelper
 from utils.mixed import ssh_accessible
 from libs.logger import logger
@@ -240,6 +241,9 @@ class MainWindow(UiMainWindow, QWidget):
         self.extUrlTextEdit.setText('')
         self.idcardTextEdit.setText('')
         self.keywordTextEdit.setText('')
+        self._set_crawl_metric(CrawlMetric())
+        self._set_extract_metric(ExtractMetric())
+        self._set_expend_time(0)
 
     def _hide_sensitive_layout(self):
         sensitive_layouts = {
