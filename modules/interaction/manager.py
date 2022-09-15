@@ -13,6 +13,7 @@ from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
 from modules.interaction.extractor import TextExtractor
 from modules.interaction.persistence import DbPersistence
+from utils.mixed import urlsite
 from libs.logger import logger
 
 browser_protocols = ('http', 'https', 'ftp')
@@ -27,9 +28,8 @@ class TaskManager(QObject):
         self.path_queue = Queue(10000)
         self.db_queue = Queue(10000)
         #
-        self.target = target
         self.protocol = None
-        proto_candidates = re.findall(r'(\w+)://', self.target)  # https://  http://  ftp://  sftp://
+        proto_candidates = re.findall(r'(\w+)://', target)  # https://  http://  ftp://  sftp://
         # 优先使用链接中的协议
         if len(proto_candidates) >= 1:
             proto = proto_candidates[0].lower()
@@ -39,6 +39,10 @@ class TaskManager(QObject):
             self.protocol = protocol
         if self.protocol not in support_protocols:
             raise Exception('protocol of \'%s\' is not supported')
+        #
+        self.target = target
+        if not re.match(r'^\w+://', self.target):
+            self.target = self.protocol + '://' + self.target
         #
         if isinstance(flags, (list, type)) and len(flags) > 0:
             self.sensitive_flags = list(flags)
@@ -61,8 +65,6 @@ class TaskManager(QObject):
         client = None
         if self.protocol in browser_protocols:
             hsts = True if self.protocol == 'https' else False
-            if not re.match(r'^\w+://', self.target):
-                self.target = self.protocol + '://' + self.target
             client = WebCrawlDownloader(self.target, hsts=hsts, extractor=self.extractor,
                                         path_queue=self.path_queue, db_queue=self.db_queue)
         elif self.protocol == 'sftp':
@@ -77,8 +79,9 @@ class TaskManager(QObject):
         return client
 
     def __init_extractor(self):
+        site = urlsite(self.target)
         return TextExtractor(sensitive_flags=self.sensitive_flags, keywords=self._keywords,
-                             path_queue=self.path_queue, db_queue=self.db_queue)
+                             path_queue=self.path_queue, db_queue=self.db_queue, website=site)
 
     def start(self):
         # 进程

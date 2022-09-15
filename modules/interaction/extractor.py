@@ -5,7 +5,6 @@ import re
 import time
 import shutil
 import traceback
-import tldextract
 from collections.abc import Iterable
 from collections import namedtuple
 from PyQt6.QtCore import pyqtSignal
@@ -22,6 +21,7 @@ from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_ioc, is_valid_ip, is_gov_edu
 from utils.idcard import find_idcard
+from utils.mixed import urlsite
 from modules.interaction.metric import ExtractMetric
 from modules.win.settings import setting
 from libs.logger import logger
@@ -37,7 +37,7 @@ class TextExtractor(SuicidalQThread):
     cur_result = pyqtSignal(Result)
     metrics = pyqtSignal(ExtractMetric)
 
-    def __init__(self, root=None, sensitive_flags=None, keywords=None, path_queue=None, db_queue=None):
+    def __init__(self, root=None, sensitive_flags=None, keywords=None, path_queue=None, db_queue=None, website=''):
         super().__init__()
 
         if not root:
@@ -53,6 +53,7 @@ class TextExtractor(SuicidalQThread):
         self.path_queue = path_queue
         self.db_queue = db_queue
         self.sensitive_flags = sensitive_flags
+        self.website = website
         self.results = dict()           # key:origin,  value:敏感内容类型以及content列表
         #
         self.counter = {
@@ -153,8 +154,9 @@ class TextExtractor(SuicidalQThread):
         for item in find_ioc(text):
             if is_valid_ip(item):
                 continue
-            ext = tldextract.extract(item)
-            reg_domain = ext.registered_domain.lower()
+            reg_domain = urlsite(item)
+            if reg_domain == '' or reg_domain == self.website:
+                continue
             if is_gov_edu(reg_domain) or reg_domain in self._white_domain:
                 continue
             if setting.builtin_alexa is True and reg_domain in alexa:

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import re
 import paramiko
+import tldextract
+from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from collections import defaultdict
 
@@ -74,3 +77,27 @@ def auto_decode(text):
         except UnicodeDecodeError:
             pass
     return None
+
+
+def urlsite(url, tld=True):
+    url = url.lower()
+    site = ''
+    if re.match(r'^\w+://', url):
+        site = urlparse(url).netloc
+    #
+    ext = tldextract.extract(url)
+    if tld is True:
+        if ext.registered_domain != '':
+            return ext.registered_domain
+        elif site != '':
+            return site
+        else:
+            return ''
+    #
+    site = ext.subdomain
+    if ext.domain:
+        site = site + ('.' if site else '') + ext.domain
+    if ext.suffix:
+        site = site + ('.' if site else '') + ext.suffix
+    return site
+

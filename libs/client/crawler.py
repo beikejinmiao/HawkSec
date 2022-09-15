@@ -7,9 +7,8 @@ from urllib.parse import urlparse
 from urllib.parse import urlsplit
 from collections import deque, namedtuple
 from bs4 import BeautifulSoup
-import tldextract
-from libs.regex import html, common_dom, is_valid_ip
-from utils.mixed import auto_decode
+from libs.regex import html, common_dom
+from utils.mixed import auto_decode, urlsite
 from libs.logger import logger
 
 default_headers = {
@@ -33,11 +32,7 @@ def url_file(url):
 class Spider(object):
     def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
         self._start_url = start_url
-        site = urlparse(start_url).netloc
-        if is_valid_ip(site):
-            self.site = site
-        else:
-            self.site = tldextract.extract(site).registered_domain.lower()
+        self.site = urlsite(start_url)
         #
         self.all_urls = dict()          # key: url, value: 该url的来源地址
         self.all_urls[start_url] = start_url
