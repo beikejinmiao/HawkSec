@@ -68,6 +68,7 @@ class Spider(object):
             url_path = '/' + url_path
         while '/../' in url_path:
             url_path = re.sub(r'(^|/[^/]+)/\.\./', '/', url_path)
+        url_path = re.sub(r'/{2,}', '/', url_path)      # ////////url/path?a=1   -->   /url/path?a=1
         return '{host}{connector}{path}'.format(host=host,
                                                 connector='' if url_path.startswith('/') else '/',
                                                 path=url_path)
