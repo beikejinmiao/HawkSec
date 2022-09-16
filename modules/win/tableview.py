@@ -3,7 +3,7 @@
 import os
 import re
 import math
-from PyQt6.QtCore import QDir, Qt, QSize
+from PyQt6.QtCore import QDir, Qt, pyqtSlot
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt6.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
@@ -216,28 +216,36 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
         super().on_prev_page()
 
+    @pyqtSlot()
+    # 不添加@pyqtSlot()，page参数会被设置为False
+    # https://stackoverflow.com/questions/56422246/function-call-through-signal-changes-default-keyed-arguments-to-false-why
+    # https://stackoverflow.com/questions/53110309/qpushbutton-clicked-fires-twice-when-autowired-using-ui-form/53110495
     def on_switch_page(self, page=None):
-        if isinstance(page, int) and page > 0:
-            self.cur_page = page
-        else:
+        if page is None:
             page = self.switchPageLineEdit.text().strip()
-            if page == "":
-                QWarnMessageBox("请输入跳转页面").exec()
+            if page == '':
+                QWarnMessageBox('请输入跳转页面').exec()
                 return
             if not page.isdigit():
-                QWarnMessageBox("请输入数字").exec()
+                QWarnMessageBox('请输入数字').exec()
                 return
-            page_idx = int(page)
-            if page_idx > self.total_page or page_idx < 1:
-                QWarnMessageBox("没有指定的页，请重新输入").exec()
-                return
-            self.cur_page = page_idx
-            # 跳转页大于5,变化页签
-            if self.cur_page > 5:
-                for i, btn in enumerate(self.page_buttons):
-                    btn.setText(str(self.cur_page-5+(i+1)))
-                self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+            page = int(page)
+        elif not (isinstance(page, int) and page > 0):
+            raise ValueError('跳转页面必须是正整数')
         #
+        if page > self.total_page or page < 1:
+            QWarnMessageBox('没有指定的页: %s' % page).exec()
+            return
+        if page == self.cur_page:
+            return
+
+        if page < self.page_btn_ix_range[0] or page > self.page_btn_ix_range[-1]:
+            offset = max(0, page-5)
+            for i, btn in enumerate(self.page_buttons):
+                btn.setText(str(offset+(i+1)))
+            self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
+        #
+        self.cur_page = page
         self.query_page()
 
     def go_search(self):

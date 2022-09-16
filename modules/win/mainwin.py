@@ -287,9 +287,11 @@ class MainWindow(UiMainWindow, QWidget):
     def _set_extract_metric(self, metric):
         self.extUrlCntLabel.setText('%s' % metric.external_url_count)
         self.extUrlCntLabel2.setText('%s' % metric.external_url_count)
-        if metric.idcard_count > 0:
-            self.idcardCntLabel.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
-            self.idcardCntLabel2.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
+        # if metric.idcard_count > 0:
+        #     self.idcardCntLabel.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
+        #     self.idcardCntLabel2.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
+        self.idcardCntLabel.setText('%s' % metric.idcard_count)
+        self.idcardCntLabel2.setText('%s' % metric.idcard_count)
         self.keywordCntLabel.setText('%s' % metric.keyword_find)
         self.keywordCntLabel2.setText('%s' % metric.keyword_find)
         #
