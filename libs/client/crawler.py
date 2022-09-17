@@ -33,6 +33,7 @@ class Spider(object):
     def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
         self._start_url = start_url
         self.site = urlsite(start_url)
+        self.same_site = same_site          # 是否限制只爬取同站网页
         #
         self.all_urls = dict()          # key: url, value: 该url的来源地址
         self.all_urls[start_url] = start_url
@@ -44,7 +45,6 @@ class Spider(object):
         self.session.headers = headers if isinstance(headers, dict) and len(headers) > 0 else default_headers
         self.timeout = timeout
         #
-        self.same_site = same_site          # 是否限制只爬取同站网页
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
 
     @staticmethod
@@ -140,7 +140,7 @@ class Spider(object):
                     new_url = site + href
                 else:
                     new_url = path + href
-                if self.same_site and self.site not in new_url:
+                if self.same_site and urlsite(new_url) == self.site:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
