@@ -19,6 +19,7 @@ from modules.interaction.manager import TaskManager
 from modules.interaction.metric import CrawlMetric, ExtractMetric
 from utils.filedir import StyleSheetHelper
 from utils.mixed import ssh_accessible, human_timedelta
+from tools.license import LicenseHelper
 from libs.logger import logger
 
 
@@ -43,6 +44,8 @@ class MainWindow(UiMainWindow, QWidget):
         self._keywords = None
         self.task_manager = None
         self._move_flag = False
+        #
+        self.license = LicenseHelper()
 
     # https://blog.csdn.net/QW1540235670/article/details/111028331
     def mousePressEvent(self, event):
@@ -299,6 +302,10 @@ class MainWindow(UiMainWindow, QWidget):
         self.hitCntLabel2.setText(str(metric.origin_hit))
 
     def start(self):
+        lic_check_result = self.license.check()
+        if lic_check_result != 'OK':
+            QWarnMessageBox(lic_check_result).exec()
+            return
         if not self._check_inputs():
             return
         if self.protocol == 'sftp' and not self._check_ssh_accessible():
@@ -392,12 +399,10 @@ class MainWindow(UiMainWindow, QWidget):
         box = QWarnMessageBox("确认退出！")
         if box.exec() == QDialog.DialogCode.Accepted:
             event.accept()
-            if self.helpAboutWindow:
-                self.helpAboutWindow.close()
-            if self.settingsWindow:
-                self.settingsWindow.close()
-            if self.extractWindow:
-                self.extractWindow.close()
+            for win in (self.helpAboutWindow, self.settingsWindow,
+                        self.extractWindow, self.progressWindow, self.sensitiveWindow):
+                if win:
+                    win.close()
         else:
             event.ignore()
 

@@ -140,7 +140,7 @@ class Spider(object):
                     new_url = site + href
                 else:
                     new_url = path + href
-                if self.same_site and urlsite(new_url) == self.site:
+                if self.same_site and urlsite(new_url) != self.site:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
