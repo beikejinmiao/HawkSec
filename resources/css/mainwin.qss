@@ -34,7 +34,7 @@
 }
 
 
-#startBtn {
+#startBtn, #historyBtn {
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
@@ -43,7 +43,7 @@
     background: #9AA4BB;
     border-radius: 4px;
 }
-#startBtn:pressed {
+#startBtn:pressed, #historyBtn:pressed {
     background: #2358DE;
     border-radius: 4px;
 }

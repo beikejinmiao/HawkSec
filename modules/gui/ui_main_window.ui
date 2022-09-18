@@ -142,7 +142,7 @@
       <widget class="QPushButton" name="startBtn">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>310</x>
          <y>490</y>
          <width>137</width>
          <height>50</height>
@@ -398,6 +398,25 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="historyBtn">
+       <property name="geometry">
+        <rect>
+         <x>470</x>
+         <y>490</y>
+         <width>137</width>
+         <height>50</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>137</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>最近任务</string>
+       </property>
       </widget>
      </widget>
      <widget class="QLabel" name="robotTipsLabel">
@@ -724,7 +743,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="faieldCntLabel">
+         <widget class="QLabel" name="failedCntLabel">
           <property name="styleSheet">
            <string notr="true">font-size: 14px;color:#F41717;</string>
           </property>
@@ -1385,7 +1404,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="faieldCntLabel2">
+         <widget class="QLabel" name="failedCntLabel2">
           <property name="styleSheet">
            <string notr="true">font-size: 14px;color:#F41717;</string>
           </property>
@@ -1437,7 +1456,7 @@
       <widget class="QWidget" name="layoutWidget_17">
        <property name="geometry">
         <rect>
-         <x>360</x>
+         <x>370</x>
          <y>220</y>
          <width>231</width>
          <height>20</height>
@@ -1475,9 +1494,9 @@
       <widget class="QWidget" name="layoutWidget_18">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>320</x>
          <y>480</y>
-         <width>441</width>
+         <width>301</width>
          <height>41</height>
         </rect>
        </property>
@@ -1498,25 +1517,6 @@
           </property>
           <property name="text">
            <string>查看详情</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="dumpBtn">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>120</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>导出文档</string>
           </property>
          </widget>
         </item>

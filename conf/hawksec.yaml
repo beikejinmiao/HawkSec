@@ -18,3 +18,13 @@ ssh:
   username: root
   password:
   path: /tmp
+
+# Metric
+metric:
+  expend_time: ''
+  crawl_total: 0
+  crawl_failed: 0
+  exturl_count: 0
+  idcard_count: 0
+  keyword_find: 0
+  origin_hit: 0

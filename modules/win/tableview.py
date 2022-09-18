@@ -326,16 +326,12 @@ class ProgressDataWindow(DataGridWindow):
         super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes,  db_where=db_where)
 
     def modify_ui(self):
-        if not self.db_where:
-            self.searchCodeLabel.setText('状态码')
-            codes = self.sqlite.select('SELECT DISTINCT resp_code FROM %s ORDER BY resp_code' % self.table)
-            codes = [item[0] for item in codes]
-            for i, code in enumerate(codes):
-                self.searchCodeComboBox.insertItem(i+1, str(code))
-        else:
-            # 有初始条件的,目前不需要状态码查询框
-            self.searchCodeLabel.hide()
-            self.searchCodeComboBox.hide()
+        self.searchCodeLabel.setText('状态码')
+        codes = self.sqlite.select('SELECT DISTINCT resp_code FROM {table} {where} ORDER BY resp_code'.format(
+            table=self.table, where='' if not self.db_where else 'WHERE '+self.db_where))
+        codes = [item[0] for item in codes]
+        for i, code in enumerate(codes):
+            self.searchCodeComboBox.insertItem(i+1, str(code))
 
 
 class ExtractDataWindow(DataGridWindow):
@@ -359,6 +355,7 @@ class ExtractDataWindow(DataGridWindow):
             for i, name in enumerate(names):
                 self.searchCodeComboBox.insertItem(i + 1, name)
         else:
+            # 有初始条件的,目前不需要敏感类型查询框
             self.searchCodeLabel.hide()
             self.searchCodeComboBox.hide()
 

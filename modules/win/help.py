@@ -1,10 +1,13 @@
 import os
+import traceback
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QCursor, QColor
 from PyQt6.QtWidgets import QWidget, QSizePolicy, QGraphicsDropShadowEffect
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
+from tools.license import LicenseHelper
 from modules.gui.ui_help import Ui_Form
+from libs.logger import logger
 
 
 class HelpAboutWindow(Ui_Form, QWidget):
@@ -14,6 +17,9 @@ class HelpAboutWindow(Ui_Form, QWidget):
         #
         self.__init_ui()
         self.__init_state()
+        #
+        self.license = LicenseHelper()
+        self._set_license()
 
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
@@ -36,6 +42,19 @@ class HelpAboutWindow(Ui_Form, QWidget):
 
     def __init_state(self):
         self.closeBtnLabel.clicked.connect(self.close)
+
+    def _set_license(self):
+        user = 'unknown'
+        end_date = 'unknown'
+        try:
+            license_dict = self.license.load()
+            user = license_dict['user']
+            end_date = license_dict['end_date']
+            end_date = '%s年%s月%s日' % tuple(end_date.split('-'))
+        except:
+            logger.error(traceback.format_exc())
+        self.activeUserLabel.setText(user)
+        self.endDateLabel.setText(end_date)
 
     def render_shadow(self):
         """

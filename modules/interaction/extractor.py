@@ -136,10 +136,10 @@ class TextExtractor(SuicidalQThread):
     #     sqlite.close()
 
     def _update_metric(self):
-        self._metric.external_url_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
+        self._metric.exturl_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
         self._metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
         self._metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
-        self._metric.external_url_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
+        self._metric.exturl_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
         self._metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
         self._metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
         self._metric.origin_hit = len(self.results)

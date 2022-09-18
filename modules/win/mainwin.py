@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
+import re
 from pathlib import Path
 import traceback
 from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
+from libs.pyaml import configure
 from libs.enums import sensitive_flag_name, SENSITIVE_FLAG
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
@@ -16,7 +18,7 @@ from modules.win.tableview import ProgressDataWindow, ExtractDataWindow, Sensiti
 from modules.win.settings import SettingsWindow
 from modules.win.help import HelpAboutWindow
 from modules.interaction.manager import TaskManager
-from modules.interaction.metric import CrawlMetric, ExtractMetric
+from modules.interaction.metric import AbstractMetric, CrawlMetric, ExtractMetric
 from utils.filedir import StyleSheetHelper
 from utils.mixed import ssh_accessible, human_timedelta
 from tools.license import LicenseHelper
@@ -109,11 +111,11 @@ class MainWindow(UiMainWindow, QWidget):
             line_edit.setPalette(palette)
         # 设置可点击组件悬浮手型按钮
         for button in [self.startBtn, self.cancelBtn, self.stopBtn, self.returnBtn,
-                       self.dumpBtn, self.detailBtn, self.settingBtnLabel, self.helpBtnLabel,
+                       self.historyBtn, self.detailBtn, self.settingBtnLabel, self.helpBtnLabel,
                        self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel,
-                       self.crawledCntLabel, self.hitCntLabel, self.faieldCntLabel,
+                       self.crawledCntLabel, self.hitCntLabel, self.failedCntLabel,
                        self.extUrlCntLabel, self.idcardCntLabel, self.keywordCntLabel,
-                       self.crawledCntLabel2, self.hitCntLabel2, self.faieldCntLabel2,
+                       self.crawledCntLabel2, self.hitCntLabel2, self.failedCntLabel2,
                        self.extUrlCntLabel2, self.idcardCntLabel2, self.keywordCntLabel2]:
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
@@ -149,10 +151,11 @@ class MainWindow(UiMainWindow, QWidget):
         self.detailBtn.clicked.connect(self.show_extract_win)
         self.settingBtnLabel.clicked.connect(self.show_settings_win)
         self.helpBtnLabel.clicked.connect(self.show_help_win)
+        self.historyBtn.clicked.connect(self.show_latest_result)
         self.crawledCntLabel.clicked.connect(lambda: self.show_progress_win(target='total'))
         self.crawledCntLabel2.clicked.connect(lambda: self.show_progress_win(target='total'))
-        self.faieldCntLabel.clicked.connect(lambda: self.show_progress_win(target='failed'))
-        self.faieldCntLabel2.clicked.connect(lambda: self.show_progress_win(target='failed'))
+        self.failedCntLabel.clicked.connect(lambda: self.show_progress_win(target='failed'))
+        self.failedCntLabel2.clicked.connect(lambda: self.show_progress_win(target='failed'))
         self.extUrlCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
         self.extUrlCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
         self.idcardCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
@@ -161,6 +164,9 @@ class MainWindow(UiMainWindow, QWidget):
         self.keywordCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
         self.hitCntLabel.clicked.connect(self.show_extract_win)
         self.hitCntLabel2.clicked.connect(self.show_extract_win)
+        #
+        if not configure['metric']['expend_time']:
+            self.historyBtn.setEnabled(False)
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
@@ -283,17 +289,16 @@ class MainWindow(UiMainWindow, QWidget):
         expend_time = human_timedelta(seconds)
         self.expendTimeLabel.setText(expend_time)
         self.expendTimeLabel2.setText(expend_time)
-        self.progressBar.setValue(min(2+int(seconds/240), 99))
 
     def _set_crawl_metric(self, metric):
         self.crawledCntLabel.setText(str(metric.crawl_total))
-        self.faieldCntLabel.setText(str(metric.crawl_failed))
+        self.failedCntLabel.setText(str(metric.crawl_failed))
         self.crawledCntLabel2.setText(str(metric.crawl_total))
-        self.faieldCntLabel2.setText(str(metric.crawl_failed))
+        self.failedCntLabel2.setText(str(metric.crawl_failed))
 
     def _set_extract_metric(self, metric):
-        self.extUrlCntLabel.setText('%s' % metric.external_url_count)
-        self.extUrlCntLabel2.setText('%s' % metric.external_url_count)
+        self.extUrlCntLabel.setText('%s' % metric.exturl_count)
+        self.extUrlCntLabel2.setText('%s' % metric.exturl_count)
         # if metric.idcard_count > 0:
         #     self.idcardCntLabel.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
         #     self.idcardCntLabel2.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
@@ -304,6 +309,31 @@ class MainWindow(UiMainWindow, QWidget):
         #
         self.hitCntLabel.setText(str(metric.origin_hit))
         self.hitCntLabel2.setText(str(metric.origin_hit))
+
+    def _set_metric(self, metric=None):
+        if not metric:
+            metric = AbstractMetric()
+            for key, value in configure['metric'].items():
+                setattr(metric, key, value)
+        if hasattr(metric, 'expend_time'):
+            seconds = 0
+            items = re.findall(r'\d+', metric.expend_time)
+            bases = [1, 60, 3600, 86400]
+            for i, item in enumerate(reversed(items)):
+                seconds += int(item) * bases[i]
+            self._set_expend_time(seconds)
+        self._set_crawl_metric(metric)
+        self._set_extract_metric(metric)
+
+    def _save_metric(self):
+        configure['metric']['expend_time'] = self.expendTimeLabel.text()
+        configure['metric']['crawl_total'] = self.crawledCntLabel.text()
+        configure['metric']['crawl_failed'] = self.failedCntLabel.text()
+        configure['metric']['exturl_count'] = self.extUrlCntLabel.text()
+        configure['metric']['idcard_count'] = self.idcardCntLabel.text()
+        configure['metric']['keyword_count'] = self.keywordCntLabel.text()
+        configure['metric']['origin_hit'] = self.hitCntLabel.text()
+        configure.save()
 
     def start(self):
         lic_check_result = self.license.check()
@@ -336,6 +366,8 @@ class MainWindow(UiMainWindow, QWidget):
         self._init_sensitive_layout()
         self._hide_sensitive_layout()
         #
+        self.historyBtn.setEnabled(True)
+        #
         self.task_manager.expend_time_signal.connect(self._set_expend_time)
         self.task_manager.extractor.finished.connect(self.terminate)
         self.task_manager.extractor.cur_result.connect(self._log_extractor_result)
@@ -367,6 +399,12 @@ class MainWindow(UiMainWindow, QWidget):
         self.task_manager.terminate()
         del self.task_manager
         #
+        self._save_metric()
+        self.tabWidget.removeTab(0)
+        self.tabWidget.addTab(self.finishTab, '')
+
+    def show_latest_result(self):
+        self._set_metric()
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
 

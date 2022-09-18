@@ -10,18 +10,15 @@ from libs.logger import logger
 
 
 class AbstractMetric(object):
-    def dict(self):
-        return self.__dict__
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __repr__(self):
+        return str(self.__dict__)
 
     def dump(self, path):
         with open(path, 'w', encoding='utf-8') as fout:
             json.dump(self.__dict__, fout, indent=4)
-
-    def __str__(self):
-        return json.dumps(self.__dict__)
-
-    def __repr__(self):
-        return json.dumps(self.__dict__)
 
 
 class CrawlMetric(AbstractMetric):
@@ -43,8 +40,8 @@ class ExtractMetric(AbstractMetric):
                  idcard_find=0, idcard_count=0,
                  keyword_find=0, keyword_count=0,
                  origin_hit=0, queue_get=-1):
-        self.external_url_find = external_url_find
-        self.external_url_count = external_url_count
+        self.exturl_find = external_url_find
+        self.exturl_count = external_url_count
         self.idcard_find = idcard_find
         self.idcard_count = idcard_count
         self.keyword_find = keyword_find

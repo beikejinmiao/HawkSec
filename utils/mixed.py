@@ -45,14 +45,14 @@ def human_timedelta(seconds):
     d['hour'], rem = divmod(delta.seconds, 3600)
     d['min'], d['sec'] = divmod(rem, 60)
 
-    if d['min'] == 0:
-        fmt = '{sec}秒'
-    elif d['hour'] == 0:
-        fmt = '{min}分{sec}秒'
-    elif d['days'] == 0:
-        fmt = '{hour}小时{min}分{sec}秒'
-    else:
+    if d['days'] > 0:
         fmt = '{days}天{hour}小时{min}分{sec}秒'
+    elif d['hour'] > 0:
+        fmt = '{hour}小时{min}分{sec}秒'
+    elif d['hour'] > 0:
+        fmt = '{min}分{sec}秒'
+    else:
+        fmt = '{sec}秒'
 
     return fmt.format(**d)
 
@@ -101,3 +101,6 @@ def urlsite(url, tld=True):
         site = site + ('.' if site else '') + ext.suffix
     return site
 
+
+if __name__ == '__main__':
+    human_timedelta(10800)
