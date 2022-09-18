@@ -121,7 +121,9 @@ class MainWindow(UiMainWindow, QWidget):
             spinner = WaitingSpinner(self, lines=16, radius=4, line_length=7, speed=1, color=(35, 88, 222))
             waiting_layout.addWidget(spinner)
             spinner.start()
+        # 自动换行
         self.robotTipsLabel.adjustSize()
+        self.robotTipsLabel.setWordWrap(True)
 
     def __init_state(self):
         # 保证Layout隐藏部分组件时,剩余组件能自动移动填充(例如grid layout隐藏前两行,后几行能自动上移)
