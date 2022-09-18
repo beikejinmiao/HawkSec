@@ -4,6 +4,7 @@ import os
 import re
 from pathlib import Path
 import traceback
+import datetime
 from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
@@ -134,6 +135,7 @@ class MainWindow(UiMainWindow, QWidget):
         #
         self.minimizeBtnLabel.clicked.connect(self.showMinimized)
         self.maximizeBtnLabel.clicked.connect(self.showMaximized)
+        self.maximizeBtnLabel.hide()
         self.closeBtnLabel.clicked.connect(self.close)
         #
         self.__toggle_sftp()
@@ -165,21 +167,32 @@ class MainWindow(UiMainWindow, QWidget):
         self.hitCntLabel.clicked.connect(self.show_extract_win)
         self.hitCntLabel2.clicked.connect(self.show_extract_win)
         #
-        if not configure['metric']['expend_time']:
-            self.historyBtn.setEnabled(False)
+        try:
+            if not configure['metric']['expend_time']:
+                self.historyBtn.setEnabled(False)
+        except:
+            pass
 
     def __toggle_sftp(self, visible=False):
         sftp_edits = (self.portLineEdit, self.userLineEdit, self.passwdLineEdit, self.pathLineEdit)
         for line_edit in sftp_edits:
             line_edit.setVisible(visible)
 
-    def _robot_tips(self, tips=''):
+    def _robot_tips(self, tips='', label_id=1):
+        label = self.robotTipsLabel2 if label_id == 2 else self.robotTipsLabel
         if not tips or tips == 'default':
-            self.robotTipsLabel.setStyleSheet('color: black; font-weight:400;')
-            tips = '您好，欢迎使用敏感信息监测系统！'
+            if label_id == 2:
+                label.setStyleSheet('color: black; font-weight:400;')
+                tips = '恭喜您，已完成信息监测！'
+            else:
+                label.setStyleSheet('color: black; font-weight:400;')
+                tips = '您好，欢迎使用敏感信息监测系统！'
         else:
-            self.robotTipsLabel.setStyleSheet('color: red; font-weight: bold;')
-        self.robotTipsLabel.setText('    %s' % tips)
+            if label_id == 2:
+                label.setStyleSheet('color: gray;')
+            else:
+                label.setStyleSheet('color: red; font-weight: bold;')
+        label.setText('    %s' % tips)
 
     def _check_inputs(self):
         self.target = self.addressLineEdit.text().strip()
@@ -222,10 +235,10 @@ class MainWindow(UiMainWindow, QWidget):
             if len(ele.text().strip()) <= 0:
                 empty.append(name)
         if len(empty) > 0:
-            self._robot_tips('SFTP' + '/'.join(empty) + '内容为空！')
+            self._robot_tips(tips='SFTP' + '/'.join(empty) + '内容为空！')
             return False
         if not self.portLineEdit.text().strip().isdigit():
-            self._robot_tips('SFTP端口格式错误！')
+            self._robot_tips(tips='SFTP端口格式错误！')
             return False
         return True
 
@@ -331,7 +344,7 @@ class MainWindow(UiMainWindow, QWidget):
         configure['metric']['crawl_failed'] = self.failedCntLabel.text()
         configure['metric']['exturl_count'] = self.extUrlCntLabel.text()
         configure['metric']['idcard_count'] = self.idcardCntLabel.text()
-        configure['metric']['keyword_count'] = self.keywordCntLabel.text()
+        configure['metric']['keyword_find'] = self.keywordCntLabel.text()
         configure['metric']['origin_hit'] = self.hitCntLabel.text()
         configure.save()
 
@@ -367,6 +380,8 @@ class MainWindow(UiMainWindow, QWidget):
         self._hide_sensitive_layout()
         #
         self.historyBtn.setEnabled(True)
+        configure['metric']['start_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        configure['target'] = self.target
         #
         self.task_manager.expend_time_signal.connect(self._set_expend_time)
         self.task_manager.extractor.finished.connect(self.terminate)
@@ -389,6 +404,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.task_manager.terminate()
         del self.task_manager
         #
+        self.historyBtn.setEnabled(False)
         self.return2main()
 
     def terminate(self, notice=False):
@@ -402,9 +418,12 @@ class MainWindow(UiMainWindow, QWidget):
         self._save_metric()
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
+        self._robot_tips(tips='default', label_id=2)
 
     def show_latest_result(self):
         self._set_metric()
+        tips = '最近监控对象：%s\n    任务开始时间：%s' % (configure['target'], configure['metric']['start_time'])
+        self._robot_tips(tips=tips, label_id=2)
         self.tabWidget.removeTab(0)
         self.tabWidget.addTab(self.finishTab, '')
 

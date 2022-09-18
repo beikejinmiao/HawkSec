@@ -47,6 +47,10 @@
     background: #2358DE;
     border-radius: 4px;
 }
+#historyBtn:disabled {
+    background: #B7B7B7;
+    border-radius: 4px;
+}
 
 #stopBtn, #cancelBtn {
     font-style: normal;
