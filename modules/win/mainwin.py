@@ -68,6 +68,8 @@ class MainWindow(UiMainWindow, QWidget):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        # self.setWindowIcon(QIcon(QPixmap('image:logo.png')))
+        # self.setWindowTitle('敏感信息监测系统')
         self.tabWidget.removeTab(1)
         self.tabWidget.removeTab(1)
         self.tabWidget.setDocumentMode(True)
@@ -127,7 +129,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.dynGridLayout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         #
         self.minimizeBtnLabel.clicked.connect(self.showMinimized)
-        self.maximizeBtnLabel.clicked.connect(self.showFullScreen)
+        self.maximizeBtnLabel.clicked.connect(self.showMaximized)
         self.closeBtnLabel.clicked.connect(self.close)
         #
         self.__toggle_sftp()
@@ -357,7 +359,7 @@ class MainWindow(UiMainWindow, QWidget):
 
     def terminate(self, notice=False):
         if notice:
-            box = QWarnMessageBox("请确认是否终止目前任务。\n任务终止后需重新开始！")
+            box = QWarnMessageBox("请确认是否终止目前任务。任务终止后需重新开始！")
             if box.exec() == QDialog.DialogCode.Rejected:
                 return
         self.task_manager.terminate()

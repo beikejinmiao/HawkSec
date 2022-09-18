@@ -265,7 +265,7 @@ class TextExtractor(SuicidalQThread):
             except Exception as e:
                 logger.error(str(e) + ': %s' % local_path)
             # 处理删除文件时的错误
-            try_count = 2
+            try_count = 3
             while try_count > 0:
                 try_count -= 1
                 try:
@@ -275,7 +275,7 @@ class TextExtractor(SuicidalQThread):
                         os.remove(local_path)
                 except:
                     time.sleep(0.5)
-            if try_count <= 0:
+            if os.path.exists(local_path):
                 logger.error('删除文件失败: %s' % local_path)
 
     def run(self):
