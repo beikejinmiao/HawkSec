@@ -109,7 +109,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="mainTab">
      <attribute name="title">
@@ -1387,11 +1387,14 @@
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <property name="spacing">
+         <number>1</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_19">
           <property name="maximumSize">
            <size>
-            <width>100</width>
+            <width>65</width>
             <height>16777215</height>
            </size>
           </property>
@@ -1399,7 +1402,7 @@
            <string notr="true">font-size: 14px;</string>
           </property>
           <property name="text">
-           <string>访问异常数量:</string>
+           <string>访问异常:</string>
           </property>
          </widget>
         </item>
@@ -1425,6 +1428,9 @@
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <property name="spacing">
+         <number>1</number>
+        </property>
         <item>
          <widget class="QLabel" name="label_20">
           <property name="maximumSize">

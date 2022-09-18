@@ -192,8 +192,12 @@ class TextExtractor(SuicidalQThread):
             candidates = self.__funcs[flag](text)
             if len(candidates) > 0:
                 self.sensitives[flag]['find'] += len(candidates)
-                candidates = set(candidates)
-                result[flag] = candidates
+                candidates = set(candidates)  # 本次发现的敏感内容
+                if flag == SENSITIVE_FLAG.KEYWORD:
+                    candidates_new = candidates
+                else:
+                    candidates_new = candidates - self.sensitives[flag]['content']      # 本次新发现的敏感内容
+                result[flag] = (candidates, candidates_new)
                 self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
                 self.cur_result.emit(self.Result(flag=flag, origin=origin, content=','.join(candidates)))
         # 针对压缩文件,解压后的路径已发生变化,重新拼接来源地址
@@ -205,13 +209,13 @@ class TextExtractor(SuicidalQThread):
         for flag, values in result.items():
             sensitive_name = sensitive_flag_name[flag].value
             record = {
-                'origin': self.files.get(local_path, origin),       # 保存远程文件路径或者URL
+                'origin': self.files.get(local_path, origin),                   # 保存远程文件路径或者URL
                 'sensitive_type': flag, 'sensitive_name': sensitive_name,
-                'content': ', '.join(values), 'count': len(values),
+                'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
             }
             self._put_db_queue(TABLES.Extractor.value, record)
             # self.db_rows[TABLES.Extractor.value].append(record)
-            for value in values:
+            for value in values[1]:                                             # 本次新发现的敏感内容
                 record = {
                     'content': value, 'origin': self.files.get(local_path, origin),
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,

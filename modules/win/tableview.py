@@ -7,7 +7,7 @@ from PyQt6.QtCore import QDir, Qt, pyqtSlot
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt6.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
-from libs.enums import TABLES, SENSITIVE_NAME, tables_cn_name
+from libs.enums import TABLES, SENSITIVE_NAME, sensitive_flag_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
@@ -25,11 +25,12 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             focused_widget.clearFocus()
         super().mousePressEvent(event)
 
-    def __init__(self, table, columns, db_where=None, column_modes=None):
+    def __init__(self, table, columns, db_where=None, column_modes=None, title='监测详情'):
         TablePageModel.__init__(self, table, columns, db_where=db_where)
         Ui_Form.__init__(self)
         QWidget.__init__(self)
         self.setupUi(self)
+        self.titleLabel.setText(title)
         self.__init_ui()
         self.modify_ui()
         #
@@ -53,7 +54,6 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.tableView.setShowGrid(False)               # 隐藏网格
         self.tableView.verticalHeader().hide()          # 隐藏行号
         self.tableView.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-
         self.closeBtnLabel.setText('')
         label_images = zip([self.timeIconLabel], ['icon/calendar.png'])
         for label, img in label_images:
@@ -283,7 +283,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
     def dump(self):
         filepath, ok = QFileDialog.getSaveFileName(
-            self, "保存文件", os.path.join(DUMP_HOME, "%s.csv" % tables_cn_name.get(self.table, self.table))
+            self, "保存文件", os.path.join(DUMP_HOME, "%s.csv" % self.titleLabel.text())
         )
         if ok:
             try:
@@ -307,7 +307,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
 
 class ProgressDataWindow(DataGridWindow):
-    def __init__(self,  resp_code=None):
+    def __init__(self,  title='URL文件爬取列表', resp_code=None):
         columns = dict(zip(
             ['id', 'origin', 'resp_code', 'desc', 'create_time'],
             ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
@@ -323,7 +323,9 @@ class ProgressDataWindow(DataGridWindow):
             else:
                 # 没有空格，只是一个值
                 db_where += 'resp_code=%s' % resp_code
-        super().__init__(table=TABLES.CrawlStat.value, columns=columns, column_modes=column_modes,  db_where=db_where)
+        super().__init__(table=TABLES.CrawlStat.value,
+                         columns=columns, column_modes=column_modes,
+                         db_where=db_where, title=title)
 
     def modify_ui(self):
         self.searchCodeLabel.setText('状态码')
@@ -335,7 +337,7 @@ class ProgressDataWindow(DataGridWindow):
 
 
 class ExtractDataWindow(DataGridWindow):
-    def __init__(self, sensitive_type=None):
+    def __init__(self, title='URL文件解析结果', sensitive_type=None):
         columns = dict(zip(
             ['id', 'origin', 'sensitive_name', 'content', 'count', 'create_time'],
             ['ID', 'URL/FILE路径', '敏感类型', '敏感内容', '数量', '创建时间']
@@ -344,9 +346,13 @@ class ExtractDataWindow(DataGridWindow):
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
-        if sensitive_type is not None:
+        if sensitive_type in sensitive_flag_name:
             db_where += 'sensitive_type=%s' % sensitive_type
-        super().__init__(table=TABLES.Extractor.value, columns=columns, column_modes=column_modes, db_where=db_where)
+            title += '-' + sensitive_flag_name[sensitive_type].value
+
+        super().__init__(table=TABLES.Extractor.value,
+                         columns=columns, column_modes=column_modes,
+                         db_where=db_where, title=title)
 
     def modify_ui(self):
         if not self.db_where:
@@ -361,18 +367,22 @@ class ExtractDataWindow(DataGridWindow):
 
 
 class SensitiveDataWindow(DataGridWindow):
-    def __init__(self, sensitive_type=None):
+    def __init__(self, title='敏感内容列表', sensitive_type=None):
         columns = dict(zip(
             ['id',  'sensitive_name', 'content', 'origin', 'create_time'],
-            ['ID',  '敏感类型', '敏感内容', 'URL/FILE来源', '创建时间']
+            ['ID',  '敏感类型', '敏感内容', '发现地址', '发现时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
-        if sensitive_type is not None:
+        if sensitive_type in sensitive_flag_name:
             db_where += 'sensitive_type=%s' % sensitive_type
-        super().__init__(table=TABLES.Sensitives.value, columns=columns, column_modes=column_modes,  db_where=db_where)
+            title += '-' + sensitive_flag_name[sensitive_type].value
+
+        super().__init__(table=TABLES.Sensitives.value,
+                         columns=columns, column_modes=column_modes,
+                         db_where=db_where, title=title)
 
     def modify_ui(self):
         if not self.db_where:

@@ -429,7 +429,9 @@ class MainWindow(UiMainWindow, QWidget):
 
     def show_progress_win(self, target='total'):
         if target == 'failed':
-            self.progressWindow = ProgressDataWindow(resp_code='resp_code>=400 OR resp_code=-1')
+            self.progressWindow = ProgressDataWindow(
+                resp_code='resp_code>=400 OR resp_code=-1',
+                title='URL文件访问异常列表')
         else:
             self.progressWindow = ProgressDataWindow()
         self.progressWindow.show()
