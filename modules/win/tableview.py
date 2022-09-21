@@ -48,11 +48,11 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
     def __init_ui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)           # 隐藏边框
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)  # 隐藏边框
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # 设置窗口背景透明
-        self.tableView.setAlternatingRowColors(True)    # 开启奇偶行交替背景色
-        self.tableView.setShowGrid(False)               # 隐藏网格
-        self.tableView.verticalHeader().hide()          # 隐藏行号
+        self.tableView.setAlternatingRowColors(True)  # 开启奇偶行交替背景色
+        self.tableView.setShowGrid(False)  # 隐藏网格
+        self.tableView.verticalHeader().hide()  # 隐藏行号
         self.tableView.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.closeBtnLabel.setText('')
         label_images = zip([self.timeIconLabel], ['icon/calendar.png'])
@@ -139,15 +139,15 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             return
         if self.total_page >= 5 and self.cur_page >= 5:
             for i, btn in enumerate(self.page_buttons):
-                btn.setText(str(self.cur_page-5+(i+1)))
+                btn.setText(str(self.cur_page - 5 + (i + 1)))
             self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
         elif self.total_page >= 5 and self.cur_page < 5:
             for i, btn in enumerate(self.page_buttons):
-                btn.setText(str(i+1))
+                btn.setText(str(i + 1))
             self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
         elif 0 < self.total_page < 5:
             for i, btn in enumerate(self.page_buttons[:self.total_page]):
-                btn.setText(str(i+1))
+                btn.setText(str(i + 1))
             self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[self.total_page].text())]
 
         start_index = (self.cur_page - 1) * self.page_record
@@ -170,9 +170,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         # 当总页数不足5个时，需判断隐藏多余按钮
         buttons = self.page_buttons[1:]
         if 0 < self.total_page < 5:
-            for btn in buttons[:self.total_page-1]:
+            for btn in buttons[:self.total_page - 1]:
                 btn.show()
-            for btn in buttons[self.total_page-1:]:
+            for btn in buttons[self.total_page - 1:]:
                 btn.hide()
         elif self.total_page >= 5:
             for btn in buttons:
@@ -240,9 +240,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             return
 
         if page < self.page_btn_ix_range[0] or page > self.page_btn_ix_range[-1]:
-            offset = max(0, page-5)
+            offset = max(0, page - 5)
             for i, btn in enumerate(self.page_buttons):
-                btn.setText(str(offset+(i+1)))
+                btn.setText(str(offset + (i + 1)))
             self.page_btn_ix_range = [int(self.page_buttons[0].text()), int(self.page_buttons[-1].text())]
         #
         self.cur_page = page
@@ -256,7 +256,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         self.db_where = self._db_where
         if self.searchCodeComboBox.isVisible():
             code = self.searchCodeComboBox.currentText()
-            if not(code == '' or code.upper() == 'ALL'):
+            if not (code == '' or code.upper() == 'ALL'):
                 _db_where = ''
                 if self.table == TABLES.CrawlStat.value:
                     _db_where = 'resp_code=%s' % code
@@ -287,7 +287,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         )
         if ok:
             try:
-                self.sqlite.dump(self.table, filepath, columns=self.columns)
+                self.sqlite.dump(self.table, filepath, columns=self.columns, where=self.db_where)
                 QInfoMessageBox("保存成功. 文件路径:\n" + filepath).exec()
             except Exception as e:
                 QWarnMessageBox("保存失败. 错误原因:\n" + str(e)).exec()
@@ -307,7 +307,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
 
 class ProgressDataWindow(DataGridWindow):
-    def __init__(self,  title='URL文件爬取列表', resp_code=None):
+    def __init__(self, title='URL文件爬取列表', resp_code=None):
         columns = dict(zip(
             ['id', 'origin', 'resp_code', 'desc', 'create_time'],
             ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
@@ -330,10 +330,10 @@ class ProgressDataWindow(DataGridWindow):
     def modify_ui(self):
         self.searchCodeLabel.setText('状态码')
         codes = self.sqlite.select('SELECT DISTINCT resp_code FROM {table} {where} ORDER BY resp_code'.format(
-            table=self.table, where='' if not self.db_where else 'WHERE '+self.db_where))
+            table=self.table, where='' if not self.db_where else 'WHERE ' + self.db_where))
         codes = [item[0] for item in codes]
         for i, code in enumerate(codes):
-            self.searchCodeComboBox.insertItem(i+1, str(code))
+            self.searchCodeComboBox.insertItem(i + 1, str(code))
 
 
 class ExtractDataWindow(DataGridWindow):
@@ -369,8 +369,8 @@ class ExtractDataWindow(DataGridWindow):
 class SensitiveDataWindow(DataGridWindow):
     def __init__(self, title='敏感内容列表', sensitive_type=None):
         columns = dict(zip(
-            ['id',  'sensitive_name', 'content', 'origin', 'create_time'],
-            ['ID',  '敏感类型', '敏感内容', '发现地址', '发现时间']
+            ['id', 'sensitive_name', 'content', 'origin', 'create_time'],
+            ['ID', '敏感类型', '敏感内容', '发现地址', '发现时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
@@ -415,8 +415,8 @@ class WhiteListDataWindow(DataGridWindow):
 if __name__ == '__main__':
     import sys
     from PyQt6.QtWidgets import QApplication
+
     app = QApplication(sys.argv)
     extractWindow = ExtractDataWindow()
     extractWindow.show()
     sys.exit(app.exec())
-

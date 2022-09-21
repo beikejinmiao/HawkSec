@@ -71,7 +71,7 @@ class Sqlite(object):
         self.__conn.execute('VACUUM')
         self.__conn.commit()
 
-    def dump(self, table, filepath, columns=None):
+    def dump(self, table, filepath, columns=None, where=''):
         _columns = '*'
         if not columns:
             _columns = '*'
@@ -83,7 +83,9 @@ class Sqlite(object):
             # key:数据库字段名, value:前端显示表格字段名
             _columns = ','.join(columns.keys())
         #
-        df = pd.read_sql_query("SELECT %s FROM `%s`" % (_columns, table), self.__conn)
+        df = pd.read_sql_query("SELECT {fields} FROM `{table}` {condition}".format(
+            fields=_columns, table=table, condition='' if not where else 'WHERE ' + where
+        ), self.__conn)
         # 重命名字段
         if isinstance(columns, dict):
             df = df.rename(columns=columns)
