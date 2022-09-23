@@ -11,9 +11,7 @@ url = re.compile(r"^(http[s]?://.*)|(([\w\-]+\.){1,10}[a-zA-Z]{2,16}(?:\:\d+)?[/
 
 # find regex
 domain_find_regex = re.compile(r"(?:[\w-]+\.)+[0-9a-zA-Z]+")
-http_url_find_regex = re.compile(r'http[s]?://[\w\-.:]+\w+[\w./?&=+#%-]+')
-nohttp_url_find_regex = re.compile(r'(?:[\w\-]{1,128}\.){1,16}\w+(?:\:\d+)?[/?][\w./?&=+#%-]+')
-
+url_find_regex = re.compile(r'\b\w+://[\w\-.]+\w+(?::\d+)?[\w./?&=+#%@$-]+')
 
 plain_text = re.compile(r".*\.(txt|json|md|log|xml|yml|yaml|conf|ini)$", re.I)
 doc = re.compile(r".*\.("
@@ -74,11 +72,7 @@ def find_domains(text):
 
 
 def find_urls(text):
-    urls = http_url_find_regex.findall(text)
-    rmhttp = [re.sub("(http[s]?://)", "", url) for url in urls]
-    diff = set(nohttp_url_find_regex.findall(text)) - set(rmhttp)
-    urls.extend(list(diff))
-    return urls
+    return list(set(url_find_regex.findall(text)))
 
 
 ioc_find_regex = re.compile(r'('

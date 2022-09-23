@@ -10,6 +10,9 @@ from bs4 import BeautifulSoup
 from libs.regex import html, common_dom
 from utils.mixed import auto_decode, urlsite
 from libs.logger import logger
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 default_headers = {
     'Cache-Control': 'max-age=0',
@@ -92,7 +95,7 @@ class Spider(object):
                 continue
             # 爬取正常网页
             try:
-                resp = self.session.get(url, timeout=self.timeout)
+                resp = self.session.get(url, timeout=self.timeout, verify=False)
                 status_code = resp.status_code
                 logger.info('GET %s %s' % (url, status_code))
                 # https://stackoverflow.com/questions/20475552/python-requests-library-redirect-new-url

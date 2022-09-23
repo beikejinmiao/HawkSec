@@ -17,7 +17,7 @@ else:
     # 工作目录
     MAIN_HOME = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     # 工程名
-    WORK_NAME = MAIN_HOME.split(os.sep)[-1].lower()  # hawksec
+    WORK_NAME = 'hawksec'   # MAIN_HOME.split(os.sep)[-1].lower()  # hawksec
 
 #
 CONF_HOME = os.path.join(MAIN_HOME, 'conf')

@@ -19,9 +19,10 @@ from conf.paths import EXTRACT_METRIC_PATH
 from utils.filedir import traverse
 from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
-from libs.regex import find_ioc, is_valid_ip, is_gov_edu
+from libs.regex import find_urls, is_gov_edu
 from utils.idcard import find_idcard
 from utils.mixed import urlsite
+from tools import htmlurl
 from modules.interaction.metric import ExtractMetric
 from modules.win.settings import setting
 from libs.logger import logger
@@ -151,9 +152,7 @@ class TextExtractor(SuicidalQThread):
 
     def external_url(self, text):
         candidates = set()
-        for item in find_ioc(text):
-            if is_valid_ip(item):
-                continue
+        for item in find_urls(text):
             reg_domain = urlsite(item)
             if reg_domain == '' or reg_domain == self.website:
                 continue
@@ -214,14 +213,16 @@ class TextExtractor(SuicidalQThread):
                 'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
             }
             self._put_db_queue(TABLES.Extractor.value, record)
-            # self.db_rows[TABLES.Extractor.value].append(record)
+            # 如果发现新外链，尝试从a标签中提取title
+            exturl_title = dict()
+            if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
+                exturl_title = htmlurl.a(text)
             for value in values[1]:                                             # 本次新发现的敏感内容
                 record = {
                     'content': value, 'origin': self.files.get(local_path, origin),
-                    'sensitive_type': flag, 'sensitive_name': sensitive_name,
+                    'sensitive_type': flag, 'sensitive_name': sensitive_name, 'desc': exturl_title.get(value, '')
                 }
                 self._put_db_queue(TABLES.Sensitives.value, record)
-                # self.db_rows[TABLES.Sensitives.value].append(record)
         #
         self._update_metric()
         self.metrics.emit(self._metric)

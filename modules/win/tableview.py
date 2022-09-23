@@ -7,7 +7,7 @@ from PyQt6.QtCore import QDir, Qt, pyqtSlot
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt6.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
-from libs.enums import TABLES, SENSITIVE_NAME, sensitive_flag_name
+from libs.enums import TABLES, SENSITIVE_FLAG, SENSITIVE_NAME, sensitive_flag_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
@@ -367,19 +367,24 @@ class ExtractDataWindow(DataGridWindow):
 
 
 class SensitiveDataWindow(DataGridWindow):
-    def __init__(self, title='敏感内容列表', sensitive_type=None):
+    def __init__(self, title='敏感内容', sensitive_type=None):
         columns = dict(zip(
-            ['id', 'sensitive_name', 'content', 'origin', 'create_time'],
-            ['ID', '敏感类型', '敏感内容', '发现地址', '发现时间']
+            ['id', 'sensitive_name', 'content', 'desc', 'origin', 'create_time'],
+            ['ID', '敏感类型', '敏感内容', '描述', '发现地址', '发现时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
-                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
-                        QHeaderView.ResizeMode.ResizeToContents]
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
+                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
         if sensitive_type in sensitive_flag_name:
             db_where += 'sensitive_type=%s' % sensitive_type
-            title += '-' + sensitive_flag_name[sensitive_type].value
-
+            title = sensitive_flag_name[sensitive_type].value
+        title += '列表'
+        # 外链表格添加标题描述，其他移除描述
+        if sensitive_type != SENSITIVE_FLAG.URL:
+            del columns['desc']
+            column_modes.pop(3)
+        #
         super().__init__(table=TABLES.Sensitives.value,
                          columns=columns, column_modes=column_modes,
                          db_where=db_where, title=title)

@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 from peewee import *
 import datetime
+from collections import namedtuple
 from conf.paths import DB_PATH
 
 db = None
@@ -21,6 +22,11 @@ class CrawlStat(AbstractModel):
     created_time = DateTimeField(default=datetime.datetime.now)
 
 
+ExtractorRecord = namedtuple('ExtractorRecord', [
+    'id', 'origin', 'sensitive_type', 'sensitive_name', 'content', 'count', 'desc', 'created_time'
+])
+
+
 class Extractor(AbstractModel):
     id = IntegerField()
     origin = TextField()
@@ -30,6 +36,11 @@ class Extractor(AbstractModel):
     count = IntegerField()
     desc = TextField()
     created_time = DateTimeField(default=datetime.datetime.now)
+
+
+SensitivesRecord = namedtuple('SensitivesRecord', [
+    'id', 'content', 'sensitive_type', 'sensitive_name', 'origin', 'desc', 'created_time'
+])
 
 
 class Sensitives(AbstractModel):
