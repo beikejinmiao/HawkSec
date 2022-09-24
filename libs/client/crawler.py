@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 from collections import deque, namedtuple
 from bs4 import BeautifulSoup
 from libs.regex import html, common_dom
+from libs.regex import img, video, executable
 from utils.mixed import auto_decode, urlsite
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -42,6 +43,7 @@ class Spider(object):
         self.all_urls[start_url] = start_url
         self.broken_urls = dict()
         self.file_urls = dict()
+        self.__urlpath_limit = dict()       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
         self.__parsed_urls = set()
         #
         self.session = requests.session()
@@ -84,11 +86,32 @@ class Spider(object):
         """
         status_code = 0
         new_urls = deque([self._start_url])
-        # 保存所有URL的来源
         while len(new_urls):
             url = new_urls.popleft()
+            # 提取url site和url路径
+            """
+            urlsplit('https://xsc.baidu.cn/node/docs/49716.htm')
+            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='/node/docs/49716.htm', query='', fragment='')
+            urlsplit('https://xsc.baidu.cn/?q=node/49716.htm')
+            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='/', query='q=node/49716.htm', fragment='')
+            urlsplit('https://xsc.baidu.cn')    # 注意
+            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='', query='', fragment='')
+            """
+            parts = urlsplit(url)
+            site = "{0.scheme}://{0.netloc}".format(parts)
+            # 针对某些查询页面,参数组合范围极大,需要限制该路径下的URL数量,避免任务无法结束
+            urlpath = site + parts.path
+            if urlpath not in self.__urlpath_limit:
+                self.__urlpath_limit[urlpath] = 1
+            else:
+                _path_cnt_ = self.__urlpath_limit[urlpath]
+                if _path_cnt_ > 50:
+                    continue
+                self.__urlpath_limit[urlpath] = _path_cnt_ + 1
             # 处理文件链接(文件过大下载较慢,影响爬取速度)
             filename = url_file(url)
+            if self.filter(filename):
+                continue
             if filename:
                 self.file_urls[url] = self.all_urls.get(url)
                 yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
@@ -121,10 +144,9 @@ class Spider(object):
             if url in self.__parsed_urls:
                 continue
             self.__parsed_urls.add(url)
-            # 提取url site和url路径
-            parts = urlsplit(url)
-            site = "{0.scheme}://{0.netloc}".format(parts)
-            path = url[:url.rfind('/') + 1] if '/' in parts.path else url
+            # 获取当前链接的目录路径,用于本站内部相对路径href拼接
+            urldir = url[:url.rfind('/') + 1] if '/' in parts.path else url
+            urldir = urldir if urldir.endswith('/') else (urldir + '/')  # 和href拼接时需要有/
             # 解析HTML页面
             html_text = auto_decode(resp.content)       # resp.text
             soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
@@ -140,9 +162,11 @@ class Spider(object):
                 if href.startswith("http://") or href.startswith("https://"):
                     new_url = href
                 elif href.startswith("/"):
+                    # 绝对路径href
                     new_url = site + href
                 else:
-                    new_url = path + href
+                    # 相对路径href
+                    new_url = urldir + href
                 if self.same_site and urlsite(new_url) != self.site:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
@@ -154,4 +178,17 @@ class Spider(object):
                 if new_url and new_url not in self.all_urls:
                     self.all_urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)
+
+    def filter(self, path):
+        # 默认忽略图片、音频、视频、可执行文件
+        if img.match(path) or video.match(path) or executable.match(path):
+            return True
+        return False
+
+
+if __name__ == '__main__':
+    spider = Spider('https://finance.ifeng.com/')
+    from libs.regex import find_urls
+    for resp in spider.scrape():
+        print(find_urls(resp.html_text))
 
