@@ -259,10 +259,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             if not (code == '' or code.upper() == 'ALL'):
                 _db_where = ''
                 if self.table == TABLES.CrawlStat.value:
-                    _db_where = 'resp_code=%s' % code
+                    self.db_where = 'resp_code=%s' % code
                 elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
                     _db_where = 'sensitive_name="%s"' % code
-                if _db_where:
                     self.db_where = _db_where + ('' if not self.db_where else ' AND ' + self.db_where)
         if self.timeLineEdit.text():
             time_range = re.findall(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', self.timeLineEdit.text())
@@ -337,7 +336,7 @@ class ProgressDataWindow(DataGridWindow):
 
 
 class ExtractDataWindow(DataGridWindow):
-    def __init__(self, title='URL文件解析结果', sensitive_type=None):
+    def __init__(self, title='URL文件解析结果'):
         columns = dict(zip(
             ['id', 'origin', 'sensitive_name', 'content', 'count', 'create_time'],
             ['ID', 'URL/FILE路径', '敏感类型', '敏感内容', '数量', '创建时间']
@@ -345,25 +344,15 @@ class ExtractDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
-        db_where = ''
-        if sensitive_type in sensitive_flag_name:
-            db_where += 'sensitive_type=%s' % sensitive_type
-            title += '-' + sensitive_flag_name[sensitive_type].value
-
         super().__init__(table=TABLES.Extractor.value,
                          columns=columns, column_modes=column_modes,
-                         db_where=db_where, title=title)
+                         db_where=None, title=title)
 
     def modify_ui(self):
-        if not self.db_where:
-            self.searchCodeLabel.setText('敏感类型')
-            names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
-            for i, name in enumerate(names):
-                self.searchCodeComboBox.insertItem(i + 1, name)
-        else:
-            # 有初始条件的,目前不需要敏感类型查询框
-            self.searchCodeLabel.hide()
-            self.searchCodeComboBox.hide()
+        self.searchCodeLabel.setText('敏感类型')
+        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+        for i, name in enumerate(names):
+            self.searchCodeComboBox.insertItem(i + 1, name)
 
 
 class SensitiveDataWindow(DataGridWindow):

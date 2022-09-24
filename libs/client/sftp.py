@@ -80,6 +80,12 @@ class SSHSession(Downloader):
             for x in self._sftp_walk(new_path):
                 yield x
 
+    def filter(self, path):
+        # 默认忽略图片、音频、视频、可执行文件
+        if img.match(path) or video.match(path) or executable.match(path):
+            return True
+        return False
+
     def crawling(self):
         home = os.path.split(self.remote_root)[0]
         self.sftp.chdir(home)
@@ -93,10 +99,7 @@ class SSHSession(Downloader):
                     #    self._filepath_archive.flush()
                     remote_filepath = self._path_join(home, path, filename)
                     self._filepath_archive.write(remote_filepath + '\n')
-                    # 过滤图片、音视频、可执行程序
-                    if img.match(remote_filepath) or video.match(remote_filepath) or executable.match(remote_filepath):
-                        self._metric.crawl_ignored += 1
-                        logger.debug('Ignore: %s' % remote_filepath)
+                    if self.filter(remote_filepath):
                         continue
                     self.files.append(remote_filepath)
         except:
@@ -110,7 +113,6 @@ class SSHSession(Downloader):
 
     def downloads(self):
         suffix = list()
-        self._metric.file_ignored = self._metric.crawl_ignored
         #
         for remote_filepath in self.files:
             # 过滤白名单

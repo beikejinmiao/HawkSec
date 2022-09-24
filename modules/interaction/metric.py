@@ -22,16 +22,14 @@ class AbstractMetric(object):
 
 
 class CrawlMetric(AbstractMetric):
-    def __init__(self, crawl_total=0, crawl_success=0, crawl_failed=0, crawl_ignored=0,
-                 file_total=0, file_success=0, file_failed=0, file_ignored=0, queue_put=-1):
+    def __init__(self, crawl_total=0, crawl_success=0, crawl_failed=0,
+                 file_total=0, file_success=0, file_failed=0, queue_put=-1):
         self.crawl_total = crawl_total
         self.crawl_success = crawl_success
         self.crawl_failed = crawl_failed
-        self.crawl_ignored = crawl_ignored
         self.file_total = file_total
         self.file_success = file_success
         self.file_failed = file_failed
-        self.file_ignored = file_ignored
         self.queue_put = queue_put
 
 

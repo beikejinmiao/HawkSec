@@ -184,52 +184,55 @@ class TextExtractor(SuicidalQThread):
             return None
         #
         result = dict()
-        for flag in self.sensitive_flags:
-            # 只在网页中提取提取外链,下载的文件中默认不提取
-            if flag == SENSITIVE_FLAG.URL and local_path is not None:
-                continue
-            candidates = self.__funcs[flag](text)
-            if len(candidates) > 0:
-                self.sensitives[flag]['find'] += len(candidates)
-                candidates = set(candidates)  # 本次发现的敏感内容
-                if flag == SENSITIVE_FLAG.KEYWORD:
-                    candidates_new = candidates
-                else:
-                    candidates_new = candidates - self.sensitives[flag]['content']      # 本次新发现的敏感内容
-                result[flag] = (candidates, candidates_new)
-                self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
-                self.cur_result.emit(self.Result(flag=flag, origin=origin, content=','.join(candidates)))
-        # 针对压缩文件,解压后的路径已发生变化,重新拼接来源地址
-        if local_path is not None and local_path not in self.files \
-                and LOCAL_ZIP_PATH_FLAG in local_path and origin:
-            # 示例 http://1.1.1.1/test.zip    >>   http://1.1.1.1/test.zip.unpack/file_in.txt
-            origin = origin + local_path[local_path.index(LOCAL_ZIP_PATH_FLAG):]
-        #
-        for flag, values in result.items():
-            sensitive_name = sensitive_flag_name[flag].value
-            record = {
-                'origin': self.files.get(local_path, origin),                   # 保存远程文件路径或者URL
-                'sensitive_type': flag, 'sensitive_name': sensitive_name,
-                'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
-            }
-            self._put_db_queue(TABLES.Extractor.value, record)
-            # 如果发现新外链，尝试从a标签中提取title
-            exturl_title = dict()
-            if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
-                exturl_title = htmlurl.a(text)
-            for value in values[1]:                                             # 本次新发现的敏感内容
+        try:
+            for flag in self.sensitive_flags:
+                # 只在网页中提取提取外链,下载的文件中默认不提取
+                if flag == SENSITIVE_FLAG.URL and local_path is not None:
+                    continue
+                candidates = self.__funcs[flag](text)
+                if len(candidates) > 0:
+                    self.sensitives[flag]['find'] += len(candidates)
+                    candidates = set(candidates)  # 本次发现的敏感内容
+                    if flag == SENSITIVE_FLAG.KEYWORD:
+                        candidates_new = candidates
+                    else:
+                        candidates_new = candidates - self.sensitives[flag]['content']      # 本次新发现的敏感内容
+                    result[flag] = (candidates, candidates_new)
+                    self.sensitives[flag]['content'] = self.sensitives[flag]['content'] | candidates
+                    self.cur_result.emit(self.Result(flag=flag, origin=origin, content=','.join(candidates)))
+            # 针对压缩文件,解压后的路径已发生变化,重新拼接来源地址
+            if local_path is not None and local_path not in self.files \
+                    and LOCAL_ZIP_PATH_FLAG in local_path and origin:
+                # 示例 http://1.1.1.1/test.zip    >>   http://1.1.1.1/test.zip.unpack/file_in.txt
+                origin = origin + local_path[local_path.index(LOCAL_ZIP_PATH_FLAG):]
+            #
+            for flag, values in result.items():
+                sensitive_name = sensitive_flag_name[flag].value
                 record = {
-                    'content': value, 'origin': self.files.get(local_path, origin),
-                    'sensitive_type': flag, 'sensitive_name': sensitive_name, 'desc': exturl_title.get(value, '')
+                    'origin': self.files.get(local_path, origin),                   # 保存远程文件路径或者URL
+                    'sensitive_type': flag, 'sensitive_name': sensitive_name,
+                    'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
                 }
-                self._put_db_queue(TABLES.Sensitives.value, record)
-        #
-        self._update_metric()
-        self.metrics.emit(self._metric)
-        #
-        if len(result) > 0 and origin:
-            # self._sync2db()
-            self.results[origin] = result
+                self._put_db_queue(TABLES.Extractor.value, record)
+                # 如果发现新外链，尝试从a标签中提取title
+                exturl_title = dict()
+                if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
+                    exturl_title = htmlurl.a(text)
+                for value in values[1]:                                             # 本次新发现的敏感内容
+                    record = {
+                        'content': value, 'origin': self.files.get(local_path, origin),
+                        'sensitive_type': flag, 'sensitive_name': sensitive_name, 'desc': exturl_title.get(value, '')
+                    }
+                    self._put_db_queue(TABLES.Sensitives.value, record)
+            #
+            self._update_metric()
+            self.metrics.emit(self._metric)
+            #
+            if len(result) > 0 and origin:
+                # self._sync2db()
+                self.results[origin] = result
+        except Exception as e:
+            logger.error('解析敏感内容失败; %s: %s' % (str(e), origin))
         return result
 
     def __extract_file(self, local_path, origin=None):

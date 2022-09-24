@@ -9,7 +9,6 @@ from collections import Counter
 from urllib.parse import urlparse
 from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
-from libs.regex import img, video, executable
 from libs.client.crawler import Spider
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite
@@ -149,11 +148,7 @@ class WebFileDownloader(Downloader):
         #
         path = urlparse(url.strip()).path
         suffix = None
-        # 默认不下载图片和可执行文件
         self._metric.file_total += 1
-        if img.match(path) or video.match(path) or executable.match(path):
-            self._metric.file_ignored += 1
-            return None
         self._metric.crawl_total += 1
         logger.info('Download: %s' % url)
         try:
@@ -223,18 +218,17 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 # self.db_rows.append(record)
                 self._metric.crawl_total += 1
-                if resp.status_code == 200:
-                    self._metric.crawl_success += 1
-                else:
-                    self._metric.crawl_failed += 1
-                # 1.解析网页中的敏感内容
+                # 解析网页中的敏感内容
                 if resp.html_text and self.extractor is not None:
                     self.extractor.extract(resp.html_text, origin=resp.url)
-            except UnicodeEncodeError as e:
-                logger.error(str(e) + ': %s' % resp.url)
             except:
                 logger.error(traceback.format_exc())
                 logger.error(resp.url)
+            #
+            if 0 < resp.status_code < 400:
+                self._metric.crawl_success += 1
+            else:
+                self._metric.crawl_failed += 1
             self.metrics.emit(self._metric)
         # 2. 下载文件解析敏感内容
         self.urls = list(self.file_urls.keys())

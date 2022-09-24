@@ -9,6 +9,8 @@ from collections import namedtuple
 from PyQt6.QtWidgets import QWidget, QApplication, QDialog, QSizePolicy, QLayout
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)))
 from libs.pyaml import configure
 from libs.enums import sensitive_flag_name, SENSITIVE_FLAG
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
@@ -436,11 +438,8 @@ class MainWindow(UiMainWindow, QWidget):
             self.progressWindow = ProgressDataWindow()
         self.progressWindow.show()
 
-    def show_extract_win(self, target=None):
-        if isinstance(target, SENSITIVE_FLAG):
-            self.extractWindow = ExtractDataWindow(sensitive_type=target.value)
-        else:
-            self.extractWindow = ExtractDataWindow()
+    def show_extract_win(self):
+        self.extractWindow = ExtractDataWindow()
         self.extractWindow.show()
 
     def show_sensitive_win(self, target=None):
