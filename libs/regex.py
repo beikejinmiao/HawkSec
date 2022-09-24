@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-
 import re
 import tldextract
+import html as htmlparser
+from urllib.parse import unquote
+
 
 ipv4 = re.compile(r"^((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)(\.((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)){3}$")
 # http://stackoverflow.com/questions/9238640/how-long-can-a-tld-possibly-be
 domain = re.compile(r"^([\w\-]{1,128}\.){1,255}[a-zA-Z]{2,16}$")
-url = re.compile(r"^(http[s]?://.*)|(([\w\-]+\.){1,10}[a-zA-Z]{2,16}(?:\:\d+)?[/?].*)$")
+url = re.compile(r"^(http[s]?://.*)|(([\w\-]+\.){1,10}[a-zA-Z]{2,16}(?::\d+)?[/?].*)$")
 
 # find regex
 domain_find_regex = re.compile(r"(?:[\w-]+\.)+[0-9a-zA-Z]+")
-url_find_regex = re.compile(r'\b\w+://[\w\-.]+\w+(?::\d+)?[\w./?&=+#%@$-]+')
+url_find_regex = re.compile(r'(?:tcp|http[s]?|[t]?ftp|ssh|git|jdbc|telnet)://'
+                            r'[\w\-.]+\w+(?::\d+)?'
+                            r'(?:/|\?)[\w./?;&=+#%@$-]*')
 
 plain_text = re.compile(r".*\.(txt|json|md|log|xml|yml|yaml|conf|ini)$", re.I)
 doc = re.compile(r".*\.("
@@ -72,7 +76,7 @@ def find_domains(text):
 
 
 def find_urls(text):
-    return list(set(url_find_regex.findall(text)))
+    return list(set(map(lambda x: unquote(htmlparser.unescape(x)), url_find_regex.findall(text))))
 
 
 ioc_find_regex = re.compile(r'('
