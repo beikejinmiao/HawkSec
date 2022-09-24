@@ -11,6 +11,9 @@ import requests
 from requests import HTTPError
 import urllib.parse as urlparse
 from collections import namedtuple
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def filename_from_url(url):
@@ -110,20 +113,32 @@ header = {
 RespFileInfo = namedtuple('RespFileInfo', ['url', 'filepath', 'status_code', 'desc'])
 
 
-def download(url, out=None):
+def download(url, out=None, size_limit=25165824):
     # https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
     # NOTE the stream=True parameter below
     parsed = urlparse.urlparse(url)
     header['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
     try:
-        with requests.get(url, stream=True, headers=header) as resp:
+        # ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
+        # unable to get local issuer certificate (_ssl.c:1131)
+        with requests.get(url, stream=True, headers=header, verify=False) as resp:
             resp.raise_for_status()
+            # 判断文件大小
+            resp_headers = resp.headers
+            for h in resp_headers.keys():
+                resp_headers[h.lower()] = resp_headers[h]
+            content_length = int(resp_headers.get('content-length', 0))
+            if content_length > size_limit:
+                return RespFileInfo(url=url, filepath=None, status_code=-1,
+                                    desc='文件大小(%sM)超过最大限制(24M)' % (content_length//1048576))
+            # 获取文件名和本地路径
             if out and os.path.isdir(out):
-                filename = os.path.join(out, detect_filename(url, None, resp.headers))
+                filename = os.path.join(out, detect_filename(url, None, resp_headers))
             else:
-                filename = detect_filename(url, out, resp.headers)
+                filename = detect_filename(url, out, resp_headers)
             if os.path.exists(filename):
                 filename = filename_fix_existed(filename)
+            # 分块下载
             with open(filename, 'wb') as f:
                 for chunk in resp.iter_content(chunk_size=8192):
                     f.write(chunk)
@@ -135,7 +150,6 @@ def download(url, out=None):
 
 if __name__ == "__main__":
     from conf.paths import DOWNLOADS
-    file_url = 'http://106.13.202.41/downloads/docs/test.ppt'
-    filepath = download(file_url, out=DOWNLOADS).filepath
-    print("")
-    print("Saved under %s" % filepath)
+    file_url = 'https://physics.cnu.edu.cn/pub/wlxnew/docs/2020-02/20200213161228580437.rar'
+    resp = download(file_url, out=DOWNLOADS)
+    print(resp)
