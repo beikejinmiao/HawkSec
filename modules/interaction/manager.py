@@ -110,9 +110,6 @@ class TaskManager(QObject):
         
     @staticmethod
     def clear():
-        sqlite = Sqlite()
-        sqlite.truncate([TABLES.CrawlStat.value, TABLES.Extractor.value, TABLES.Sensitives.value])
-        sqlite.close()
         # TODO 清空文件会导致GUI日志线程无法读取内容
         # if os.path.exists(LOG_FILEPATH):
         #     with open(LOG_FILEPATH, 'w') as fopen:
@@ -124,6 +121,10 @@ class TaskManager(QObject):
         if os.path.exists(DOWNLOADS):
             shutil.rmtree(DOWNLOADS)
         os.makedirs(DOWNLOADS)
+        #
+        sqlite = Sqlite()
+        sqlite.truncate([TABLES.CrawlStat.value, TABLES.Extractor.value, TABLES.Sensitives.value])
+        sqlite.close()
         logger.info('成功清除历史数据')
 
 

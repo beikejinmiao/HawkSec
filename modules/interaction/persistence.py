@@ -4,6 +4,7 @@ import time
 from queue import Empty
 from libs.pysqlite import Sqlite
 from libs.thread import SuicidalThread
+from libs.logger import logger
 
 
 class DbPersistence(SuicidalThread):
