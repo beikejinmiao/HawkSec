@@ -4,7 +4,6 @@ import os
 import re
 import requests
 from urllib.parse import urlparse
-from urllib.parse import urlsplit
 from collections import deque, namedtuple
 from bs4 import BeautifulSoup
 from libs.regex import html, common_dom
@@ -36,7 +35,7 @@ def url_file(url):
 class Spider(object):
     def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
         self._start_url = start_url
-        self.site = urlsite(start_url)
+        self.site = urlsite(start_url).reg_domain
         self.same_site = same_site          # 是否限制只爬取同站网页
         #
         self.all_urls = dict()          # key: url, value: 该url的来源地址
@@ -90,14 +89,14 @@ class Spider(object):
             url = new_urls.popleft()
             # 提取url site和url路径
             """
-            urlsplit('https://xsc.baidu.cn/node/docs/49716.htm')
-            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='/node/docs/49716.htm', query='', fragment='')
-            urlsplit('https://xsc.baidu.cn/?q=node/49716.htm')
-            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='/', query='q=node/49716.htm', fragment='')
-            urlsplit('https://xsc.baidu.cn')    # 注意
-            >> SplitResult(scheme='https', netloc='xsc.baidu.cn', path='', query='', fragment='')
+            urlparse('https://xsc.baidu.cn/node/docs/49716.htm')
+            >> ParseResult(scheme='https', netloc='xsc.baidu.cn', path='/node/docs/49716.htm', params='', query='', fragment='')
+            urlparse('https://xsc.baidu.cn/?q=node/49716.htm')
+            >> ParseResult(scheme='https', netloc='xsc.baidu.cn', path='/', params='', query='q=node/49716.htm', fragment='')
+            urlparse('https://xsc.baidu.cn')    # 注意
+            >> ParseResult(scheme='https', netloc='xsc.baidu.cn', path='', params='', query='', fragment='')
             """
-            parts = urlsplit(url)
+            parts = urlparse(url)
             site = "{0.scheme}://{0.netloc}".format(parts)
             # 针对某些查询页面,参数组合范围极大,需要限制该路径下的URL数量,避免任务无法结束
             urlpath = site + parts.path
@@ -167,7 +166,7 @@ class Spider(object):
                 else:
                     # 相对路径href
                     new_url = urldir + href
-                if self.same_site and urlsite(new_url) != self.site:
+                if self.same_site and urlsite(new_url).reg_domain != self.site:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
@@ -187,8 +186,9 @@ class Spider(object):
 
 
 if __name__ == '__main__':
-    spider = Spider('https://finance.ifeng.com/')
+    spider = Spider('https://rtx.bcsa.edu.cn/lixiao.html')
     from libs.regex import find_urls
     for resp in spider.scrape():
-        print(find_urls(resp.html_text))
+        if resp.html_text:
+            print(find_urls(resp.html_text))
 

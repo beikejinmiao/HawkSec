@@ -9,4 +9,4 @@ data = [
 
 for item in data:
     print(item)
-    print('>>', urlsite(item, tld=True))
+    print('>>', urlsite(item))

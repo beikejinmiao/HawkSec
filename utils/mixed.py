@@ -5,7 +5,7 @@ import paramiko
 import tldextract
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 
 def tree():
@@ -49,7 +49,7 @@ def human_timedelta(seconds):
         fmt = '{days}天{hour}小时{min}分{sec}秒'
     elif d['hour'] > 0:
         fmt = '{hour}小时{min}分{sec}秒'
-    elif d['hour'] > 0:
+    elif d['min'] > 0:
         fmt = '{min}分{sec}秒'
     else:
         fmt = '{sec}秒'
@@ -79,27 +79,21 @@ def auto_decode(text):
     return None
 
 
-def urlsite(url, tld=True):
+UrlSiteResult = namedtuple('UrlSiteResult', ['subdomain', 'domain', 'suffix', 'reg_domain', 'hostname'])
+
+
+def urlsite(url):
     url = url.lower()
     site = ''
     if re.match(r'^\w+://', url):
         site = urlparse(url).netloc
     #
     ext = tldextract.extract(url)
-    if tld is True:
-        if ext.registered_domain != '':
-            return ext.registered_domain
-        elif site != '':
-            return site
-        else:
-            return ''
-    #
-    site = ext.subdomain
-    if ext.domain:
-        site = site + ('.' if site else '') + ext.domain
-    if ext.suffix:
-        site = site + ('.' if site else '') + ext.suffix
-    return site
+    if not ext.registered_domain:
+        return UrlSiteResult(subdomain='', domain='', suffix='',
+                             reg_domain='', hostname=site)
+    return UrlSiteResult(subdomain=ext.subdomain, domain=ext.domain, suffix=ext.suffix,
+                         reg_domain=ext.registered_domain, hostname=ext.fqdn)
 
 
 if __name__ == '__main__':
