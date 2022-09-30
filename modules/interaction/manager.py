@@ -79,7 +79,7 @@ class TaskManager(QObject):
         return client
 
     def __init_extractor(self):
-        site = urlsite(self.target)
+        site = urlsite(self.target).reg_domain
         return TextExtractor(sensitive_flags=self.sensitive_flags, keywords=self._keywords,
                              path_queue=self.path_queue, db_queue=self.db_queue, website=site)
 

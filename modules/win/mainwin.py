@@ -298,7 +298,7 @@ class MainWindow(UiMainWindow, QWidget):
             origin=result.origin, name=sensitive_flag_name[flag].value, content=result.content))
 
     def _set_expend_time(self, seconds):
-        seconds = int(seconds)
+        seconds = round(seconds)
         # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
         # expend_time = '{:0>8}'.format(str(datetime.timedelta(seconds=seconds)))
         expend_time = human_timedelta(seconds)

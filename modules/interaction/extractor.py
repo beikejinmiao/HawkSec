@@ -5,6 +5,7 @@ import re
 import time
 import shutil
 import traceback
+from urllib.parse import urlparse
 from collections.abc import Iterable
 from collections import namedtuple
 from PyQt6.QtCore import pyqtSignal
@@ -77,15 +78,8 @@ class TextExtractor(SuicidalQThread):
         self._white_domain = set()
         self._white_url_file = set()
         self.__load_whitelist()
-        #
-        # self.db_rows = {
-        #     TABLES.Extractor.value: list(),
-        #     TABLES.Sensitives.value: list(),
-        # }
-        # self.__db_row_ix = {
-        #     TABLES.Extractor.value: 0,
-        #     TABLES.Sensitives.value: 0,
-        # }
+        # 限制外链数量
+        self.__ext_urlpath_limit = dict()
 
     def __get_files(self, root):
         # 递归遍历所有本地文件路径
@@ -153,13 +147,22 @@ class TextExtractor(SuicidalQThread):
     def external_url(self, text):
         candidates = set()
         for item in find_urls(text):
-            reg_domain = urlsite(item)
+            # 过滤同站和白域名
+            reg_domain = urlsite(item).reg_domain
             if reg_domain == '' or reg_domain == self.website:
                 continue
             if is_gov_edu(reg_domain) or reg_domain in self._white_domain:
                 continue
             if setting.builtin_alexa is True and reg_domain in alexa:
                 continue
+            # 同一个站点路径,只保存一条记录
+            parts = urlparse(item)
+            urlpath = "{0.scheme}://{0.netloc}{0.path}".format(parts)
+            if urlpath in self.__ext_urlpath_limit:
+                continue
+            else:
+                self.__ext_urlpath_limit[urlpath] = 1
+            #
             candidates.add(item)
         return list(candidates)
 
