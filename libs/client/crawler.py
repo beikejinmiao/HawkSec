@@ -104,7 +104,7 @@ class Spider(object):
                 self.__urlpath_limit[urlpath] = 1
             else:
                 _path_cnt_ = self.__urlpath_limit[urlpath]
-                if _path_cnt_ > 50:
+                if _path_cnt_ > 5000:
                     continue
                 self.__urlpath_limit[urlpath] = _path_cnt_ + 1
             # 处理文件链接(文件过大下载较慢,影响爬取速度)
@@ -174,6 +174,7 @@ class Spider(object):
                     continue
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
+                new_url = re.sub(r'[\r\n\t]+', '', new_url)
                 if new_url and new_url not in self.all_urls:
                     self.all_urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)

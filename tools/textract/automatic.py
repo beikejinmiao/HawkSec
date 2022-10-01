@@ -13,6 +13,10 @@ from libs.logger import logger
 
 
 def tikatext(filepath):
+    # Caused by: org.apache.poi.util.RecordFormatException:
+    #   Tried to allocate an array of length 104,617,645, but the maximum length for this record type is 100,000,000
+    # If the file is not corrupt or large, please open an issue on bugzilla to request
+    # increasing the maximum allowable size for this record type.
     return tikarser.from_file(filepath)["content"]
 
 
@@ -53,8 +57,8 @@ def extract(filepath):
         else:
             # 优先使用tika解析
             if TIKA_SERVER_ACTIVE:
-                content = tikatext(filepath)
-            else:
+                content = tikatext(filepath)        # tika解析失败返回None
+            if not TIKA_SERVER_ACTIVE or content is None:
                 if re.match(r'.*\.(docx|xls[x]?|pptx|pdf)$', filepath, re.I):
                     content = autocheck(filepath)
                 # linux不支持doc/ppt提取文本
@@ -64,7 +68,7 @@ def extract(filepath):
         logger.error('提取文本失败: %s' % filepath)
         logger.error(traceback.format_exc())
     #
-    content = content.strip()
+    content = '' if content is None else content.strip()
     if content:
         logger.info('提取文本成功: %s' % filepath)
     return content
