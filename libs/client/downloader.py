@@ -42,18 +42,7 @@ class Downloader(SuicidalQThread):
     def _put_path_queue(self, msg):
         if self.path_queue is None:
             return
-        # 当queue长度大于1000时等待消费端处理,避免堆积过多导致占用过多磁盘空间
-        while self.path_queue.qsize() > 1000:
-            logger.debug('Queue size greater than 1000, sleep 1s.')
-            time.sleep(1)
-        try:
-            # self.path_queue.put(msg, block=True)        # 阻塞至有空闲槽可用
-            self.path_queue.put(msg, block=False)         # 可停止的线程不能阻塞
-        except Full:
-            time.sleep(1)
-        if self._metric.queue_put < 0:
-            self._metric.queue_put = 0
-        self._metric.queue_put += 1
+        self.path_queue.put(msg, block=True)         # 可停止的线程不能阻塞
 
     def _put_db_queue(self, table, record):
         if self.db_queue is None:
@@ -128,18 +117,16 @@ class Downloader(SuicidalQThread):
 
 
 class WebFileDownloader(Downloader):
-    def __init__(self, urls=None, urls_file=None, out_dir=DOWNLOADS, path_queue=None, db_queue=None):
+    def __init__(self, urls=None, url_file=None, out_dir=DOWNLOADS, path_queue=None, db_queue=None):
         super().__init__(out_dir=out_dir, path_queue=path_queue, db_queue=db_queue)
 
-        # if not urls and not urls_file:
-        #     raise ValueError('下载地址和地址文件不能同时为空')
-        self.urls = list()
-        if urls_file:
-            with open(urls_file) as fopen:
-                _urls_ = fopen.readlines()
-            self.urls.extend(_urls_)
+        self.file_urls = list()
         if urls:
-            self.urls.extend(list(urls))
+            self.file_urls.extend(list(urls))
+        if url_file:
+            with open(url_file) as fopen:
+                self.file_urls.extend(fopen.readlines())
+        self.file_urls = [url.strip() for url in self.file_urls]
 
     def download(self, url):
         # 过滤白名单
@@ -169,7 +156,7 @@ class WebFileDownloader(Downloader):
         except Exception as e:
             self._metric.file_failed += 1
             self._metric.crawl_failed += 1
-            record = {'origin': url, 'resp_code': -1, 'desc': str(e)}
+            record = {'origin': url, 'resp_code': -1, 'desc': type(e).__name__}
             self._put_db_queue(TABLES.CrawlStat.value, record)
             # self.db_rows.append(record)
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
@@ -179,7 +166,7 @@ class WebFileDownloader(Downloader):
 
     def downloads(self):
         suffixes = list()
-        for url in self.urls:
+        for url in self.file_urls:
             suffix = self.download(url)
             if suffix is not None:
                 suffixes.append(suffix)
@@ -231,10 +218,10 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 self._metric.crawl_failed += 1
             self.metrics.emit(self._metric)
         # 2. 下载文件解析敏感内容
-        self.urls = list(self.file_urls.keys())
+        self.file_urls = list(self._file_urls.keys())
         logger.info('爬取URL结束')
         logger.info('爬虫客户端Metric统计: %s' % self._metric)
-        logger.info('发现文件URL: %s个' % len(self.urls))
+        logger.info('发现文件URL: %s个' % len(self.file_urls))
 
     def cleanup(self):
         self.session.close()

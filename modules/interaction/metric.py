@@ -23,29 +23,25 @@ class AbstractMetric(object):
 
 class CrawlMetric(AbstractMetric):
     def __init__(self, crawl_total=0, crawl_success=0, crawl_failed=0,
-                 file_total=0, file_success=0, file_failed=0, queue_put=-1):
+                 file_total=0, file_success=0, file_failed=0):
         self.crawl_total = crawl_total
         self.crawl_success = crawl_success
         self.crawl_failed = crawl_failed
         self.file_total = file_total
         self.file_success = file_success
         self.file_failed = file_failed
-        self.queue_put = queue_put
 
 
 class ExtractMetric(AbstractMetric):
-    def __init__(self, external_url_find=0, external_url_count=0,
-                 idcard_find=0, idcard_count=0,
-                 keyword_find=0, keyword_count=0,
-                 origin_hit=0, queue_get=-1):
-        self.exturl_find = external_url_find
-        self.exturl_count = external_url_count
+    def __init__(self, exturl_find=0, exturl_count=0, idcard_find=0, idcard_count=0,
+                 keyword_find=0, keyword_count=0, origin_hit=0):
+        self.exturl_find = exturl_find
+        self.exturl_count = exturl_count
         self.idcard_find = idcard_find
         self.idcard_count = idcard_count
         self.keyword_find = keyword_find
         self.keyword_count = keyword_count
         self.origin_hit = origin_hit
-        self.queue_get = queue_get
 
 
 class QCrawlExtProgress(QThread):

@@ -9,7 +9,7 @@ __version__ = "1.0"
 import os
 import requests
 from requests import HTTPError
-import urllib.parse as urlparse
+from urllib.parse import urlparse
 from collections import namedtuple
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -19,7 +19,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 def filename_from_url(url):
     """:return: detected filename as unicode or None"""
     # [ ] test urlparse behavior with unicode url
-    fname = os.path.basename(urlparse.urlparse(url).path)
+    fname = os.path.basename(urlparse(url).path)
     if len(fname.strip(" \n\t.")) == 0:
         return None
     return fname
@@ -116,7 +116,7 @@ RespFileInfo = namedtuple('RespFileInfo', ['url', 'filepath', 'status_code', 'de
 def download(url, out=None, size_limit=25165824):
     # https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
     # NOTE the stream=True parameter below
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse(url)
     header['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
     try:
         # ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:

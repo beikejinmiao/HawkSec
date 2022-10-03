@@ -40,8 +40,9 @@ class DbPersistence(SuicidalThread):
                     self.sync2db()
                     self.__new_row_cnt = 0
                     self.__pre_time = self.__cur_time
+                    self.__cur_time = time.time()
             except Empty:
-                time.sleep(0.2)
+                time.sleep(1)
                 self.__cur_time = time.time()
                 if (self.__cur_time - self.__pre_time) > 2:
                     # 数量超过10个或者时间超过2秒,同步数据至数据库

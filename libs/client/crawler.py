@@ -5,6 +5,7 @@ import re
 import requests
 from urllib.parse import urlparse
 from collections import deque, namedtuple
+from collections.abc import Iterable
 from bs4 import BeautifulSoup
 from libs.regex import html, common_dom
 from libs.regex import img, video, executable
@@ -36,12 +37,20 @@ class Spider(object):
     def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
         self._start_url = start_url
         self.site = urlsite(start_url).reg_domain
-        self.same_site = same_site          # 是否限制只爬取同站网页
+        # 是否限制只爬取同站网页
+        if same_site is False or same_site is None:
+            self._site_allows = None           # 不做任何限制
+        else:
+            self._site_allows = set()
+            self._site_allows.add(self.site)   # 默认包含本站
+            if isinstance(same_site, Iterable):
+                for site in same_site:
+                    self._site_allows.add(urlsite(site).reg_domain)    # 限定范围
         #
-        self.all_urls = dict()          # key: url, value: 该url的来源地址
-        self.all_urls[start_url] = start_url
-        self.broken_urls = dict()
-        self.file_urls = dict()
+        self.urls = dict()          # key: url, value: 该url的来源地址
+        self.urls[start_url] = start_url
+        self._broken_urls = dict()
+        self._file_urls = dict()
         self.__urlpath_limit = dict()       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
         self.__parsed_urls = set()
         #
@@ -112,7 +121,7 @@ class Spider(object):
             if self.filter(filename):
                 continue
             if filename:
-                self.file_urls[url] = self.all_urls.get(url)
+                self._file_urls[url] = self.urls.get(url)
                 yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
                 continue
             # 爬取正常网页
@@ -124,19 +133,19 @@ class Spider(object):
                 # 如果发生重定向,更新URL,避免提取页面href后拼接错误新URL(大量404)
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
-                    self.all_urls[url] = '302'
-                    self.all_urls[resp.url] = url
+                    self.urls[url] = '302'
+                    self.urls[resp.url] = url
                     url = self.abspath(resp.url, site=self.site)  # 更新重定向后的URL
                     # 再次处理文件链接
                     filename = url_file(url)
                     if filename:
-                        self.file_urls[url] = self.all_urls.get(url)
+                        self._file_urls[url] = self.urls.get(url)
                         yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
                         continue
             # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
-                self.broken_urls[url] = self.all_urls.get(url, '')
+                self._broken_urls[url] = self.urls.get(url, '')
                 yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None, desc=type(e).__name__)
                 continue
             # 针对已解析过的URL页面,忽略 -- 某些重定向页面(404/403等被重定向至固定页面)会反复出现
@@ -166,7 +175,7 @@ class Spider(object):
                 else:
                     # 相对路径href
                     new_url = urldir + href
-                if self.same_site and urlsite(new_url).reg_domain != self.site:
+                if self._site_allows is not None and urlsite(new_url).reg_domain not in self._site_allows:
                     continue
                 new_url = self.abspath(new_url, site=self.site)
                 # 限制URL
@@ -175,8 +184,8 @@ class Spider(object):
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
                 new_url = re.sub(r'[\r\n\t]+', '', new_url)
-                if new_url and new_url not in self.all_urls:
-                    self.all_urls[new_url] = url  # 保存该new_url的来源地址
+                if new_url and new_url not in self.urls:
+                    self.urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)
 
     def filter(self, path):
