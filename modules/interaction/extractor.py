@@ -24,6 +24,7 @@ from libs.regex import find_urls, is_gov_edu
 from utils.idcard import find_idcard
 from utils.mixed import urlsite
 from tools import htmlurl
+from tools.webcrawl.pagetitle import webtitle
 from modules.interaction.metric import ExtractMetric
 from modules.win.settings import setting
 from libs.logger import logger
@@ -217,15 +218,21 @@ class TextExtractor(SuicidalQThread):
                     'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
                 }
                 self._put_db_queue(TABLES.Extractor.value, record)
-                # 如果发现新外链，尝试从a标签中提取title
-                exturl_title = dict()
+                # 如果发现新外链，尝试从a标签中提取title，并尝试访问校验其返回码
+                exturl_info = dict()
                 if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
-                    exturl_title = htmlurl.a(text)
+                    exturl_info = htmlurl.a(text)
+                    for url in values[1]:
+                        resp = webtitle(url)
+                        exturl_info[url] = (resp.title if resp.title else exturl_info.get(url, ''),
+                                            '%s %s' % (resp.status_code, resp.desc))
+                #
                 for value in values[1]:                                             # 本次新发现的敏感内容
                     record = {
                         'content': value, 'origin': self.files.get(local_path, origin),
-                        'sensitive_type': flag, 'sensitive_name': sensitive_name, 'desc': exturl_title.get(value, '')
+                        'sensitive_type': flag, 'sensitive_name': sensitive_name
                     }
+                    record['content_name'], record['desc'] = exturl_info.get(value, ('', ''))
                     self._put_db_queue(TABLES.Sensitives.value, record)
             #
             self._update_metric()

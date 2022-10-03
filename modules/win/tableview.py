@@ -358,12 +358,13 @@ class ExtractDataWindow(DataGridWindow):
 class SensitiveDataWindow(DataGridWindow):
     def __init__(self, title='敏感内容', sensitive_type=None):
         columns = dict(zip(
-            ['id', 'sensitive_name', 'content', 'desc', 'origin', 'create_time'],
-            ['ID', '敏感类型', '敏感内容', '描述', '发现地址', '发现时间']
+            ['id', 'sensitive_name', 'content', 'content_name', 'desc', 'origin', 'create_time'],
+            ['ID', '敏感类型', '敏感内容', '内容名称', '描述', '发现地址', '发现时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
-                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.ResizeToContents]
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
+                        QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
         if sensitive_type in sensitive_flag_name:
             db_where += 'sensitive_type=%s' % sensitive_type
@@ -371,7 +372,9 @@ class SensitiveDataWindow(DataGridWindow):
         title += '列表'
         # 外链表格添加标题描述，其他移除描述
         if sensitive_type != SENSITIVE_FLAG.URL:
+            del columns['content_name']
             del columns['desc']
+            column_modes.pop(3)
             column_modes.pop(3)
         #
         super().__init__(table=TABLES.Sensitives.value,
