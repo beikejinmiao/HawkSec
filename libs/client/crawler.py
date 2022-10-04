@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import re
 import requests
 from urllib.parse import urlparse
 from collections import deque, namedtuple
@@ -14,6 +15,8 @@ from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+# http://www.bjamu.cn/mailto:hr@hofu.co
+MAIL_URL_REGEX = re.compile(r'/mailto:.+?@\w+\.\w+', re.I)
 
 
 class Spider(object):
@@ -137,6 +140,9 @@ class Spider(object):
                 new_url = absurl(new_url, site=self.site)
                 # 限制URL
                 if path_limit and path_limit not in new_url:
+                    continue
+                # 忽略邮件URL链接： http://www.bjamu.cn/mailto:bjjpjc@163.com
+                if MAIL_URL_REGEX.search(new_url):
                     continue
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
