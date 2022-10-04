@@ -18,6 +18,7 @@ class SplashScreen(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.mainWindow = None
         self.__init_ui()
         self.__init_state()
 
@@ -43,8 +44,8 @@ class SplashScreen(QWidget):
 
     def show_mainwin(self):
         if self.player.playbackState() == QMediaPlayer.PlaybackState.StoppedState:
-            window = MainWindow()
-            window.show()
+            self.mainWindow = MainWindow()      # 该变量必须定义在self下,否则动画结束后会主页窗口莫名其妙的退出
+            self.mainWindow.show()
         self.close()
 
 
@@ -56,6 +57,13 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 
 # def default_splash():
+#     import os
+#     import time
+#     from conf.paths import PRIVATE_RESOURCE_HOME
+#     from PyQt6.QtWidgets import QSplashScreen, QProgressBar
+#     from PyQt6.QtCore import QDir, Qt
+#     from PyQt6.QtGui import QPixmap
+#
 #     app = QApplication(sys.argv)
 #     QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))
 #     pixmap = QPixmap("image:bg.png")
