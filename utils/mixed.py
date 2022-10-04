@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import re
 import paramiko
-import tldextract
-from urllib.parse import urlparse
 from datetime import datetime, timedelta
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 
 def tree():
@@ -77,23 +74,6 @@ def auto_decode(text):
         except UnicodeDecodeError:
             pass
     return None
-
-
-UrlSiteResult = namedtuple('UrlSiteResult', ['subdomain', 'domain', 'suffix', 'reg_domain', 'hostname'])
-
-
-def urlsite(url):
-    url = url.lower()
-    site = ''
-    if re.match(r'^\w+://', url):
-        site = urlparse(url).netloc
-    #
-    ext = tldextract.extract(url)
-    if not ext.registered_domain:
-        return UrlSiteResult(subdomain='', domain='', suffix='',
-                             reg_domain='', hostname=site)
-    return UrlSiteResult(subdomain=ext.subdomain, domain=ext.domain, suffix=ext.suffix,
-                         reg_domain=ext.registered_domain, hostname=ext.fqdn)
 
 
 if __name__ == '__main__':

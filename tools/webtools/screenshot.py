@@ -33,7 +33,7 @@ def md5(content):
 
 def __webshot(url):
     # 初始化谷歌浏览器实例
-    chrome_driver = os.path.join(TOOLS_HOME, 'webcrawl', 'chromedriver.exe')
+    chrome_driver = os.path.join(TOOLS_HOME, 'web', 'chromedriver.exe')
     broswer = webdriver.Chrome(service=Service(chrome_driver))
     broswer.maximize_window()
     #

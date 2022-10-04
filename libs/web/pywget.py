@@ -106,8 +106,8 @@ def detect_filename(url=None, out=None, headers=None, default="download.wget"):
     return names["out"] or names["headers"] or names["url"] or default
 
 
-header = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36',
+http_headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
 }
 
 RespFileInfo = namedtuple('RespFileInfo', ['url', 'filepath', 'status_code', 'desc'])
@@ -117,11 +117,11 @@ def download(url, out=None, size_limit=25165824):
     # https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests
     # NOTE the stream=True parameter below
     parsed = urlparse(url)
-    header['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
+    http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
     try:
         # ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
         # unable to get local issuer certificate (_ssl.c:1131)
-        with requests.get(url, stream=True, headers=header, verify=False) as resp:
+        with requests.get(url, stream=True, headers=http_headers, verify=False) as resp:
             resp.raise_for_status()
             # 判断文件大小
             resp_headers = resp.headers
@@ -151,5 +151,5 @@ def download(url, out=None, size_limit=25165824):
 if __name__ == "__main__":
     from conf.paths import DOWNLOADS
     file_url = 'https://physics.cnu.edu.cn/pub/wlxnew/docs/2020-02/20200213161228580437.rar'
-    resp = download(file_url, out=DOWNLOADS)
-    print(resp)
+    response = download(file_url, out=DOWNLOADS)
+    print(response)

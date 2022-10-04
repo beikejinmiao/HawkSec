@@ -13,7 +13,7 @@ from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
 from modules.interaction.extractor import TextExtractor
 from modules.interaction.persistence import DbPersistence
-from utils.mixed import urlsite
+from libs.web.url import urlsite
 from libs.logger import logger
 
 browser_protocols = ('http', 'https', 'ftp')

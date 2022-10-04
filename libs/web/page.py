@@ -6,24 +6,17 @@ from requests import HTTPError
 from urllib.parse import urlparse
 from http.client import responses
 from bs4 import BeautifulSoup
+from conf.config import http_headers
 from utils.mixed import auto_decode
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-#
-headers = {
-    'Cache-Control': 'max-age=0',
-    'Connection': 'keep-alive',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
-}
-#
-# RespInfo = namedtuple('RespInfo', ['url', 'title', 'html_text', 'status_code', 'desc'])
 
 
-class RespTitleInfo(object):
+class RespInfo(object):
     def __init__(self, url='', title='', html_text='', status_code=-1, desc='', response=None):
-        self.url = url
+        self.url = url.strip()
         self.title = title
         self.html_text = html_text
         self.status_code = status_code
@@ -36,19 +29,19 @@ class RespTitleInfo(object):
 
 def try_crawl(url, resp=None):
     parsed = urlparse(url)
-    headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
+    http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
     try:
-        resp = requests.get(url, timeout=5, headers=headers, verify=False)
+        resp = requests.get(url, timeout=5, headers=http_headers, verify=False)
         resp.raise_for_status()
         if resp.history:
             return try_crawl(resp.url, resp=resp)
     except HTTPError:
-        return RespTitleInfo(url=url, status_code=resp.status_code, desc=resp.reason, response=resp)
-    return RespTitleInfo(url=url, html_text=auto_decode(resp.content),
-                         status_code=resp.status_code, desc=resp.reason, response=resp)
+        return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason, response=resp)
+    return RespInfo(url=url, html_text=auto_decode(resp.content),
+                    status_code=resp.status_code, desc=resp.reason, response=resp)
 
 
-def webtitle(url):
+def pagetitle(url):
     title = ''
     resp_info = None
     try:
@@ -60,7 +53,7 @@ def webtitle(url):
         resp_info.title = title
     except Exception as e:
         if resp_info is None:
-            resp_info = RespTitleInfo(url=url, status_code=-1, desc=type(e).__name__)
+            resp_info = RespInfo(url=url, status_code=-1, desc=type(e).__name__)
         logger.debug(traceback.format_exc())
         logger.error('find title error: %s %s' % (url, e))
     if not resp_info.desc:
@@ -69,5 +62,5 @@ def webtitle(url):
 
 
 if __name__ == '__main__':
-    print(webtitle('https://www.baidu.com/'))
+    print(pagetitle('https://www.baidu.com/'))
 

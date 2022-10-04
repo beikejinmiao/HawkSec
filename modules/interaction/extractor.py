@@ -22,9 +22,9 @@ from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_urls, is_gov_edu
 from utils.idcard import find_idcard
-from utils.mixed import urlsite
 from tools import htmlurl
-from tools.webcrawl.pagetitle import webtitle
+from libs.web.page import pagetitle
+from libs.web.url import normal_url, urlsite
 from modules.interaction.metric import ExtractMetric
 from modules.win.settings import setting
 from libs.logger import logger
@@ -164,7 +164,7 @@ class TextExtractor(SuicidalQThread):
             else:
                 self.__ext_urlpath_limit[urlpath] = 1
             #
-            candidates.add(item)
+            candidates.add(normal_url(item))
         return list(candidates)
 
     @staticmethod
@@ -223,9 +223,12 @@ class TextExtractor(SuicidalQThread):
                 if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
                     exturl_info = htmlurl.a(text)
                     for url in values[1]:
-                        resp = webtitle(url)
-                        exturl_info[url] = (resp.title if resp.title else exturl_info.get(url, ''),
-                                            '%s %s' % (resp.status_code, resp.desc))
+                        resp = pagetitle(url)
+                        title = exturl_info.get(url, '')
+                        # 优先使用a标签中的title内容(如果a标签中的title包含中文)
+                        if not(len(title) > 2 and len(re.findall('[\u4e00-\u9fa5]', title)) > 2):
+                            title = resp.title
+                        exturl_info[url] = (title, '%s %s' % (resp.status_code, resp.desc))
                 #
                 for value in values[1]:                                             # 本次新发现的敏感内容
                     record = {

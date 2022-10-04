@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 import re
 import tldextract
-import html as htmlparser
-from urllib.parse import unquote
 
 
 ipv4 = re.compile(r"^((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)(\.((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)){3}$")
@@ -76,7 +74,7 @@ def find_domains(text):
 
 
 def find_urls(text):
-    return list(set(map(lambda x: unquote(htmlparser.unescape(x)), url_find_regex.findall(text))))
+    return list(set(url_find_regex.findall(text)))
 
 
 ioc_find_regex = re.compile(r'('

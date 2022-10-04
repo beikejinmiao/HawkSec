@@ -2,9 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import json
-import time
 import traceback
-from queue import Full
 from collections import Counter
 from urllib.parse import urlparse
 from PyQt6.QtCore import pyqtSignal
@@ -14,7 +12,7 @@ from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
 from libs.thread import SuicidalQThread
-from utils import pywget
+from libs.web import pywget
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
 from modules.interaction.metric import CrawlMetric
 from libs.logger import logger

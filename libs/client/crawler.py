@@ -1,42 +1,25 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import os
-import re
 import requests
 from urllib.parse import urlparse
 from collections import deque, namedtuple
 from collections.abc import Iterable
 from bs4 import BeautifulSoup
-from libs.regex import html, common_dom
+from conf.config import http_headers
 from libs.regex import img, video, executable
-from utils.mixed import auto_decode, urlsite
+from utils.mixed import auto_decode
+from libs.web.url import urlsite, normal_url
+from libs.web.url import urlfile, absurl
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-default_headers = {
-    'Cache-Control': 'max-age=0',
-    'Connection': 'keep-alive',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36',
-}
-
-
-def url_file(url):
-    if url.endswith('/'):
-        return ''
-    url = urlparse(url).path    # 移除URL参数
-    if html.match(url) or common_dom.match(url):
-        return ''
-    if re.match(r'.+\.\w{2,5}$', url) and not re.match(r'.+\.[\d_]+$', url):
-        return os.path.basename(url)
-    return ''
-
 
 class Spider(object):
     def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
-        self._start_url = start_url
-        self.site = urlsite(start_url).reg_domain
+        self._start_url = normal_url(start_url)
+        self.site = urlsite(self._start_url).reg_domain
         # 是否限制只爬取同站网页
         if same_site is False or same_site is None:
             self._site_allows = None           # 不做任何限制
@@ -55,36 +38,10 @@ class Spider(object):
         self.__parsed_urls = set()
         #
         self.session = requests.session()
-        self.session.headers = headers if isinstance(headers, dict) and len(headers) > 0 else default_headers
+        self.session.headers = headers if isinstance(headers, dict) and len(headers) > 0 else http_headers
         self.timeout = timeout
         #
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
-
-    @staticmethod
-    def abspath(url, site=None):
-        """
-        获取绝对路径URL
-        将相对路径URL转成绝对路径URL,避免同一URL被重复爬取
-        """
-        if not site:
-            site = urlparse(url).netloc
-        if "#" in url:
-            # 移除页面内部定位符井号#,其实是同一个链接
-            url = url[0:url.rfind('#')]
-        while '/./' in url:
-            url = url.replace('/./', '/')
-        ix = url.index(site) + len(site)
-        host, url_path = url[:ix], url[ix:]
-        # path需以斜杠/开始,要不会陷入死循环
-        # https://cms.baidu.com../../images/2022-07/f9593.png
-        if not url_path.startswith('/'):
-            url_path = '/' + url_path
-        while '/../' in url_path:
-            url_path = re.sub(r'(^|/[^/]+)/\.\./', '/', url_path)
-        url_path = re.sub(r'/{2,}', '/', url_path)      # ////////url/path?a=1   -->   /url/path?a=1
-        return '{host}{connector}{path}'.format(host=host,
-                                                connector='' if url_path.startswith('/') else '/',
-                                                path=url_path)
 
     RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text', 'desc'])
 
@@ -117,7 +74,7 @@ class Spider(object):
                     continue
                 self.__urlpath_limit[urlpath] = _path_cnt_ + 1
             # 处理文件链接(文件过大下载较慢,影响爬取速度)
-            filename = url_file(url)
+            filename = urlfile(url)
             if self.filter(filename):
                 continue
             if filename:
@@ -135,9 +92,9 @@ class Spider(object):
                     logger.info('!RedirectTo: %s' % resp.url)
                     self.urls[url] = '302'
                     self.urls[resp.url] = url
-                    url = self.abspath(resp.url, site=self.site)  # 更新重定向后的URL
+                    url = absurl(resp.url, site=self.site)  # 更新重定向后的URL
                     # 再次处理文件链接
-                    filename = url_file(url)
+                    filename = urlfile(url)
                     if filename:
                         self._file_urls[url] = self.urls.get(url)
                         yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
@@ -177,13 +134,13 @@ class Spider(object):
                     new_url = urldir + href
                 if self._site_allows is not None and urlsite(new_url).reg_domain not in self._site_allows:
                     continue
-                new_url = self.abspath(new_url, site=self.site)
+                new_url = absurl(new_url, site=self.site)
                 # 限制URL
                 if path_limit and path_limit not in new_url:
                     continue
                 if self.hsts and new_url.startswith('http://'):
                     new_url = 'https://' + new_url[7:]
-                new_url = re.sub(r'[\r\n\t]+', '', new_url)
+                new_url = normal_url(new_url)
                 if new_url and new_url not in self.urls:
                     self.urls[new_url] = url  # 保存该new_url的来源地址
                     new_urls.append(new_url)
