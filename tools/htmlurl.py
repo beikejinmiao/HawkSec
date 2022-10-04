@@ -49,12 +49,18 @@ def _is_url(text):
     return True if re.match(r'[A-Za-z]+://.+', text) else False
 
 
-def a(text):
-    urls_title = dict()  # key: url, value: title
-    soup = BeautifulSoup(text, "lxml")
-    for ele in soup.find_all('a'):
-        if 'href' in ele.attrs and _is_url(ele.attrs['href']):
-            urls_title[ele.attrs['href']] = ele.string
+A_HREF_REGEX = re.compile(r'<a.+href=[\'"](\w+://.+?)[\'"].*>(.+?)</a>')
+
+
+def a(text, regex=False):
+    if not regex:
+        urls_title = dict()  # key: url, value: title
+        soup = BeautifulSoup(text, "lxml")
+        for ele in soup.find_all('a'):
+            if 'href' in ele.attrs and _is_url(ele.attrs['href']):
+                urls_title[ele.attrs['href']] = ele.string
+    else:
+        urls_title = dict(A_HREF_REGEX.findall(text))
     return urls_title
 
 
@@ -87,11 +93,16 @@ test_html = """
 </head>
     <iframe src="https://www.w3schools.com"></iframe>
     <div style="background: url(https://www.w3schools.com/images/w3lynx_200.png)">
-    <a href="https://www.google.com/search?q=lowsrc+dynsrc&newwindow=1&hl=zh-CN&sxsrf=ALiCzsacsoZdHRwcXWYdmSjnw-qQiuofrg%3A1663856268145&ei=jG4sY4m1CKLR2roP4Iyz8A0&ved=0ahUKEwiJq8fOy6j6AhWiqFYBHWDGDN4Q4dUDCA4&uact=5&oq=lowsrc+dynsrc&gs_lcp=Cgdnd3Mtd2l6EAM6CggAEEcQ1gQQsAM6BQgAEMsBOggIABAeEA8QCjoGCAAQHhAPOgQIABAeOgYIABAeEAVKBAhBGABKBAhGGABQTFjVBGDyB2gBcAF4AIAB1wGIAeUCkgEFMC4xLjGYAQCgAQGgAQLIAQHAAQE&sclient=gws-wiz">lowsrc dynsrc</a>
+    <a href="https://www.google.com/search?q=lowsrc+dynsrc&newwindow=1&hl=zh-CN&sxsrf=-qQiuofrg%3A16&sclient=gws-wiz">凤凰纲</a>
+    <!--<a href="http://www.jingduzhisheng.com/">京都之声</a>
+    <a href="http://stu.chinacampus.org/">中国大学生年度人物评选</a>-->
+    <div class="lefti">
+        <a href="https://weibo.com/p/1002065293024672/home?is_all=1"><img src="./images/0508wb.png" />关注官方微博</a>
+    </div>
 </body>
 </html>
 """
 
 
 if __name__ == '__main__':
-    print(urlfind(test_html))
+    print(a(test_html, regex=True))
