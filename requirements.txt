@@ -23,3 +23,4 @@ pdfplumber==0.6.2
 pywin32
 selenium==4.4.0
 pycryptodome==3.15.0
+pybloom-live==3.1.0

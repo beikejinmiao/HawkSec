@@ -30,7 +30,6 @@ from libs.logger import logger
 
 
 LOCAL_ZIP_PATH_FLAG = '.unpack'   # 压缩文件解压后本地路径标志
-alexa = Alexa()
 
 
 class TextExtractor(SuicidalQThread):
@@ -75,6 +74,7 @@ class TextExtractor(SuicidalQThread):
         }
         self._metric = ExtractMetric()
         #
+        self.alexa = Alexa()
         self._white_domain = set()
         self._white_url_file = set()
         self.__load_whitelist()
@@ -153,7 +153,7 @@ class TextExtractor(SuicidalQThread):
                 continue
             if is_gov_edu(reg_domain) or reg_domain in self._white_domain:
                 continue
-            if setting.builtin_alexa is True and reg_domain in alexa:
+            if setting.builtin_alexa is True and reg_domain in self.alexa:
                 continue
             # 同一个站点路径,只保存一条记录
             parts = urlparse(item)

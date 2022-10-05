@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from conf.paths import ALEXA_FILEPATH
+from pybloom_live import BloomFilter
+from conf.paths import ALEXA_BLOOM_FILTER_PATH
 from libs.singleton import Singleton
-from utils.filedir import reader
 
 
 class Filter(object):
@@ -26,9 +26,8 @@ class Filter(object):
 
 class Alexa(Filter):
     def _load_filter(self):
-        self.filter = dict()
-        for line in reader(ALEXA_FILEPATH):
-            if line.startswith("#"):
-                continue
-            self.filter[line] = None
+        with open(ALEXA_BLOOM_FILTER_PATH, 'rb') as fopen:
+            self.filter = BloomFilter.fromfile(fopen)
+
+
 
