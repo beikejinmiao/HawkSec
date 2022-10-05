@@ -11,8 +11,11 @@ class QueryModel(QSqlQueryModel):
     def data(self, index, role=None):
         # 表格数据居中显示
         if role == Qt.ItemDataRole.TextAlignmentRole:
-            return Qt.AlignmentFlag.AlignCenter
-            # return Qt.AlignmentFlag.AlignLeft
+            # https://stackoverflow.com/questions/35175210/how-to-align-right-and-vertically-center-in-qabstracttablemodel
+            # return Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+            # PyQt历史遗留Bug，必须使用int转换后才生效
+            # return int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+            return int(Qt.AlignmentFlag.AlignCenter)
         return super().data(index, role=role)
 
 
