@@ -4,12 +4,10 @@ import os
 import sys
 import shutil
 from pathlib import Path
-from conf.config import Platform
+from conf.config import Platform, RuntimeEnv
 from libs.enums import SYSTEM
 
-stage = 'exe' if hasattr(sys, "_MEIPASS") else 'dev'
-
-if stage == 'exe':
+if RuntimeEnv == 'exe':
     # PyInstaller creates a temp folder and stores path in _MEIPASS
     MAIN_HOME = sys._MEIPASS
     WORK_NAME = 'hawksec'  # 打包好后的exe目录名和结构已发生变化,根目录名是随机生成的
@@ -40,7 +38,7 @@ LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
 ALEXA_FILEPATH = os.path.join(PRIVATE_RESOURCE_HOME, 'alexa-top-30k.txt')
 START_MOVIE_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'waitloading.mp4')
 
-if stage == 'exe':
+if RuntimeEnv == 'exe':
     LOG_FILEPATH = os.path.join(RUNTIME_HOME, "%s.log" % WORK_NAME)
     #
     runtime_paths = list()

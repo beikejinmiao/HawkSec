@@ -5,8 +5,9 @@ import time
 import logging
 import logging.config
 from PyQt6 import QtWidgets
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 from conf.paths import LOG_FILEPATH
+from conf.config import RuntimeEnv
 
 
 class QTextEditLogger(logging.Handler):
@@ -37,7 +38,7 @@ class QTextEditLogger(logging.Handler):
         self.widget.appendPlainText(msg)
 
 
-class QLogTailReader(QObject):
+class QLogTailReader(QThread):
     # https://realpython.com/python-pyqt-qthread/
     # https://medium.com/@aliasav/how-follow-a-file-in-python-tail-f-in-python-bca026a901cf
     """
@@ -76,7 +77,7 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": "true",
     "formatters": {
         "short": {
-            "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+            "format": "%(asctime)s - %(levelname)s - %(message)s"
         },
         "default": {
             "class": "logging.Formatter",
@@ -88,13 +89,13 @@ LOGGING_CONFIG = {
         "console": {
             "class": "logging.StreamHandler",
             "level": "DEBUG",
-            "formatter": "default",
+            "formatter": "short" if RuntimeEnv == "exe" else "default",
             "stream": "ext://sys.stdout"
         },
         "file": {
             "class": "logging.FileHandler",
             "level": "DEBUG",
-            "formatter": "default",
+            "formatter": "short" if RuntimeEnv == "exe" else "default",
             "filename": LOG_FILEPATH,
             "mode": "w+",
             "encoding": "utf-8"

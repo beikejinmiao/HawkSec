@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import sys
 import socket
 import platform
 
 Platform = platform.system().lower()
+RuntimeEnv = 'exe' if hasattr(sys, "_MEIPASS") else 'dev'
+
+#
 TIKA_SERVER_HOST = 'localhost'
 TIKA_SERVER_PORT = 9998
 TIKA_SERVER_URL = 'http://%s:%s/' % (TIKA_SERVER_HOST, TIKA_SERVER_PORT)
@@ -18,7 +22,7 @@ try:
 except:
     pass
 
-
+#
 http_headers = {
     'Cache-Control': 'max-age=0',
     'Connection': 'keep-alive',
