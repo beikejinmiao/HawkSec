@@ -20,6 +20,7 @@ from modules.win.msgbox import QWarnMessageBox
 from modules.win.tableview import ProgressDataWindow, ExtractDataWindow, SensitiveDataWindow
 from modules.win.settings import SettingsWindow
 from modules.win.help import HelpAboutWindow
+from modules.win.logview import LogViewWindow
 from modules.interaction.manager import TaskManager
 from modules.interaction.metric import AbstractMetric, CrawlMetric, ExtractMetric
 from utils.filedir import StyleSheetHelper
@@ -37,6 +38,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.sensitiveWindow = None
         self.settingsWindow = None
         self.helpAboutWindow = None
+        self.logViewWindow = None
         #
         self.__init_gui()
         self.__init_state()
@@ -113,7 +115,7 @@ class MainWindow(UiMainWindow, QWidget):
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(0, 0, 0, 100))
             line_edit.setPalette(palette)
         # 设置可点击组件悬浮手型按钮
-        for button in [self.startBtn, self.cancelBtn, self.stopBtn, self.returnBtn,
+        for button in [self.startBtn, self.cancelBtn, self.stopBtn, self.returnBtn, self.logViewBtn,
                        self.historyBtn, self.detailBtn, self.settingBtnLabel, self.helpBtnLabel,
                        self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel,
                        self.crawledCntLabel, self.hitCntLabel, self.failedCntLabel,
@@ -152,6 +154,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.cancelBtn.clicked.connect(self.cancel)
         self.stopBtn.clicked.connect(lambda: self.terminate(notice=True))
         self.returnBtn.clicked.connect(self.return2main)
+        self.logViewBtn.clicked.connect(self.show_log_win)
         self.detailBtn.clicked.connect(self.show_extract_win)
         self.settingBtnLabel.clicked.connect(self.show_settings_win)
         self.helpBtnLabel.clicked.connect(self.show_help_win)
@@ -456,6 +459,10 @@ class MainWindow(UiMainWindow, QWidget):
     def show_help_win(self):
         self.helpAboutWindow = HelpAboutWindow()
         self.helpAboutWindow.show()
+
+    def show_log_win(self):
+        self.logViewWindow = LogViewWindow()
+        self.logViewWindow.show()
 
     def closeEvent(self, event):
         box = QWarnMessageBox("确认退出！")

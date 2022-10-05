@@ -1,0 +1,58 @@
+QWidget#centralWidget{
+	background: #FFFFFF;
+	border-radius: 5px;
+}
+
+
+#titleFrame {
+    border: 2px solid #f2f2f2;
+}
+
+
+#clearBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+#clearBtn:pressed {
+    color:#2358DE;
+    background: #FFFFFF;
+    border-radius: 4px;
+    border: 1px solid #2358DE;
+}
+
+#cancelBtn {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    text-align: center;
+    color: #2358DE;
+
+    background: #FFFFFF;
+    border: 1px solid #2358DE;
+    border-radius: 4px;
+}
+#cancelBtn:pressed {
+    color: #FFFFFF;
+    background: #2358DE;
+    border-radius: 4px;
+}
+
+
+#closeBtnLabel {
+    background: transparent;
+    border-image: url('IMAGE_HOME/icon/close.png');
+}
+#closeBtnLabel:hover {
+    background: #F41717;
+    border-image: url('IMAGE_HOME/icon/close_hover.png');
+}
+
+QPlainTextEdit {
+    background: #F8FAFF;
+    border: 1px solid #C6CCD6;
+}

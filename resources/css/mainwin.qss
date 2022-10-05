@@ -69,6 +69,18 @@
     border-radius: 4px;
 }
 
+#logViewBtn {
+    font-size: 14px;
+    text-align: center;
+    color:#FFFFFF;
+    background: #9AA4BB;
+    border-radius: 2px;
+}
+#logViewBtn:pressed {
+    background: #2358DE;
+    border-radius: 2px;
+    border: 1px solid #2358DE;
+}
 #detailBtn, #dumpBtn {
     font-style: normal;
     font-weight: 400;

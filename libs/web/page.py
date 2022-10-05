@@ -54,10 +54,13 @@ def pagetitle(url):
     try:
         resp_info = try_crawl(url)
         soup = BeautifulSoup(resp_info.html_text, "html.parser")  # soup = BeautifulSoup(resp.text, "lxml")  标题乱码！Why?
-        title_label = soup.find_all('title')
-        if len(title_label) > 0:
-            title = title_label[0].text
+        title_labels = soup.find_all('title')
+        if title_labels:
+            title = title_labels[0].text
         resp_info.title = title
+    except TypeError:
+        # BeautifulSoup解析图片时：  TypeError: object of type 'NoneType' has no len()
+        pass
     except Exception as e:
         if resp_info is None:
             resp_info = RespInfo(url=url, status_code=-1, desc=type(e).__name__)
