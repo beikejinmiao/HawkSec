@@ -312,7 +312,7 @@ class ProgressDataWindow(DataGridWindow):
             ['ID', 'URL/FILE路径', 'URL/FILE名称', '状态码', '描述', '创建时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
-                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
+                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.ResizeToContents,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
         if resp_code is not None:
@@ -362,7 +362,7 @@ class SensitiveDataWindow(DataGridWindow):
             ['ID', '敏感类型', '敏感内容', '内容名称', '描述', '发现地址', '发现时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
-                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
+                        QHeaderView.ResizeMode.Stretch, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
