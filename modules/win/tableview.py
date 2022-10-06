@@ -272,6 +272,8 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             self.db_where = _db_where + ('' if not self.db_where else ' AND ' + self.db_where)
 
         self.update_total_count()
+        # 重新计算分页数量
+        self._update_page_record()
         self.cur_page = 1
         self.query_page(page=1)
 

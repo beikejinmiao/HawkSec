@@ -58,7 +58,7 @@ class Ui_Form(object):
         self.totalRecordLabel.setStyleSheet("font-size: 14px;")
         self.totalRecordLabel.setObjectName("totalRecordLabel")
         self.timeLineEdit = QTimeLineEdit(self.centralWidget)
-        self.timeLineEdit.setGeometry(QtCore.QRect(410, 76, 281, 30))
+        self.timeLineEdit.setGeometry(QtCore.QRect(580, 76, 281, 30))
         self.timeLineEdit.setMinimumSize(QtCore.QSize(0, 30))
         self.timeLineEdit.setObjectName("timeLineEdit")
         self.timeIconLabel = QtWidgets.QLabel(self.centralWidget)

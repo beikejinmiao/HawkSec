@@ -57,7 +57,7 @@ def pagetitle(url):
     resp_info = None
     try:
         resp_info = try_crawl(url)
-        soup = BeautifulSoup(resp_info.html_text, "html.parser")  # soup = BeautifulSoup(resp.text, "lxml")  标题乱码！Why?
+        soup = BeautifulSoup(resp_info.html_text, "lxml")  # soup = BeautifulSoup(resp.text, "lxml")
         title_labels = soup.find_all('title')
         if title_labels:
             title = title_labels[0].text
@@ -167,5 +167,5 @@ def find_url(text):
 
 
 if __name__ == '__main__':
-    print(pagetitle('http://www.bestseller.com.cn/campus'))
+    print(pagetitle('https://www.bwu.edu.cn'))
 

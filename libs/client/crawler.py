@@ -125,15 +125,15 @@ class Spider(object):
             urldir = urldir if urldir.endswith('/') else (urldir + '/')  # 和href拼接时需要有/
             # 解析HTML页面
             html_text = auto_decode(resp.content)       # resp.text
-            soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
+            soup = BeautifulSoup(html_text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
             url_info.status_code, url_info.desc,  url_info.html_text = resp.status_code, resp.reason, html_text
             if url_info.title is None or \
-                    len(url_info.title) <= 2 or len(url_info.title) >= 32 or \
+                    len(url_info.title) <= 2 or len(url_info.title) >= 48 or \
                     len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
                 # 来源网页的a标签中提取的描述：过短或过长或中文数量小于2，爬取后提取title标签内容
                 title_labels = soup.find_all('title')
                 if title_labels:
-                    url_info.title = strip(title_labels[0].text)
+                    url_info.title = strip(title_labels[0].string)
             yield url_info
             # 提取页面内容里的URL
             links = soup.find_all('a')
