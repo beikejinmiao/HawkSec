@@ -308,12 +308,12 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 class ProgressDataWindow(DataGridWindow):
     def __init__(self, title='URL文件爬取列表', resp_code=None):
         columns = dict(zip(
-            ['id', 'origin', 'resp_code', 'desc', 'create_time'],
-            ['ID', 'URL/FILE路径', '状态码', '描述', '创建时间']
+            ['id', 'origin', 'origin_name', 'resp_code', 'desc', 'create_time'],
+            ['ID', 'URL/FILE路径', 'URL/FILE名称', '状态码', '描述', '创建时间']
         ))
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents,
-                        QHeaderView.ResizeMode.ResizeToContents]
+                        QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
         db_where = ''
         if resp_code is not None:
             if ' ' in resp_code:

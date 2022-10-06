@@ -2,8 +2,9 @@
 # -*- coding:utf-8 -*-
 import re
 import requests
+import copy
 from urllib.parse import urlparse
-from collections import deque, namedtuple
+from collections import deque
 from collections.abc import Iterable
 from bs4 import BeautifulSoup
 from conf.config import http_headers
@@ -11,12 +12,26 @@ from libs.regex import img, video, executable
 from utils.mixed import auto_decode
 from libs.web.url import urlsite, normal_url
 from libs.web.url import urlfile, absurl
+from libs.web.page import RespInfo
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # http://www.bjamu.cn/mailto:hr@hofu.co
 MAIL_URL_REGEX = re.compile(r'/mailto:.+?@\w+\.\w+', re.I)
+
+
+def strip(text):
+    return re.sub(r'[\r\n\t]+', '', text).strip() if text else ''
+
+
+class UrlFileInfo(RespInfo):
+    def __init__(self, url='', url_from='', title=None,
+                 filename=None, html_text='', status_code=-1, desc=''):
+        super().__init__(url=url, title=title if title else filename,
+                         html_text=html_text, status_code=status_code, desc=desc)
+        self.url_from = url_from    # url来源网页
+        self.filename = filename    # 远程文件名
 
 
 class Spider(object):
@@ -33,8 +48,8 @@ class Spider(object):
                 for site in same_site:
                     self._site_allows.add(urlsite(site).reg_domain)    # 限定范围
         #
-        self.urls = dict()          # key: url, value: 该url的来源地址
-        self.urls[start_url] = start_url
+        self.urls = dict()          # key: url, value: 该url的信息
+        self.urls[self._start_url] = UrlFileInfo(url=self._start_url, filename=urlfile(self._start_url))
         self._broken_urls = dict()
         self._file_urls = dict()
         self.__urlpath_limit = dict()       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
@@ -46,16 +61,20 @@ class Spider(object):
         #
         self.hsts = hsts                    # 是否只访问HTTPS网站链接
 
-    RespInfo = namedtuple('RespInfo', ['status_code', 'url', 'filename', 'html_text', 'desc'])
-
     def scrape(self, path_limit=None):
         """
         执行爬取&提取页面url操作
         """
-        status_code = 0
-        new_urls = deque([self._start_url])
+        new_urls = deque([self.urls[self._start_url]])
         while len(new_urls):
-            url = new_urls.popleft()
+            url_info = new_urls.popleft()
+            url = url_info.url
+            if url_info.filename:
+                # 过滤部分文件链接
+                if not self.filter(url_info.filename):
+                    self._file_urls[url] = url_info
+                    yield url_info
+                continue
             # 提取url site和url路径
             """
             urlparse('https://xsc.baidu.cn/node/docs/49716.htm')
@@ -76,37 +95,26 @@ class Spider(object):
                 if _path_cnt_ > 5000:
                     continue
                 self.__urlpath_limit[urlpath] = _path_cnt_ + 1
-            # 处理文件链接(文件过大下载较慢,影响爬取速度)
-            filename = urlfile(url)
-            if self.filter(filename):
-                continue
-            if filename:
-                self._file_urls[url] = self.urls.get(url)
-                yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
-                continue
             # 爬取正常网页
             try:
                 resp = self.session.get(url, timeout=self.timeout, verify=False)
-                status_code = resp.status_code
-                logger.info('GET %s %s' % (url, status_code))
+                logger.info('GET %s %s' % (url, resp.status_code))
                 # https://stackoverflow.com/questions/20475552/python-requests-library-redirect-new-url
                 # 如果发生重定向,更新URL,避免提取页面href后拼接错误新URL(大量404)
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
-                    self.urls[url] = '302'
-                    self.urls[resp.url] = url
-                    url = absurl(resp.url, site=self.site)  # 更新重定向后的URL
-                    # 再次处理文件链接
-                    filename = urlfile(url)
-                    if filename:
-                        self._file_urls[url] = self.urls.get(url)
-                        yield self.RespInfo(status_code=status_code, url=url, filename=filename, html_text=None, desc='')
-                        continue
-            # except (MissingSchema, InvalidURL, InvalidSchema, ConnectionError, ReadTimeout) as e:
+                    new_url = absurl(resp.url, site=self.site)  # 更新重定向后的URL
+                    new_url_info = copy.copy(url_info)
+                    new_url_info.url = new_url
+                    self.urls[new_url] = new_url_info
+                    new_urls.append(new_url_info)
+                    continue
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
-                self._broken_urls[url] = self.urls.get(url, '')
-                yield self.RespInfo(status_code=-1, url=url, filename=None, html_text=None, desc=type(e).__name__)
+                self._broken_urls[url] = self.urls.get(url)
+                url_info.status_code = -1
+                url_info.desc = type(e).__name__
+                yield url_info
                 continue
             # 针对已解析过的URL页面,忽略 -- 某些重定向页面(404/403等被重定向至固定页面)会反复出现
             if url in self.__parsed_urls:
@@ -118,13 +126,22 @@ class Spider(object):
             # 解析HTML页面
             html_text = auto_decode(resp.content)       # resp.text
             soup = BeautifulSoup(resp.text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
-            yield self.RespInfo(status_code=status_code, url=url, filename=None, html_text=html_text, desc=resp.reason)
+            url_info.status_code, url_info.desc,  url_info.html_text = resp.status_code, resp.reason, html_text
+            if url_info.title is None or \
+                    len(url_info.title) <= 2 or len(url_info.title) >= 32 or \
+                    len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
+                # 来源网页的a标签中提取的描述：过短或过长或中文数量小于2，爬取后提取title标签内容
+                title_labels = soup.find_all('title')
+                if title_labels:
+                    url_info.title = strip(title_labels[0].text)
+            yield url_info
             # 提取页面内容里的URL
             links = soup.find_all('a')
             for link in links:
-                new_url = ''
                 # 从<a>标签中提取href
-                href = link.attrs["href"] if "href" in link.attrs else ''
+                if 'href' not in link.attrs:
+                    continue
+                href, title = link.attrs["href"], strip(link.string)
                 if href.startswith("#") or href.startswith('javascript:'):
                     continue
                 if href.startswith("http://") or href.startswith("https://"):
@@ -148,8 +165,10 @@ class Spider(object):
                     new_url = 'https://' + new_url[7:]
                 new_url = normal_url(new_url)
                 if new_url and new_url not in self.urls:
-                    self.urls[new_url] = url  # 保存该new_url的来源地址
-                    new_urls.append(new_url)
+                    # 保存该new_url信息
+                    new_url_info = UrlFileInfo(url=new_url, url_from=url, title=title, filename=urlfile(new_url))
+                    self.urls[new_url] = new_url_info
+                    new_urls.append(new_url_info)
 
     def filter(self, path):
         # 默认忽略图片、音频、视频、可执行文件

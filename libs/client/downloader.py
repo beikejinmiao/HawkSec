@@ -7,7 +7,7 @@ from collections import Counter
 from urllib.parse import urlparse
 from PyQt6.QtCore import pyqtSignal
 from libs.timer import timer
-from libs.client.crawler import Spider
+from libs.client.crawler import Spider, UrlFileInfo
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.enums import TABLES
@@ -118,13 +118,16 @@ class WebFileDownloader(Downloader):
     def __init__(self, urls=None, url_file=None, out_dir=DOWNLOADS, path_queue=None, db_queue=None):
         super().__init__(out_dir=out_dir, path_queue=path_queue, db_queue=db_queue)
 
-        self.file_urls = list()
+        self.file_urls = dict()
         if urls:
-            self.file_urls.extend(list(urls))
+            for url in urls:
+                url = url.strip('\r\n ')
+                self.file_urls[url] = UrlFileInfo(url=url, url_from='parameter', filename=url_file(url))
         if url_file:
             with open(url_file) as fopen:
-                self.file_urls.extend(fopen.readlines())
-        self.file_urls = [url.strip() for url in self.file_urls]
+                for url in fopen.readlines():
+                    url = url.strip('\r\n ')
+                    self.file_urls[url] = UrlFileInfo(url=url, url_from=url_file, filename=url_file(url))
 
     def download(self, url):
         # 过滤白名单
@@ -136,9 +139,12 @@ class WebFileDownloader(Downloader):
         self._metric.file_total += 1
         self._metric.crawl_total += 1
         logger.info('Download: %s' % url)
+        url_info = self.file_urls[url]
         try:
             fileinfo = pywget.download(url, out=self.out_dir)
-            record = {'origin': url, 'resp_code': fileinfo.status_code, 'desc': fileinfo.desc}
+            record = {'origin': url,
+                      'origin_name': fileinfo.filename, 'origin_from': url_info.url_from,
+                      'resp_code': fileinfo.status_code, 'desc': fileinfo.desc}
             self._put_db_queue(TABLES.CrawlStat.value, record)
             # self.db_rows.append(record)
             if fileinfo.filepath is not None:
@@ -154,7 +160,9 @@ class WebFileDownloader(Downloader):
         except Exception as e:
             self._metric.file_failed += 1
             self._metric.crawl_failed += 1
-            record = {'origin': url, 'resp_code': -1, 'desc': type(e).__name__}
+            record = {'origin': url,
+                      'origin_name': url_info.filename, 'origin_from': url_info.url_from,
+                      'resp_code': -1, 'desc': type(e).__name__}
             self._put_db_queue(TABLES.CrawlStat.value, record)
             # self.db_rows.append(record)
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
@@ -199,9 +207,10 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                     # UnicodeEncodeError: 'gbk' codec can't encode character '\xe6' in position 74: illegal multibyte sequence
                     self._file_urls_archive.write(resp.url + '\n')
                     continue
-                record = {'origin': resp.url, 'resp_code': resp.status_code, 'desc': resp.desc}
+                # 非文件链接不记录URL来源网页地址
+                record = {'origin': resp.url, 'origin_name': resp.title,
+                          'resp_code': resp.status_code, 'desc': resp.desc}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
-                # self.db_rows.append(record)
                 self._metric.crawl_total += 1
                 # 解析网页中的敏感内容
                 if resp.html_text and self.extractor is not None:
@@ -216,7 +225,7 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 self._metric.crawl_failed += 1
             self.metrics.emit(self._metric)
         # 2. 下载文件解析敏感内容
-        self.file_urls = list(self._file_urls.keys())
+        self.file_urls = self._file_urls
         logger.info('爬取URL结束')
         logger.info('爬虫客户端Metric统计: %s' % self._metric)
         logger.info('发现文件URL: %s个' % len(self.file_urls))

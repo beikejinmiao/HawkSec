@@ -110,7 +110,7 @@ http_headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
 }
 
-RespFileInfo = namedtuple('RespFileInfo', ['url', 'filepath', 'status_code', 'desc'])
+RespFileInfo = namedtuple('RespFileInfo', ['url', 'filename', 'filepath', 'status_code', 'desc'])
 
 
 def download(url, out=None, size_limit=25165824):
@@ -118,34 +118,40 @@ def download(url, out=None, size_limit=25165824):
     # NOTE the stream=True parameter below
     parsed = urlparse(url)
     http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
+    remote_filename = None
     try:
         # ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
         # unable to get local issuer certificate (_ssl.c:1131)
         with requests.get(url, stream=True, headers=http_headers, verify=False) as resp:
+            # 获取远程文件名
+            resp_headers = resp.headers
+            remote_filename = detect_filename(url, None, resp_headers)
+            #
             resp.raise_for_status()
             # 判断文件大小
-            resp_headers = resp.headers
             for h in resp_headers.keys():
                 resp_headers[h.lower()] = resp_headers[h]
             content_length = int(resp_headers.get('content-length', 0))
             if content_length > size_limit:
-                return RespFileInfo(url=url, filepath=None, status_code=-1,
+                return RespFileInfo(url=url, filename=remote_filename, filepath=None, status_code=-1,
                                     desc='文件大小(%sM)超过最大限制(24M)' % (content_length//1048576))
             # 获取文件名和本地路径
             if out and os.path.isdir(out):
-                filename = os.path.join(out, detect_filename(url, None, resp_headers))
+                local_filepath = os.path.join(out, remote_filename)
             else:
-                filename = detect_filename(url, out, resp_headers)
-            if os.path.exists(filename):
-                filename = filename_fix_existed(filename)
+                local_filepath = detect_filename(url, out, resp_headers)
+            if os.path.exists(local_filepath):
+                local_filepath = filename_fix_existed(local_filepath)
             # 分块下载
-            with open(filename, 'wb') as f:
+            with open(local_filepath, 'wb') as f:
                 for chunk in resp.iter_content(chunk_size=8192):
                     f.write(chunk)
     except HTTPError:
         # urllib.error.HTTPError: HTTP Error 403: Forbidden
-        return RespFileInfo(url=url, filepath=None, status_code=resp.status_code, desc=resp.reason)
-    return RespFileInfo(url=url, filepath=filename, status_code=resp.status_code, desc=resp.reason)
+        return RespFileInfo(url=url, filename=remote_filename, filepath=None,
+                            status_code=resp.status_code, desc=resp.reason)
+    return RespFileInfo(url=url, filename=remote_filename, filepath=local_filepath,
+                        status_code=resp.status_code, desc=resp.reason)
 
 
 if __name__ == "__main__":

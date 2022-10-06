@@ -1,6 +1,8 @@
 CREATE TABLE crawlstat (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     origin     	TEXT NOT NULL,
+    origin_name TEXT,
+    origin_from TEXT,
     resp_code 	INT,
     [desc]      TEXT,
     create_time DATETIME DEFAULT (datetime('now', 'localtime'))

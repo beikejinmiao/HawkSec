@@ -17,16 +17,17 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class RespInfo(object):
-    def __init__(self, url='', title='', html_text='', status_code=-1, desc='', response=None):
+    def __init__(self, url='', title=None, html_text='', status_code=-1, desc=''):
         self.url = url.strip()
         self.title = title
         self.html_text = html_text
         self.status_code = status_code
-        self.desc = desc
-        self.response = response
+        self.desc = desc if desc else responses.get(status_code, '')
 
     def __str__(self):
-        return str({'url': self.url, 'title': self.title, 'status_code': self.status_code, 'desc': self.desc})
+        d = self.__dict__.copy()
+        del d['html_text']
+        return str(d)
 
 
 def try_crawl(url, resp=None):
@@ -38,14 +39,17 @@ def try_crawl(url, resp=None):
         if resp.history:
             return try_crawl(resp.url, resp=resp)
     except HTTPError:
-        return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason, response=resp)
-    return RespInfo(url=url, html_text=auto_decode(resp.content),
-                    status_code=resp.status_code, desc=resp.reason, response=resp)
+        return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason)
+    return RespInfo(url=url, html_text=auto_decode(resp.content), status_code=resp.status_code, desc=resp.reason)
 
 
 """
 提取页面标题
 """
+
+
+def strip(text):
+    return re.sub(r'[\r\n\t]+', '', text).strip() if text else ''
 
 
 def pagetitle(url):
@@ -57,7 +61,7 @@ def pagetitle(url):
         title_labels = soup.find_all('title')
         if title_labels:
             title = title_labels[0].text
-        resp_info.title = title
+        resp_info.title = strip(title)
     except TypeError:
         # BeautifulSoup解析图片时：  TypeError: object of type 'NoneType' has no len()
         pass
@@ -66,7 +70,7 @@ def pagetitle(url):
             resp_info = RespInfo(url=url, status_code=-1, desc=type(e).__name__)
         logger.debug(traceback.format_exc())
         logger.error('find title error: %s %s' % (url, e))
-    # title为空时,尝试从url中提取文件名
+    # title为空时,默认使用从url中提取文件名
     if not resp_info.title:
         resp_info.title = urlfile(url)
     #
@@ -129,7 +133,7 @@ def find_a_href(text, regex=False):
         soup = BeautifulSoup(text, "lxml")
         for ele in soup.find_all('a'):
             if 'href' in ele.attrs and _is_url(ele.attrs['href']):
-                _urls_title[ele.attrs['href']] = ele.string
+                _urls_title[ele.attrs['href']] = strip(ele.string)
     else:
         _urls_title = dict(A_HREF_REGEX.findall(text))
     #
@@ -148,9 +152,9 @@ def find_url(text):
             if isinstance(attr, (tuple, list)):
                 for _attr_ in attr:
                     if _attr_ in ele.attrs and _is_url(ele.attrs[_attr_]):
-                        _urls_title[ele.attrs[_attr_]] = ele.string
+                        _urls_title[ele.attrs[_attr_]] = strip(ele.string)
             elif attr in ele.attrs and _is_url(ele.attrs[attr]):
-                _urls_title[ele.attrs[attr]] = ele.string
+                _urls_title[ele.attrs[attr]] = strip(ele.string)
     #
     candidates = re.findall(r'url\(([A-Za-z]+://.+)\)', text)       # <div style="background: url(image.png)">
     if len(candidates) > 0:
@@ -160,4 +164,8 @@ def find_url(text):
     for url, title in _urls_title.items():
         urls_title[normal_url(url)] = title.strip('\r\n ') if title else ''
     return urls_title
+
+
+if __name__ == '__main__':
+    print(pagetitle('http://www.bestseller.com.cn/campus'))
 
