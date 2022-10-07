@@ -185,7 +185,7 @@ class WebFileDownloader(Downloader):
 
 class WebCrawlDownloader(Spider, WebFileDownloader):
     def __init__(self, start_url,
-                 same_site=True,
+                 limited_sites=None,
                  headers=None,
                  hsts=False,
                  out_dir=DOWNLOADS,
@@ -194,7 +194,7 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                  db_queue=None):
         #
         timeout = configure.get('timeout', 5)
-        Spider.__init__(self, start_url, same_site=same_site, headers=headers, timeout=timeout, hsts=hsts)
+        Spider.__init__(self, start_url, limited_sites=limited_sites, headers=headers, timeout=timeout, hsts=hsts)
         WebFileDownloader.__init__(self, out_dir=out_dir, path_queue=path_queue, db_queue=db_queue)
         self.extractor = extractor
         self._file_urls_archive = open(os.path.join(DUMP_HOME, 'fileurls.txt'), 'w')

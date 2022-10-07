@@ -40,7 +40,10 @@ def try_crawl(url, resp=None):
             return try_crawl(resp.url, resp=resp)
     except HTTPError:
         return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason)
-    return RespInfo(url=url, html_text=auto_decode(resp.content), status_code=resp.status_code, desc=resp.reason)
+    #
+    html_text = auto_decode(resp.content)
+    html_text = resp.text if html_text is None else html_text
+    return RespInfo(url=url, html_text=html_text, status_code=resp.status_code, desc=resp.reason)
 
 
 """

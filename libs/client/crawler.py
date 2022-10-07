@@ -3,6 +3,7 @@
 import re
 import requests
 import copy
+import traceback
 from urllib.parse import urlparse
 from collections import deque
 from collections.abc import Iterable
@@ -35,18 +36,19 @@ class UrlFileInfo(RespInfo):
 
 
 class Spider(object):
-    def __init__(self, start_url, same_site=True, headers=None, timeout=10, hsts=False):
+    def __init__(self, start_url, limited_sites=None, headers=None, timeout=10, hsts=False):
         self._start_url = normal_url(start_url)
         self.site = urlsite(self._start_url).reg_domain
         # 是否限制只爬取同站网页
-        if same_site is False or same_site is None:
-            self._site_allows = None           # 不做任何限制
+        if limited_sites is False:
+            self.limited_sites = None           # 不做任何限制
         else:
-            self._site_allows = set()
-            self._site_allows.add(self.site)   # 默认包含本站
-            if isinstance(same_site, Iterable):
-                for site in same_site:
-                    self._site_allows.add(urlsite(site).reg_domain)    # 限定范围
+            self.limited_sites = set()
+            self.limited_sites.add(self.site)   # 默认包含本站
+            if isinstance(limited_sites, Iterable):
+                for site in limited_sites:
+                    self.limited_sites.add(urlsite(site).reg_domain)    # 限定范围
+        self._same_site = True if self.limited_sites is not None and len(self.limited_sites) == 1 else False
         #
         self.urls = dict()          # key: url, value: 该url的信息
         self.urls[self._start_url] = UrlFileInfo(url=self._start_url, filename=urlfile(self._start_url))
@@ -103,7 +105,7 @@ class Spider(object):
                 # 如果发生重定向,更新URL,避免提取页面href后拼接错误新URL(大量404)
                 if resp.history:
                     logger.info('!RedirectTo: %s' % resp.url)
-                    new_url = absurl(resp.url, site=self.site)  # 更新重定向后的URL
+                    new_url = absurl(resp.url, site=self.site if self._same_site else None)  # 更新重定向后的URL
                     new_url_info = copy.copy(url_info)
                     new_url_info.url = new_url
                     self.urls[new_url] = new_url_info
@@ -120,55 +122,60 @@ class Spider(object):
             if url in self.__parsed_urls:
                 continue
             self.__parsed_urls.add(url)
-            # 获取当前链接的目录路径,用于本站内部相对路径href拼接
-            urldir = url[:url.rfind('/') + 1] if '/' in parts.path else url
-            urldir = urldir if urldir.endswith('/') else (urldir + '/')  # 和href拼接时需要有/
-            # 解析HTML页面
-            html_text = auto_decode(resp.content)       # resp.text
-            soup = BeautifulSoup(html_text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
-            url_info.status_code, url_info.desc,  url_info.html_text = resp.status_code, resp.reason, html_text
-            if url_info.title is None or \
-                    len(url_info.title) <= 2 or len(url_info.title) >= 48 or \
-                    len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
-                # 来源网页的a标签中提取的描述：过短或过长或中文数量小于2，爬取后提取title标签内容
-                title_labels = soup.find_all('title')
-                if title_labels:
-                    url_info.title = strip(title_labels[0].string)
-            yield url_info
-            # 提取页面内容里的URL
-            links = soup.find_all('a')
-            for link in links:
-                # 从<a>标签中提取href
-                if 'href' not in link.attrs:
-                    continue
-                href, title = link.attrs["href"], strip(link.string)
-                if href.startswith("#") or href.startswith('javascript:'):
-                    continue
-                if href.startswith("http://") or href.startswith("https://"):
-                    new_url = href
-                elif href.startswith("/"):
-                    # 绝对路径href
-                    new_url = site + href
-                else:
-                    # 相对路径href
-                    new_url = urldir + href
-                if self._site_allows is not None and urlsite(new_url).reg_domain not in self._site_allows:
-                    continue
-                new_url = absurl(new_url, site=self.site)
-                # 限制URL
-                if path_limit and path_limit not in new_url:
-                    continue
-                # 忽略邮件URL链接： http://www.bjamu.cn/mailto:bjjpjc@163.com
-                if MAIL_URL_REGEX.search(new_url):
-                    continue
-                if self.hsts and new_url.startswith('http://'):
-                    new_url = 'https://' + new_url[7:]
-                new_url = normal_url(new_url)
-                if new_url and new_url not in self.urls:
-                    # 保存该new_url信息
-                    new_url_info = UrlFileInfo(url=new_url, url_from=url, title=title, filename=urlfile(new_url))
-                    self.urls[new_url] = new_url_info
-                    new_urls.append(new_url_info)
+            try:
+                # 获取当前链接的目录路径,用于本站内部相对路径href拼接
+                urldir = url[:url.rfind('/') + 1] if '/' in parts.path else url
+                urldir = urldir if urldir.endswith('/') else (urldir + '/')  # 和href拼接时需要有/
+                # 解析HTML页面
+                html_text = auto_decode(resp.content)
+                html_text = resp.text if html_text is None else html_text
+                soup = BeautifulSoup(html_text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
+                url_info.status_code, url_info.desc,  url_info.html_text = resp.status_code, resp.reason, html_text
+                if url_info.title is None or \
+                        len(url_info.title) <= 2 or len(url_info.title) >= 48 or \
+                        len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
+                    # 来源网页的a标签中提取的描述：过短或过长或中文数量小于2，爬取后提取title标签内容
+                    title_labels = soup.find_all('title')
+                    if title_labels:
+                        url_info.title = strip(title_labels[0].string)
+                yield url_info
+                # 提取页面内容里的URL
+                links = soup.find_all('a')
+                for link in links:
+                    # 从<a>标签中提取href
+                    if 'href' not in link.attrs:
+                        continue
+                    href, title = link.attrs["href"], strip(link.string)
+                    if href.startswith("#") or href.startswith('javascript:'):
+                        continue
+                    if href.startswith("http://") or href.startswith("https://"):
+                        new_url = href
+                    elif href.startswith("/"):
+                        # 绝对路径href
+                        new_url = site + href
+                    else:
+                        # 相对路径href
+                        new_url = urldir + href
+                    if self.limited_sites is not None and urlsite(new_url).reg_domain not in self.limited_sites:
+                        continue
+                    new_url = absurl(new_url, site=self.site if self._same_site else None)
+                    # 限制URL
+                    if path_limit and path_limit not in new_url:
+                        continue
+                    # 忽略邮件URL链接： http://www.bjamu.cn/mailto:bjjpjc@163.com
+                    if MAIL_URL_REGEX.search(new_url):
+                        continue
+                    if self.hsts and new_url.startswith('http://'):
+                        new_url = 'https://' + new_url[7:]
+                    new_url = normal_url(new_url)
+                    if new_url and new_url not in self.urls:
+                        # 保存该new_url信息
+                        new_url_info = UrlFileInfo(url=new_url, url_from=url, title=title, filename=urlfile(new_url))
+                        self.urls[new_url] = new_url_info
+                        new_urls.append(new_url_info)
+            except:
+                logger.error('网页内容解析异常: %s' % url)
+                logger.error(traceback.format_exc())
 
     def filter(self, path):
         # 默认忽略图片、音频、视频、可执行文件
