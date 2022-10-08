@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from pybloom_live import BloomFilter
-from conf.paths import ALEXA_BLOOM_FILTER_PATH
+from conf.paths import ALEXA_BLOOM_FILTER_PATH, WHITE_DOMAIN_FILE_PATH
 from libs.singleton import Singleton
 
 
@@ -27,7 +27,15 @@ class Filter(object):
 class Alexa(Filter):
     def _load_filter(self):
         with open(ALEXA_BLOOM_FILTER_PATH, 'rb') as fopen:
-            self.filter = BloomFilter.fromfile(fopen)
+            self.bloom_filter = BloomFilter.fromfile(fopen)
+        #
+        self.filter = set()
+        with open(WHITE_DOMAIN_FILE_PATH) as fopen:
+            for line in fopen.readlines():
+                self.filter.add(line.strip('\r\n '))
 
-
+    def contains(self, source):
+        if source in self.bloom_filter or source in self.filter:
+            return True
+        return False
 
