@@ -35,6 +35,7 @@ DB_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'hawksec.db')
 CRAWL_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'crawl.metric.json')
 EXTRACT_METRIC_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'extract.metric.json')
 LOG_FILEPATH = os.path.join(DUMP_HOME, "%s.log" % WORK_NAME)
+WHITE_DOMAIN_FILE_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'whitedomain.txt')
 ALEXA_BLOOM_FILTER_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'top-30k-sites.blm')
 START_MOVIE_PATH = os.path.join(PRIVATE_RESOURCE_HOME, 'waitloading.mp4')
 

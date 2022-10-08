@@ -35,13 +35,14 @@ def check(hosts):
 
 
 if __name__ == '__main__':
-    domains = ['wifi.vivo.com.cn', 'vc-gp-n-105-242-216-26.umts.vodacom.co.za', 'info.lenovo.com.cn',
-               'news.sina.com.cn', 'webapi.weather.com.cn', 'www.google.co.jp', 'www.google.com.hk',
-               '71.am', 'connectivity.samsung.com.cn', '32.43.204.121.board.fz.fj.dynamic.163data.com.cn',
-
-               'weibo.66.dnssina.com', 'mb.hd.sohu.com.cn', 'maps.google.co.jp', '1234567.com.cn', 'krypt.com',
-               'alios.cn', 'www.fliggy.com', 'www.dingtalk.com', 'www.alibabagroup.com', 'www.alimama.com', 'www.xinmin.cn',
-               'alitianji.com', 'alitelecom.com', 'baiduyundns.com', 'baidubos.com', 'samsungacr.com',
-               'sogoubaidusm.cn', 'tencentbs.cn', 'huaweikyy.site', 'vivokyy.site']
-    check(domains)
+    create()
+    # domains = ['wifi.vivo.com.cn', 'vc-gp-n-105-242-216-26.umts.vodacom.co.za', 'info.lenovo.com.cn',
+    #            'news.sina.com.cn', 'webapi.weather.com.cn', 'www.google.co.jp', 'www.google.com.hk',
+    #            '71.am', 'connectivity.samsung.com.cn', '32.43.204.121.board.fz.fj.dynamic.163data.com.cn',
+    #
+    #            'weibo.66.dnssina.com', 'mb.hd.sohu.com.cn', 'maps.google.co.jp', '1234567.com.cn', 'krypt.com',
+    #            'alios.cn', 'www.fliggy.com', 'www.dingtalk.com', 'www.alibabagroup.com', 'www.alimama.com', 'www.xinmin.cn',
+    #            'alitianji.com', 'alitelecom.com', 'baiduyundns.com', 'baidubos.com', 'samsungacr.com',
+    #            'sogoubaidusm.cn', 'tencentbs.cn', 'huaweikyy.site', 'vivokyy.site']
+    # check(domains)
 
