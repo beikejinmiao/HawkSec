@@ -11,7 +11,7 @@ from libs.enums import SYSTEM
 # 不能从路径中获取,需直接定义
 WORK_NAME = 'hawksec'   # MAIN_HOME.split(os.sep)[-1].lower()  # hawksec
 USER_HOME = os.path.expanduser('~')
-RUNTIME_HOME = os.path.join(USER_HOME, '.'+WORK_NAME)
+RUNTIME_HOME = os.path.join(USER_HOME, WORK_NAME)
 
 if RuntimeEnv == 'exe':
     # PyInstaller creates a temp folder and stores path in _MEIPASS
@@ -62,4 +62,4 @@ DOWNLOADS = os.path.join(DUMP_HOME, 'downloads')
 if not os.path.exists(DOWNLOADS):
     os.makedirs(DOWNLOADS)
 #
-LICENSE_PATH = os.path.join(RUNTIME_HOME, 'license')
+LICENSE_PATH = os.path.join(USER_HOME, '.'+WORK_NAME)

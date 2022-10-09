@@ -49,7 +49,7 @@ class QLogTailReader(QThread):
     readline = pyqtSignal(str)
 
     @staticmethod
-    def follow():
+    def tail():
         # UnicodeDecodeError: 'gbk' codec can't decode
         # 写入中文日志导致GUI崩溃,调试模式下才抛出异常
         with open(LOG_FILEPATH, 'r', encoding='utf-8') as fopen:
@@ -64,6 +64,24 @@ class QLogTailReader(QThread):
                     time.sleep(0.5)
                     continue
                 yield line
+
+    @staticmethod
+    def follow():
+        with open(LOG_FILEPATH, 'rb') as fopen:
+            try:
+                # 定位到倒数1024个字节开始读取
+                fopen.seek(-1024, os.SEEK_END)
+                fopen.readline()    # 忽略不完整的第一行
+            except:
+                # 如果文件中字节数小于设定值,会抛出异常
+                # 则直接定位到文件尾
+                fopen.seek(0, os.SEEK_END)
+            while True:
+                line = fopen.readline()
+                if not line:
+                    time.sleep(0.5)
+                    continue
+                yield str(line, encoding='utf-8').strip('\r\n ')
 
     def run(self):
         """Long-running task."""
