@@ -13,7 +13,7 @@ from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
 from modules.gui.ui_tableview import Ui_Form
 from modules.interaction.dbmodel import TablePageModel
-from modules.win.msgbox import QWarnMessageBox, QInfoMessageBox
+from modules.win.msgbox import QWarnMessageBox, QInfoMessageBox, QFileSaveMessageBox
 
 
 class DataGridWindow(TablePageModel, Ui_Form, QWidget):
@@ -289,7 +289,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
         if ok:
             try:
                 self.sqlite.dump(self.table, filepath, columns=self.columns, where=self.db_where)
-                QInfoMessageBox("保存成功. 文件路径:\n" + filepath).exec()
+                QFileSaveMessageBox("保存成功. 文件路径:\n" + filepath, path=filepath).exec()
             except Exception as e:
                 QWarnMessageBox("保存失败. 错误原因:\n" + str(e)).exec()
 

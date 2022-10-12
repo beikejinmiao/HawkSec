@@ -3,7 +3,7 @@
 import os
 from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtGui import QColor, QCursor, QPixmap
-from PyQt6.QtWidgets import QDialog, QGraphicsDropShadowEffect, QSizePolicy
+from PyQt6.QtWidgets import QDialog, QGraphicsDropShadowEffect, QSizePolicy, QFileDialog
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.gui.ui_msgbox import Ui_Dialog
@@ -76,4 +76,20 @@ class QWarnMessageBox(MessageBoxWindow):
 class QuestionMessageBox(MessageBoxWindow):
     def __init__(self, message, level='question'):
         super().__init__(message, level=level)
+
+
+class QFileSaveMessageBox(MessageBoxWindow):
+    def __init__(self, message, path='./', level='info'):
+        super().__init__(message, level=level)
+        self._open_path(path)
+
+    def _open_path(self, path):
+        def _open_dir():
+            # dir_ = QFileDialog.getExistingDirectory(None, '打开文件夹', path, QFileDialog.Option.ShowDirsOnly)
+            os.system('explorer.exe /n,%s' % os.path.dirname(path).replace('/', '\\'))
+            # os.startfile(path)        # 直接使用默认软件打开文件
+            self.accept()
+        self.cancelBtn.setText('查看')
+        self.cancelBtn.clicked.disconnect()
+        self.cancelBtn.clicked.connect(_open_dir)
 
