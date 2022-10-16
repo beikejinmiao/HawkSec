@@ -122,7 +122,8 @@ def download(url, out=None, size_limit=25165824):
     try:
         # ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
         # unable to get local issuer certificate (_ssl.c:1131)
-        with requests.get(url, stream=True, headers=http_headers, verify=False) as resp:
+        # 必须设置timeout,否则可能会永远等待导致程序挂起
+        with requests.get(url, stream=True, headers=http_headers, verify=False, timeout=10) as resp:
             # 获取远程文件名
             resp_headers = resp.headers
             remote_filename = detect_filename(url, None, resp_headers)
