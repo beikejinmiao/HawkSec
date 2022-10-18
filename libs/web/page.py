@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from http.client import responses
 from bs4 import BeautifulSoup
 from conf.config import http_headers
-from utils.mixed import auto_decode
+from libs.web.pywget import auto_decode
 from libs.web.url import urlfile, normal_url
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -17,33 +17,35 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class RespInfo(object):
-    def __init__(self, url='', title=None, html_text='', status_code=-1, desc=''):
+    def __init__(self, url='', title=None, text='', status_code=-1, desc=''):
         self.url = url.strip()
         self.title = title
-        self.html_text = html_text
+        self.text = text
         self.status_code = status_code
         self.desc = desc if desc else responses.get(status_code, '')
 
     def __str__(self):
         d = self.__dict__.copy()
-        del d['html_text']
+        del d['text']
         return str(d)
 
 
 def try_crawl(url, resp=None):
-    parsed = urlparse(url)
-    http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
     try:
-        resp = requests.get(url, timeout=5, headers=http_headers, verify=False)
+        parsed = urlparse(url)
+        http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
+        resp = requests.get(normal_url(url), timeout=5, headers=http_headers, verify=False)
         resp.raise_for_status()
         if resp.history:
             return try_crawl(resp.url, resp=resp)
     except HTTPError:
         return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason)
+    except Exception as e:
+        logger.error('crawl url error: %s %s' % (url, repr(e)))
+        return RespInfo(url=url, status_code=-1, desc=type(e).__name__)
     #
-    html_text = auto_decode(resp.content)
-    html_text = resp.text if html_text is None else html_text
-    return RespInfo(url=url, html_text=html_text, status_code=resp.status_code, desc=resp.reason)
+    text = auto_decode(resp.content, default=resp.text)
+    return RespInfo(url=url, text=text, status_code=resp.status_code, desc=resp.reason)
 
 
 """
@@ -55,24 +57,22 @@ def strip(text):
     return re.sub(r'[\r\n\t]+', '', text).strip() if text else ''
 
 
-def pagetitle(url):
+def page_info(url):
     title = ''
-    resp_info = None
+    resp_info = try_crawl(url)
     try:
-        resp_info = try_crawl(url)
-        soup = BeautifulSoup(resp_info.html_text, "lxml")  # soup = BeautifulSoup(resp.text, "lxml")
-        title_labels = soup.find_all('title')
-        if title_labels:
-            title = title_labels[0].text
-        resp_info.title = strip(title)
+        if resp_info.text:
+            soup = BeautifulSoup(resp_info.text, "lxml")  # soup = BeautifulSoup(resp.text, "lxml")
+            title_labels = soup.find_all('title')
+            if title_labels:
+                title = title_labels[0].text
+            resp_info.title = strip(title)
     except TypeError:
         # BeautifulSoup解析图片时：  TypeError: object of type 'NoneType' has no len()
         pass
-    except Exception as e:
-        if resp_info is None:
-            resp_info = RespInfo(url=url, status_code=-1, desc=type(e).__name__)
-        logger.debug(traceback.format_exc())
-        logger.error('find title error: %s %s' % (url, e))
+    except:
+        logger.error('find title error: %s' % url)
+        logger.error(traceback.format_exc())
     # title为空时,默认使用从url中提取文件名
     if not resp_info.title:
         resp_info.title = urlfile(url)
@@ -80,6 +80,10 @@ def pagetitle(url):
     if not resp_info.desc:
         resp_info.desc = responses.get(resp_info.status_code, '')
     return resp_info
+
+
+def page_title(url):
+    return page_info(url).title
 
 
 """
@@ -130,7 +134,7 @@ def _is_url(text):
 A_HREF_REGEX = re.compile(r'<a.+href=[\'"](\w+://.+?)[\'"].*>(.+?)</a>')
 
 
-def find_a_href(text, regex=False):
+def page_a_href(text, regex=False):
     if not regex:
         _urls_title = dict()  # key: url, value: title
         soup = BeautifulSoup(text, "lxml")
@@ -146,7 +150,7 @@ def find_a_href(text, regex=False):
     return urls_title
 
 
-def find_url(text):
+def page_href(text):
     _urls_title = dict()               # key: url, value: title
     #
     soup = BeautifulSoup(text, "lxml")
@@ -170,5 +174,5 @@ def find_url(text):
 
 
 if __name__ == '__main__':
-    print(pagetitle('https://www.bwu.edu.cn'))
+    print(page_title('https://www.bwu.edu.cn'))
 

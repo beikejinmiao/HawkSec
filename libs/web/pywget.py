@@ -16,6 +16,19 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
+# 尝试多种编码方式解码bytes
+def auto_decode(content, default=None):
+    if not isinstance(content, bytes):
+        return content
+    #
+    for charset in ('utf-8', 'gbk'):
+        try:
+            return content.decode(charset)
+        except UnicodeDecodeError:
+            pass
+    return default
+
+
 def filename_from_url(url):
     """:return: detected filename as unicode or None"""
     # [ ] test urlparse behavior with unicode url
@@ -76,7 +89,8 @@ def filename_fix_existed(filename):
         name, ext = filename, ''
     names = [x for x in os.listdir(dirname) if x.startswith(name)]
     names = [x.rsplit('.', 1)[0] for x in names]
-    suffixes = [x.replace(name, '') for x in names]
+    # suffixes = [x.replace(name, '') for x in names]   # 纯数字文件名会出错
+    suffixes = [x[len(name):] for x in names]
     # filter suffixes that match ' (x)' pattern
     suffixes = [x[2:-1] for x in suffixes
                 if x.startswith(' (') and x.endswith(')')]

@@ -22,7 +22,7 @@ from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_urls, is_gov_edu
 from utils.idcard import find_idcard
-from libs.web.page import pagetitle, find_a_href
+from libs.web.page import page_info, page_a_href
 from libs.web.url import normal_url, urlsite
 from modules.interaction.metric import ExtractMetric
 from modules.win.settings import setting
@@ -220,9 +220,9 @@ class TextExtractor(SuicidalQThread):
                 # 如果发现新外链，尝试从a标签中提取title，并尝试访问校验其返回码
                 exturl_info = dict()
                 if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
-                    exturl_info = find_a_href(text)
+                    exturl_info = page_a_href(text)
                     for url in values[1]:
-                        resp = pagetitle(url)
+                        resp = page_info(url)
                         # 1. 优先使用a标签中的title内容(如果a标签中的title包含中文)
                         title = exturl_info.get(url, '')
                         # 2. 其次使用访问url的返回结果中的title
@@ -246,8 +246,8 @@ class TextExtractor(SuicidalQThread):
                 # self._sync2db()
                 self.results[origin] = result
         except Exception as e:
-            logger.debug(traceback.format_exc())
             logger.error('解析敏感内容失败; %s: %s' % (str(e), origin))
+            logger.error(traceback.format_exc())
         return result
 
     def __extract_file(self, local_path, origin=None):

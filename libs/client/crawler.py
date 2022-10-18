@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup
 from conf.config import http_headers
 from libs.regex import img, video, executable
-from utils.mixed import auto_decode
+from libs.web.pywget import auto_decode
 from libs.web.url import urlsite, normal_url
 from libs.web.url import urlfile, absurl
 from libs.web.page import RespInfo
@@ -28,9 +28,9 @@ def strip(text):
 
 class UrlFileInfo(RespInfo):
     def __init__(self, url='', url_from='', title=None,
-                 filename=None, html_text='', status_code=-1, desc=''):
+                 filename=None, text='', status_code=-1, desc=''):
         super().__init__(url=url, title=title if title else filename,
-                         html_text=html_text, status_code=status_code, desc=desc)
+                         text=text, status_code=status_code, desc=desc)
         self.url_from = url_from    # url来源网页
         self.filename = filename    # 远程文件名
 
@@ -127,10 +127,9 @@ class Spider(object):
                 urldir = url[:url.rfind('/') + 1] if '/' in parts.path else url
                 urldir = urldir if urldir.endswith('/') else (urldir + '/')  # 和href拼接时需要有/
                 # 解析HTML页面
-                html_text = auto_decode(resp.content)
-                html_text = resp.text if html_text is None else html_text
-                soup = BeautifulSoup(html_text, "lxml")  # soup = BeautifulSoup(html_text, "html.parser")
-                url_info.status_code, url_info.desc,  url_info.html_text = resp.status_code, resp.reason, html_text
+                text = auto_decode(resp.content, default=resp.text)
+                soup = BeautifulSoup(text, "lxml")  # soup = BeautifulSoup(text, "html.parser")
+                url_info.status_code, url_info.desc,  url_info.text = resp.status_code, resp.reason, text
                 if url_info.title is None or \
                         len(url_info.title) <= 2 or len(url_info.title) >= 48 or \
                         len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
@@ -188,6 +187,6 @@ if __name__ == '__main__':
     spider = Spider('https://rtx.bcsa.edu.cn/lixiao.html')
     from libs.regex import find_urls
     for resp in spider.scrape():
-        if resp.html_text:
-            print(find_urls(resp.html_text))
+        if resp.text:
+            print(find_urls(resp.text))
 

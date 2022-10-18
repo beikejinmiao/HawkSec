@@ -213,8 +213,8 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 self._metric.crawl_total += 1
                 # 解析网页中的敏感内容
-                if resp.html_text and self.extractor is not None:
-                    self.extractor.extract(resp.html_text, origin=resp.url)
+                if resp.text and self.extractor is not None:
+                    self.extractor.extract(resp.text, origin=resp.url)
             except:
                 logger.error(traceback.format_exc())
                 logger.error(resp.url)

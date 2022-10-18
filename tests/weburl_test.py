@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from libs.web.url import urlsite
-from libs.web.page import pagetitle, find_a_href
+from libs.web.page import page_title, page_a_href
 
 data = [
     'https://123/asds', 'sftp://www.baidu.com/asds', 'qwe://www.baidu.com/asds', 'https://1.1.1.1/asds'
@@ -53,9 +53,9 @@ test_html2 = """
 </html>
 """
 
-print(find_a_href(test_html1))
-print(find_a_href(test_html2))
-print(find_a_href(test_html2, regex=True))
-print(pagetitle('https://www.baidu.com/'))
-print(pagetitle('https://chicagomedicalcenter.com/'))
+print(page_a_href(test_html1))
+print(page_a_href(test_html2))
+print(page_a_href(test_html2, regex=True))
+print(page_title('https://www.baidu.com/'))
+print(page_title('https://chicagomedicalcenter.com/'))
 
