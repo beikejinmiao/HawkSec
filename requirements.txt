@@ -15,8 +15,8 @@ rarfile==4.0
 unrar==0.4
 tika==1.24
 paramiko==2.11.0
-PyQt6-Qt6==6.3.1
-PyQt6==6.3.1
+PyQt6-Qt6==6.4.0
+PyQt6==6.4.0
 python-docx==0.8.11
 python-pptx==0.6.21
 pdfplumber==0.6.2
