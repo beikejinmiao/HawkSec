@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import time
+import traceback
 from queue import Empty
 from libs.pysqlite import Sqlite
 from libs.thread import SuicidalThread
@@ -53,10 +54,13 @@ class DbPersistence(SuicidalThread):
         self.sqlite.close()
 
     def sync2db(self):
-        for table, rows in self.db_rows.items():
-            if len(rows) > 0:
-                self.sqlite.insert_many(table, rows)
-        self.db_rows.clear()
+        try:
+            for table, rows in self.db_rows.items():
+                if len(rows) > 0:
+                    self.sqlite.insert_many(table, rows)
+            self.db_rows.clear()
+        except:
+            logger.error(traceback.format_exc())
 
     # def cleanup(self):
     #     self.sqlite.close()

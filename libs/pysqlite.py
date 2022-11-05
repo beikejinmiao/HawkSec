@@ -4,6 +4,7 @@ import math
 import pandas as pd
 import sqlite3
 from conf.paths import DB_PATH
+from libs.logger import logger
 
 
 class Sqlite(object):
@@ -51,7 +52,14 @@ class Sqlite(object):
         #
         win, size = 100, len(values)
         for i in range(math.ceil(size/win)):
-            self.__cursor.executemany(stmt, values[i*win:min((i+1)*win, size)])
+            # sqlite3.ProgrammingError: Incorrect number of bindings supplied.
+            # The current statement uses 4, and there are 5 supplied.
+            val = values[i*win:min((i+1)*win, size)]
+            try:
+                self.__cursor.executemany(stmt, val)
+            except Exception as e:
+                logger.error(repr(e))
+                logger.error('insert sql: %s; values: %s' % (stmt, val))
         self.__conn.commit()
 
     def select(self, sql):
