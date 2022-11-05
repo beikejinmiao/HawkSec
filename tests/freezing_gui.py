@@ -59,10 +59,10 @@ class Window(QMainWindow):
 
     def countClicks(self):
         self.clicksCount += 1
-        self.clicksLabel.setText(f"Counting: {self.clicksCount} clicks")
+        self.clicksLabel.setText("Counting: {self.clicksCount} clicks")
 
     def reportProgress(self, n):
-        self.stepLabel.setText(f"Long-Running Step: {n}")
+        self.stepLabel.setText("Long-Running Step: {n}")
 
     # def runLongTask(self):
     #     """Long-running task in 5 steps."""
