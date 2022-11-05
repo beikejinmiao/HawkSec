@@ -11,7 +11,8 @@ SENSITIVE_FLAG_IDCARD = 1
 SENSITIVE_FLAG_KEYWORD = 2
 
 
-class SENSITIVE_FLAG(enum.IntFlag):
+# AttributeError: module 'enum' has no attribute 'IntFlag'
+class SENSITIVE_FLAG(enum.IntEnum):
     URL = U = SENSITIVE_FLAG_URL
     IDCARD = I = SENSITIVE_FLAG_IDCARD
     KEYWORD = K = SENSITIVE_FLAG_KEYWORD

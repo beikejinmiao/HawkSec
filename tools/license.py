@@ -88,9 +88,13 @@ class AESHelper(object):
 
 
 random.seed(100)
-_secret = ''.join(random.choices(string.digits+string.ascii_letters, k=16))  # 密钥
+candidates = string.digits+string.ascii_letters
+# AttributeError: module 'random' has no attribute 'choices'
+# _secret = ''.join(random.choices(string.digits+string.ascii_letters, k=16))  # 密钥
+_secret = ''.join([random.choice(candidates) for i in range(16)])  # 密钥
 random.seed(200)
-_iv = ''.join(random.choices(string.digits+string.ascii_letters, k=16))      # 偏移量
+# _iv = ''.join(random.choices(string.digits+string.ascii_letters, k=16))      # 偏移量
+_iv = ''.join([random.choice(candidates) for i in range(16)])
 
 
 class LicenseHelper(object):
