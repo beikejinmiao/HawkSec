@@ -1,7 +1,7 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-
 import sys
-from PyQt5.QtMultimedia import QAudioOutput, QMediaPlayer
+from PyQt5.QtMultimedia import QAudioOutput, QMediaPlayer, QMediaContent
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout
 from PyQt5.QtCore import QUrl, Qt
@@ -28,22 +28,31 @@ class SplashScreen(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
+        # AttributeError: 'QMediaPlayer' object has no attribute 'setAudioOutput'
+        # self.audio_output = QAudioOutput()
+        # self.player.setAudioOutput(self.audio_output)
 
         self.video_widget = QVideoWidget()
         layout.addWidget(self.video_widget)
         self.player.setVideoOutput(self.video_widget)
 
-        self.player.setSource(QUrl.fromLocalFile(START_MOVIE_PATH))
+        # AttributeError: 'QMediaPlayer' object has no attribute 'setSource'
+        # self.player.setSource(QUrl.fromLocalFile(START_MOVIE_PATH))
+
+        # https://stackoverflow.com/questions/60585605/why-media-player-pyqt5-is-not-working-on-windows-10-python
+        # 需安装https://files2.codecguide.com/K-Lite_Codec_Pack_1725_Basic.exe，否则无法解码视频文件
+        self.player.setMedia(QMediaContent(QUrl.fromLocalFile(START_MOVIE_PATH)))
         self.player.play()
 
     def __init_state(self):
-        self.player.playbackStateChanged.connect(self.show_mainwin)
+        # AttributeError: 'QMediaPlayer' object has no attribute 'playbackStateChanged'
+        self.player.stateChanged.connect(self.show_mainwin)
 
     def show_mainwin(self):
-        if self.player.playbackState() == QMediaPlayer.PlaybackState.StoppedState:
+        # AttributeError: 'QMediaPlayer' object has no attribute 'playbackState'
+        # AttributeError: type object 'QMediaPlayer' has no attribute 'PlaybackState'
+        if self.player.state() == QMediaPlayer.StoppedState:
             self.mainWindow = MainWindow()      # 该变量必须定义在self下,否则动画结束后会主页窗口莫名其妙的退出
             self.mainWindow.show()
         self.close()
