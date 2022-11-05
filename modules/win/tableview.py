@@ -63,7 +63,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         self.timeWidget.hide()
-        self.timeWidget.setWindowFlag(self.timeWidget.windowFlags() | Qt.WindowType.SubWindow)
+        # TypeError: setWindowFlag(self, Qt.WindowType, on: bool = True): argument 1 has unexpected type 'WindowFlags'
+        # self.timeWidget.setWindowFlag(self.timeWidget.windowFlags() | Qt.WindowType.SubWindow)
+        self.timeWidget.setWindowFlag(Qt.WindowType.SubWindow)
         self.calendarWidgetFrom.setFirstDayOfWeek(Qt.DayOfWeek.Sunday)
         # 隐藏左侧当前第几周
         self.calendarWidgetFrom.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)

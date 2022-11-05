@@ -56,20 +56,30 @@ class MainWindow(UiMainWindow, QWidget):
 
     # https://blog.csdn.net/QW1540235670/article/details/111028331
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton and event.position().y() < self.dragWidget.height():
+        # if event.button() == Qt.MouseButton.LeftButton and event.position().y() < self.dragWidget.height():
+        #     self._move_flag = True
+        #     self._move_position = event.pos() - self.pos()                      # 获取鼠标相对窗口的位置
+        #     event.accept()
+        #     self.setCursor(QCursor(Qt.CursorShape.OpenHandCursor))              # 更改鼠标图标
+        if event.button() == Qt.MouseButton.LeftButton and event.y() < self.dragWidget.height():
             self._move_flag = True
-            self._move_position = event.pos() - self.pos()                      # 获取鼠标相对窗口的位置
+            self._move_position = event.globalPos() - self.pos()
             event.accept()
-            self.setCursor(QCursor(Qt.CursorShape.OpenHandCursor))              # 更改鼠标图标
+        return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        # if Qt.MouseButton.LeftButton and self._move_flag:
+        #     self.move(event.pos() - self._move_position)                        # 更改窗口位置
+        #     event.accept()
         if Qt.MouseButton.LeftButton and self._move_flag:
-            self.move(event.pos() - self._move_position)                        # 更改窗口位置
+            self.move(event.globalPos() - self._move_position)                        # 更改窗口位置
             event.accept()
+        return super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         self._move_flag = False
         self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        return super().mouseReleaseEvent(event)
 
     def __init_gui(self):
         QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))

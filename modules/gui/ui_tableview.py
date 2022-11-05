@@ -194,7 +194,8 @@ class Ui_Form(object):
         self.refreshBtn.setText(_translate("Form", "刷新"))
         self.titleLabel.setText(_translate("Form", "监测详情"))
         self.closeBtnLabel.setText(_translate("Form", "x"))
-        self.searchCodeComboBox.setPlaceholderText(_translate("Form", "请选择"))
+        # AttributeError: 'QComboBox' object has no attribute 'setPlaceholderText'
+        # self.searchCodeComboBox.setPlaceholderText(_translate("Form", "请选择"))
         self.searchBtn.setText(_translate("Form", "查询"))
         self.searchCodeLabel.setText(_translate("Form", "状态码"))
         self.dumpBtn.setText(_translate("Form", "导出"))
