@@ -1,8 +1,8 @@
 import os
 import traceback
-from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap, QCursor, QColor
-from PyQt6.QtWidgets import QWidget, QSizePolicy, QGraphicsDropShadowEffect
+from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtGui import QPixmap, QCursor, QColor
+from PyQt5.QtWidgets import QWidget, QSizePolicy, QGraphicsDropShadowEffect
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from tools.license import LicenseHelper

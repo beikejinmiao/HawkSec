@@ -8,7 +8,7 @@ import traceback
 from urllib.parse import urlparse
 from collections.abc import Iterable
 from collections import namedtuple
-from PyQt6.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import archive
 from libs.pysqlite import Sqlite

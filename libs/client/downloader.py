@@ -5,7 +5,7 @@ import json
 import traceback
 from collections import Counter
 from urllib.parse import urlparse
-from PyQt6.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.client.crawler import Spider, UrlFileInfo
 from libs.pyaml import configure

@@ -3,7 +3,7 @@
 import time
 from libs.timer import timer
 from libs.thread import SuicidalThread
-from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class QTestThread(QThread):

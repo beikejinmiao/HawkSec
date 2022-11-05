@@ -1,15 +1,15 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-
 import sys
-from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer
-from PyQt6.QtMultimediaWidgets import QVideoWidget
-from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout
-from PyQt6.QtCore import QUrl, Qt
+from PyQt5.QtMultimedia import QAudioOutput, QMediaPlayer
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout
+from PyQt5.QtCore import QUrl, Qt
 from conf.paths import START_MOVIE_PATH
 from modules.win.mainwin import MainWindow
 
 """
-PyQt6 视频播放器样例
+PyQt5 视频播放器样例
 https://doc.qt.io/qtforpython/examples/example_multimedia__player.html
 """
 
@@ -60,9 +60,9 @@ if __name__ == '__main__':
 #     import os
 #     import time
 #     from conf.paths import PRIVATE_RESOURCE_HOME
-#     from PyQt6.QtWidgets import QSplashScreen, QProgressBar
-#     from PyQt6.QtCore import QDir, Qt
-#     from PyQt6.QtGui import QPixmap
+#     from PyQt5.QtWidgets import QSplashScreen, QProgressBar
+#     from PyQt5.QtCore import QDir, Qt
+#     from PyQt5.QtGui import QPixmap
 #
 #     app = QApplication(sys.argv)
 #     QDir.addSearchPath("image", os.path.join(PRIVATE_RESOURCE_HOME, "image"))

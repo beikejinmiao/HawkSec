@@ -3,10 +3,10 @@
 import os
 import re
 import math
-from PyQt6.QtCore import QDir, Qt, pyqtSlot
-from PyQt6.QtGui import QPixmap, QPalette, QColor, QCursor
-from PyQt6.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
-from PyQt6.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
+from PyQt5.QtCore import QDir, Qt, pyqtSlot
+from PyQt5.QtGui import QPixmap, QPalette, QColor, QCursor
+from PyQt5.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
 from libs.enums import TABLES, SENSITIVE_FLAG, SENSITIVE_NAME, sensitive_flag_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
@@ -413,7 +413,7 @@ class WhiteListDataWindow(DataGridWindow):
 
 if __name__ == '__main__':
     import sys
-    from PyQt6.QtWidgets import QApplication
+    from PyQt5.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
     extractWindow = ExtractDataWindow()

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QCursor, QColor
-from PyQt6.QtWidgets import QWidget, QGraphicsDropShadowEffect
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCursor, QColor
+from PyQt5.QtWidgets import QWidget, QGraphicsDropShadowEffect
 from conf.paths import IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.gui.ui_logview import Ui_Form

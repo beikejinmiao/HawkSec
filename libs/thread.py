@@ -3,7 +3,7 @@
 import threading
 import inspect
 import ctypes
-from PyQt6.QtCore import QThread
+from PyQt5.QtCore import QThread
 
 
 # https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread

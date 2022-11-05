@@ -4,7 +4,7 @@ import time
 import json
 import traceback
 from json.decoder import JSONDecodeError
-from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH
 from libs.logger import logger
 

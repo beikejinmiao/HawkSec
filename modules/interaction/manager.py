@@ -5,7 +5,7 @@ import re
 import time
 import shutil
 from queue import Queue
-from PyQt6.QtCore import QTimer, QObject, pyqtSignal
+from PyQt5.QtCore import QTimer, QObject, pyqtSignal
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, DOWNLOADS
 from libs.enums import SENSITIVE_FLAG, TABLES
 from libs.pysqlite import Sqlite

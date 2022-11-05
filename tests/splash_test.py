@@ -3,9 +3,9 @@
 import os
 import sys
 import time
-from PyQt6.QtCore import Qt, QDir
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QDialog, QTextBrowser, QLineEdit, QVBoxLayout, QSplashScreen, QProgressBar
+from PyQt5.QtCore import Qt, QDir
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QDialog, QTextBrowser, QLineEdit, QVBoxLayout, QSplashScreen, QProgressBar
 from conf.paths import PRIVATE_RESOURCE_HOME
 
 """

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import math
-from PyQt6.QtSql import QSqlDatabase, QSqlQueryModel
-from PyQt6.QtCore import Qt
+from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel
+from PyQt5.QtCore import Qt
 from conf.paths import DB_PATH
 from libs.pysqlite import Sqlite
 

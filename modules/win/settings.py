@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPalette, QColor, QCursor
-from PyQt6.QtWidgets import QWidget, QGraphicsDropShadowEffect, QFileDialog
+from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtGui import QPalette, QColor, QCursor
+from PyQt5.QtWidgets import QWidget, QGraphicsDropShadowEffect, QFileDialog
 from modules.gui.ui_settings import Ui_Form
 from modules.win.tableview import WhiteListDataWindow
 from modules.win.msgbox import QInfoMessageBox, QWarnMessageBox

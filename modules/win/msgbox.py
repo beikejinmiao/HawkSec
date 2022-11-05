@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QColor, QCursor, QPixmap
-from PyQt6.QtWidgets import QDialog, QGraphicsDropShadowEffect, QSizePolicy, QFileDialog
+from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtGui import QColor, QCursor, QPixmap
+from PyQt5.QtWidgets import QDialog, QGraphicsDropShadowEffect, QSizePolicy, QFileDialog
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.gui.ui_msgbox import Ui_Dialog

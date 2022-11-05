@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import math
-from PyQt6.QtWidgets import QLineEdit, QWidget, QLabel, QMessageBox
-from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QRect
-from PyQt6.QtGui import QColor, QPainter, QPixmap
+from PyQt5.QtWidgets import QLineEdit, QWidget, QLabel, QMessageBox
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QRect
+from PyQt5.QtGui import QColor, QPainter, QPixmap
 from utils.filedir import StyleSheetHelper
 from libs.enums import QMSG_BOX_REPLY_YES, QMSG_BOX_REPLY_NO
 

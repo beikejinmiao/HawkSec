@@ -4,8 +4,8 @@ import os
 import time
 import logging
 import logging.config
-from PyQt6 import QtWidgets
-from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QThread, pyqtSignal
 from conf.paths import LOG_FILEPATH
 from conf.config import RuntimeEnv
 
