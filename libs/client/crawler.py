@@ -14,6 +14,7 @@ from libs.web.pywget import auto_decode
 from libs.web.url import urlsite, normal_url
 from libs.web.url import urlfile, absurl
 from libs.web.page import RespInfo
+from libs.web.content_type import is_office_mime, is_zip_mime
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -99,6 +100,21 @@ class Spider(object):
                 self.__urlpath_limit[urlpath] = _path_cnt_ + 1
             # 爬取正常网页
             try:
+                # 发送HEAD请求,判断是否为文件下载链接
+                head_resp = self.session.head(url, timeout=self.timeout, verify=False)
+                content_type = ''
+                for header in head_resp.headers:
+                    if header.lower() == 'content-type':
+                        content_type = head_resp.headers[header].split(';')[0].strip()
+                        break
+                if re.match('^(image|audio|video|drawing|java|)/', content_type, re.I):
+                    continue
+                if is_office_mime(content_type) or is_zip_mime(content_type):
+                    self._file_urls[url] = url_info
+                    url_info.filename = 'unknown.tmp'       # 可以从Content-Disposition解析文件名
+                    yield url_info
+                    continue
+                #
                 resp = self.session.get(url, timeout=self.timeout, verify=False)
                 logger.info('GET %s %s' % (url, resp.status_code))
                 # https://stackoverflow.com/questions/20475552/python-requests-library-redirect-new-url
@@ -186,7 +202,7 @@ class Spider(object):
 if __name__ == '__main__':
     spider = Spider('https://rtx.bcsa.edu.cn/lixiao.html')
     from libs.regex import find_urls
-    for resp in spider.scrape():
-        if resp.text:
-            print(find_urls(resp.text))
+    for info in spider.scrape():
+        if info.text:
+            print(find_urls(info.text))
 
