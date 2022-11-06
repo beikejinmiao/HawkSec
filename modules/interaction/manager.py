@@ -41,7 +41,7 @@ class TaskManager(QObject):
             raise Exception('protocol of \'%s\' is not supported')
         #
         self.target = target
-        if not re.match(r'^\w+://', self.target):
+        if self.protocol != 'sftp' and not re.match(r'^\w+://', self.target):
             self.target = self.protocol + '://' + self.target
         #
         if isinstance(flags, (list, type)) and len(flags) > 0:

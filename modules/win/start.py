@@ -40,6 +40,7 @@ class SplashScreen(QWidget):
         # AttributeError: 'QMediaPlayer' object has no attribute 'setSource'
         # self.player.setSource(QUrl.fromLocalFile(START_MOVIE_PATH))
 
+        # DirectShowPlayerService :: doRender : Unresolved error code 0x80040266 (IDispatch error #102)
         # https://stackoverflow.com/questions/60585605/why-media-player-pyqt5-is-not-working-on-windows-10-python
         # 需安装https://files2.codecguide.com/K-Lite_Codec_Pack_1725_Basic.exe，否则无法解码视频文件
         self.player.setMedia(QMediaContent(QUrl.fromLocalFile(START_MOVIE_PATH)))
