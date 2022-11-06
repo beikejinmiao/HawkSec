@@ -66,14 +66,20 @@ def doc(filepath):
     app.Visible = 0            # 后台运行
     app.DisplayAlerts = 0      # 不显示，不警告
     fopen = app.Documents.Open(filepath)
-    for paragraph in fopen.Paragraphs:
-        texts.append(paragraph.Range.Text)
-    for table in fopen.Tables:
-        for row in table.Rows:
-            for cell in row.Cells:
-                texts.append(cell.Range.Text)
+    # python3.5.4 + pywin32-301提取失败
+    # for paragraph in fopen.Paragraphs:
+    #     texts.append(paragraph.Range.Text)
+    # for table in fopen.Tables:
+    #     for row in table.Rows:
+    #         for cell in row.Cells:
+    #             texts.append(cell.Range.Text)
+    new_pdf_file = filepath + '.pdf'
+    # https://stackoverflow.com/questions/30481136/pywin32-save-docx-as-pdf
+    fopen.SaveAs(new_pdf_file, FileFormat=17)
     fopen.Close()
     app.Quit()
+    texts = pdf(new_pdf_file)
+    os.remove(new_pdf_file)
     pythoncom.CoUninitialize()
     return set(texts)
 
@@ -90,13 +96,14 @@ def ppt(filepath):
     app = win32com.client.DispatchEx('Powerpoint.Application')
     ppt.DisplayAlerts = 0                   # 不显示,不警告
     fopen = app.Presentations.Open(filepath)
-    new_pptx_file = filepath + '.pptx'
-    fopen.SaveAs(new_pptx_file, 24)          # 保存为pptx
-    # fopen.SaveAs(filepath + '.pdf', 32)    # 保存为pdf
+    new_pdf_file = filepath + '.pdf'
+    # fopen.SaveAs(new_pptx_file, 24)               # 保存为pptx
+    # https://community.esri.com/t5/python-questions/how-can-i-use-python-to-convert-ppt-to-pdf/td-p/310114
+    fopen.SaveAs(new_pdf_file, FileFormat=32)       # 保存为pdf
     fopen.Close()
     app.Quit()
-    texts = pptx(new_pptx_file)
-    os.remove(new_pptx_file)
+    texts = pdf(new_pdf_file)
+    os.remove(new_pdf_file)
     pythoncom.CoUninitialize()
     return texts
 
@@ -131,7 +138,8 @@ def pdf(filepath):
     with pdfplumber.open(filepath) as fopen:
         for page in fopen.pages:
             text = page.extract_text()  # 提取文本
-            texts.append(text)
+            if text:
+                texts.append(str(text))
     return set(texts)
 
 
