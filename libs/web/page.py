@@ -30,21 +30,29 @@ class RespInfo(object):
         return str(d)
 
 
-def try_crawl(url, resp=None):
+def try_crawl(url, resp=None, max_depth=4):
+    """
+    :param url:
+    :param resp: 重定向追踪中的前一次响应内容
+    :param max_depth: 设置重定向追踪爬取最大深度,避免RecursionError
+    :return:
+    """
     try:
         parsed = urlparse(url)
         http_headers['Referer'] = '%s://%s/' % (parsed.scheme, parsed.netloc)
         resp = requests.get(normal_url(url), timeout=5, headers=http_headers, verify=False)
         resp.raise_for_status()
-        if resp.history:
-            return try_crawl(resp.url, resp=resp)
+        if resp.history and max_depth > 0:
+            return try_crawl(resp.url, resp=resp, max_depth=max_depth-1)
     except HTTPError:
         return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason)
     except Exception as e:
         logger.error('crawl url error: %s %s' % (url, repr(e)))
+        logger.error(traceback.format_exc())
         return RespInfo(url=url, status_code=-1, desc=type(e).__name__)
     #
     text = auto_decode(resp.content, default=resp.text)
+    # 如果发生重定向,那么url内容是重定向后的url
     return RespInfo(url=url, text=text, status_code=resp.status_code, desc=resp.reason)
 
 
