@@ -3,6 +3,7 @@
 import os
 import re
 import math
+from collections import OrderedDict
 from PyQt5.QtCore import QDir, Qt, pyqtSlot
 from PyQt5.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt5.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
@@ -311,7 +312,7 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
 
 class ProgressDataWindow(DataGridWindow):
     def __init__(self, title='URL文件爬取列表', resp_code=None):
-        columns = dict(zip(
+        columns = OrderedDict(zip(
             ['id', 'origin', 'origin_name', 'resp_code', 'desc', 'create_time'],
             ['ID', 'URL/FILE路径', 'URL/FILE名称', '状态码', '描述', '创建时间']
         ))
@@ -341,7 +342,7 @@ class ProgressDataWindow(DataGridWindow):
 
 class ExtractDataWindow(DataGridWindow):
     def __init__(self, title='URL文件解析结果'):
-        columns = dict(zip(
+        columns = OrderedDict(zip(
             ['id', 'origin', 'sensitive_name', 'content', 'count', 'create_time'],
             ['ID', 'URL/FILE路径', '敏感类型', '敏感内容', '数量', '创建时间']
         ))
@@ -361,7 +362,7 @@ class ExtractDataWindow(DataGridWindow):
 
 class SensitiveDataWindow(DataGridWindow):
     def __init__(self, title='敏感内容', sensitive_type=None):
-        columns = dict(zip(
+        columns = OrderedDict(zip(
             ['id', 'sensitive_name', 'content', 'content_name', 'desc', 'origin', 'create_time'],
             ['ID', '敏感类型', '敏感内容', '内容名称', '描述', '发现地址', '发现时间']
         ))
@@ -398,7 +399,7 @@ class SensitiveDataWindow(DataGridWindow):
 
 class WhiteListDataWindow(DataGridWindow):
     def __init__(self, white_type='domain'):
-        columns = dict(zip(
+        columns = OrderedDict(zip(
             ['id', 'ioc', 'desc', 'create_time'],
             ['ID', '内容', '描述', '创建时间']
         ))
