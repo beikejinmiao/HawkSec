@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import paramiko
-import socket
 import os
 import json
+import socket
 import traceback
 from stat import S_ISDIR
 from collections import Counter
@@ -13,7 +12,11 @@ from libs.client.downloader import Downloader
 from libs.pyaml import configure
 from libs.enums import TABLES
 from libs.logger import logger
-
+import warnings
+# from cryptography.utils import CryptographyDeprecationWarning         # ImportError
+# warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+warnings.filterwarnings(action='ignore', module='.*paramiko.*')
+import paramiko
 
 """
 https://gist.github.com/johnfink8/2190472
