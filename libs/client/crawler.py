@@ -9,12 +9,12 @@ from collections import deque
 from collections.abc import Iterable
 from bs4 import BeautifulSoup
 from conf.config import http_headers
-from libs.regex import img, video, executable
+from libs.regex import img, video, executable, html
 from libs.web.pywget import auto_decode
 from libs.web.url import urlsite, normal_url
 from libs.web.url import urlfile, absurl
 from libs.web.page import RespInfo
-from libs.web.content_type import is_office_mime, is_zip_mime
+from libs.web.content_type import is_useful_mime
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -53,7 +53,6 @@ class Spider(object):
         #
         self.urls = dict()          # key: url, value: 该url的信息
         self.urls[self._start_url] = UrlFileInfo(url=self._start_url, filename=urlfile(self._start_url))
-        self._broken_urls = dict()
         self._file_urls = dict()
         self.__urlpath_limit = dict()       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
         self.__parsed_urls = set()
@@ -100,20 +99,22 @@ class Spider(object):
                 self.__urlpath_limit[urlpath] = _path_cnt_ + 1
             # 爬取正常网页
             try:
-                # 发送HEAD请求,判断是否为文件下载链接
-                head_resp = self.session.head(url, timeout=self.timeout, verify=False)
-                content_type = ''
-                for header in head_resp.headers:
-                    if header.lower() == 'content-type':
-                        content_type = head_resp.headers[header].split(';')[0].strip()
-                        break
-                if re.match('^(image|audio|video|drawing|java|)/', content_type, re.I):
-                    continue
-                if is_office_mime(content_type) or is_zip_mime(content_type):
-                    self._file_urls[url] = url_info
-                    url_info.filename = 'unknown.tmp'       # 可以从Content-Disposition解析文件名
-                    yield url_info
-                    continue
+                if not html.match(url):
+                    # 发送HEAD请求,判断是否为文件下载链接
+                    head_resp = self.session.head(url, timeout=self.timeout, verify=False)
+                    content_type = ''
+                    for header in head_resp.headers:
+                        if header.lower() == 'content-type':
+                            content_type = head_resp.headers[header].split(';')[0].strip()
+                            break
+                    if re.match('^(image|audio|video|drawing|java|)/', content_type, re.I):
+                        continue
+                    if re.match('^application/', content_type, re.I):
+                        if is_useful_mime(content_type):
+                            self._file_urls[url] = url_info
+                            url_info.filename = 'unknown.tmp'       # 可以从Content-Disposition解析文件名
+                            yield url_info
+                        continue
                 #
                 resp = self.session.get(url, timeout=self.timeout, verify=False)
                 logger.info('GET %s %s' % (url, resp.status_code))
@@ -129,7 +130,6 @@ class Spider(object):
                     continue
             except Exception as e:
                 logger.error('GET %s %s' % (url, e))
-                self._broken_urls[url] = self.urls.get(url)
                 url_info.status_code = -1
                 url_info.desc = type(e).__name__
                 yield url_info
@@ -145,14 +145,12 @@ class Spider(object):
                 # 解析HTML页面
                 text = auto_decode(resp.content, default=resp.text)
                 soup = BeautifulSoup(text, "lxml")  # soup = BeautifulSoup(text, "html.parser")
-                url_info.status_code, url_info.desc,  url_info.text = resp.status_code, resp.reason, text
-                if url_info.title is None or \
-                        len(url_info.title) <= 2 or len(url_info.title) >= 48 or \
-                        len(re.findall('[\u4e00-\u9fa5]', url_info.title)) <= 2:
-                    # 来源网页的a标签中提取的描述：过短或过长或中文数量小于2，爬取后提取title标签内容
-                    title_labels = soup.find_all('title')
-                    if title_labels:
-                        url_info.title = strip(title_labels[0].string)
+                title_labels = soup.find_all('title')
+                if title_labels:
+                    title = strip(title_labels[0].string)
+                    if title:
+                        url_info.title = title
+                url_info.status_code, url_info.desc, url_info.text = resp.status_code, resp.reason, text
                 yield url_info
                 # 提取页面内容里的URL
                 links = soup.find_all('a')
@@ -161,6 +159,7 @@ class Spider(object):
                     if 'href' not in link.attrs:
                         continue
                     href, title = link.attrs["href"], strip(link.string)
+                    title = title[:min(128, len(title))]
                     if href.startswith("#") or href.startswith('javascript:'):
                         continue
                     if href.startswith("http://") or href.startswith("https://"):
