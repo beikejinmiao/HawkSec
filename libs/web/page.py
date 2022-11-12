@@ -48,7 +48,7 @@ def try_crawl(url, resp=None, max_depth=4):
         return RespInfo(url=url, status_code=resp.status_code, desc=resp.reason)
     except Exception as e:
         logger.error('crawl url error: %s %s' % (url, repr(e)))
-        logger.error(traceback.format_exc())
+        # logger.error(traceback.format_exc())
         return RespInfo(url=url, status_code=-1, desc=type(e).__name__)
     #
     text = auto_decode(resp.content, default=resp.text)
@@ -154,7 +154,8 @@ def page_a_href(text, regex=False):
     #
     urls_title = dict()
     for url, title in _urls_title.items():
-        urls_title[normal_url(url)] = title.strip('\r\n ') if title else ''
+        title = title.strip('\r\n ') if title else ''
+        urls_title[normal_url(url)] = title[:min(128, len(title))]
     return urls_title
 
 

@@ -223,12 +223,13 @@ class TextExtractor(SuicidalQThread):
                     exturl_info = page_a_href(text)
                     for url in values[1]:
                         resp = page_info(url)
-                        # 1. 优先使用a标签中的title内容(如果a标签中的title包含中文)
-                        title = exturl_info.get(url, '')
-                        # 2. 其次使用访问url的返回结果中的title
-                        if title is None or len(title) <= 2 or len(title) >= 32 or \
-                                len(re.findall('[\u4e00-\u9fa5]', title)) <= 2:
-                            title = resp.title
+                        # 1. 优先使用url的返回结果中的title
+                        # 2. 若title中文数量小于等于2，则尝试取a标签中的title内容
+                        title = resp.title
+                        if len(re.findall('[\u4e00-\u9fa5]', title)) <= 2:
+                            _a_title = exturl_info.get(url, '')
+                            if _a_title:
+                                title = _a_title
                         exturl_info[url] = (title, '%s %s' % (resp.status_code, resp.desc))
                 #
                 for value in values[1]:                                             # 本次新发现的敏感内容
