@@ -215,10 +215,11 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 # 解析网页中的敏感内容
                 if resp.text and self.extractor is not None:
                     self.extractor.extract(resp.text, origin=resp.url)
-                    resp.text = None        # 一定要清除text内容,否则内存将不可控的增长
             except:
-                logger.error(traceback.format_exc())
                 logger.error(resp.url)
+                logger.error(traceback.format_exc())
+            finally:
+                resp.text = None  # 一定要清除text内容,否则内存将不可控的增长
             #
             if 0 < resp.status_code < 400:
                 self._metric.crawl_success += 1

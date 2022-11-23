@@ -5,7 +5,7 @@ import requests
 import copy
 import traceback
 from urllib.parse import urlparse
-from collections import deque
+from collections import deque, defaultdict
 from collections.abc import Iterable
 from bs4 import BeautifulSoup
 from conf.config import http_headers
@@ -54,7 +54,7 @@ class Spider(object):
         self.urls = dict()          # key: url, value: 该url的信息
         self.urls[self._start_url] = UrlFileInfo(url=self._start_url, filename=urlfile(self._start_url))
         self._file_urls = dict()
-        self.__urlpath_limit = dict()       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
+        self.__urlpath_limit = defaultdict(lambda: 1)       # 限制某个URL路径下的最大数量(某些查询页面参数组合范围极大)
         self.__parsed_urls = set()
         #
         self.session = requests.session()
@@ -88,15 +88,19 @@ class Spider(object):
             """
             parts = urlparse(url)
             site = "{0.scheme}://{0.netloc}".format(parts)
-            # 针对某些查询页面,参数组合范围极大,需要限制该路径下的URL数量,避免任务无法结束
-            urlpath = site + parts.path
-            if urlpath not in self.__urlpath_limit:
-                self.__urlpath_limit[urlpath] = 1
+            if parts.path.endswith('/') or '/' not in parts.path:
+                # 针对某些查询页面,参数组合范围极大,需要限制该路径下的URL数量,避免任务无法结束; 例如
+                # https://smartlib.buu.edu.cn/asset/search?key=A=%E9%82%B5%E5%A2%9E%E9%BE%99
+                # https://smartlib.buu.edu.cn/asset/search?key=A=%E9%99%88%E5%9B%9B%E6%9C%89
+                urlpath = site + parts.path
             else:
-                _path_cnt_ = self.__urlpath_limit[urlpath]
-                if _path_cnt_ > 5000:
-                    continue
-                self.__urlpath_limit[urlpath] = _path_cnt_ + 1
+                # 针对某些rest风格url,由于资源id是path的一部分,导致url数量趋于无穷,需限制; 例如
+                # https://smartlib.buu.edu.cn/asset/detail/0/20469067615
+                # https://smartlib.buu.edu.cn/asset/detail/0/20429041710
+                urlpath = site + parts.path[:parts.path.rindex('/')]
+            if self.__urlpath_limit[urlpath] > 5000:
+                continue
+            self.__urlpath_limit[urlpath] += 1
             # 爬取正常网页
             try:
                 if not html.match(url):
