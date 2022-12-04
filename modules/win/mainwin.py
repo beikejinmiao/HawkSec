@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import re
+import math
 from pathlib import Path
 import traceback
 import datetime
@@ -317,6 +318,7 @@ class MainWindow(UiMainWindow, QWidget):
         expend_time = human_timedelta(seconds)
         self.expendTimeLabel.setText(expend_time)
         self.expendTimeLabel2.setText(expend_time)
+        self.progressBar.setValue(min(99, int(math.sqrt(seconds) / 3) + 1))     # 86400秒 --> 98%
 
     def _set_crawl_metric(self, metric):
         self.crawledCntLabel.setText(str(metric.crawl_total))
