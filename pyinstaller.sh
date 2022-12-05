@@ -17,3 +17,4 @@ C:/OptSoft/Python/Python35/Scripts/pyinstaller --noconfirm --onefile --icon "$HA
 # https://stackoverflow.com/questions/48712154/pyinstaller-warning-lib-not-found
 C:/OptSoft/Python/Python35/Scripts/pyinstaller --noconfirm --onefile --windowed --icon "$HAWKSEC_HOME/resources/image/app_logo_blue.ico" --add-data "$HAWKSEC_HOME/conf/hawksec.yaml;conf/" --add-data "$HAWKSEC_HOME/resources;resources/" --add-data "$HAWKSEC_HOME/tools/unrar;tools/unrar/"  --paths "C:\Windows\System32\downlevel"  "$HAWKSEC_HOME/hawksec.py"
 
+# 如果使用NIS制作windows安装程序，必须使用`--onedir`参数而非`--onefile`
