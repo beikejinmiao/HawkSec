@@ -7,8 +7,10 @@ import datetime
 import base64
 import random
 import string
+import traceback
 from Crypto.Cipher import AES
 from conf.paths import LICENSE_PATH
+from libs.logger import logger
 
 
 def get_mac():
@@ -143,7 +145,10 @@ class LicenseHelper(object):
     def check(self):
         try:
             license_dict = self.load()
+        except FileNotFoundError:
+            return 'License文件不存在，请将有效License文件放置在于目录%s下' % os.path.dirname(LICENSE_PATH)
         except:
+            logger.error(traceback.format_exc())
             return '无效的License，请联系工作人员'
         #
         if not self._check_date(license_dict['end_date']):

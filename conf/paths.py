@@ -62,4 +62,4 @@ DOWNLOADS = os.path.join(DUMP_HOME, 'downloads')
 if not os.path.exists(DOWNLOADS):
     os.makedirs(DOWNLOADS)
 #
-LICENSE_PATH = os.path.join(USER_HOME, '.'+WORK_NAME)
+LICENSE_PATH = os.path.join(USER_HOME, '.'+WORK_NAME+'.lic')

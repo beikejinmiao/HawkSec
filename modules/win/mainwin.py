@@ -367,9 +367,9 @@ class MainWindow(UiMainWindow, QWidget):
 
     def start(self):
         lic_check_result = self.license.check()
-        # if lic_check_result != 'OK':
-        #     QWarnMessageBox(lic_check_result).exec()
-        #     return
+        if lic_check_result != 'OK':
+            QWarnMessageBox(lic_check_result).exec()
+            return
         if not self._check_inputs():
             return
         if self.protocol == 'sftp' and not self._check_ssh_accessible():

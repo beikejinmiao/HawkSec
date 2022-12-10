@@ -51,6 +51,8 @@ class HelpAboutWindow(Ui_Form, QWidget):
             user = license_dict['user']
             end_date = license_dict['end_date']
             end_date = '%s年%s月%s日' % tuple(end_date.split('-'))
+        except FileNotFoundError:
+            pass
         except:
             logger.error(traceback.format_exc())
         self.activeUserLabel.setText(user)
