@@ -14,6 +14,7 @@ from libs.client.sftp import SSHSession
 from modules.interaction.extractor import TextExtractor
 from modules.interaction.persistence import DbPersistence
 from libs.web.url import urlsite
+from utils.filedir import traverse
 from libs.logger import logger
 
 browser_protocols = ('http', 'https', 'ftp')
@@ -118,9 +119,21 @@ class TaskManager(QObject):
             os.remove(CRAWL_METRIC_PATH)
         if os.path.exists(EXTRACT_METRIC_PATH):
             os.remove(EXTRACT_METRIC_PATH)
+        # TODO 无法删除RAR压缩包解压后的文件
+        # 错误信息：
+        #   [WinError 3] 系统找不到指定的路径。   # 文件确定存在,路径无空格和特殊字符,python3.5.4下判断不存在,python3.8.10判断存在！！
+        #   [WinError 5] 拒绝访问。
         if os.path.exists(DOWNLOADS):
-            shutil.rmtree(DOWNLOADS)
-        os.makedirs(DOWNLOADS)
+            try:
+                shutil.rmtree(DOWNLOADS)
+            except:
+                for filepath in traverse(DOWNLOADS):
+                    try:
+                        os.remove(filepath)
+                    except Exception as e:
+                        logger.error(e)
+        if not os.path.exists(DOWNLOADS):
+            os.makedirs(DOWNLOADS)
         #
         sqlite = Sqlite()
         sqlite.truncate([TABLES.CrawlStat.value, TABLES.Extractor.value, TABLES.Sensitives.value])
