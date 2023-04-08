@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 from http.client import responses
 from bs4 import BeautifulSoup
 from conf.config import http_headers
-from libs.web.pywget import auto_decode
+from libs.regex import html
+from libs.web.pywget import auto_decode, detect_filename
 from libs.web.url import urlfile, normal_url
 from libs.logger import logger
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -65,8 +66,9 @@ def strip(text):
     return re.sub(r'[\r\n\t]+', '', text).strip() if text else ''
 
 
-def page_info(url):
+def __page_info(url):
     title = ''
+    # 只爬取html网页内容
     resp_info = try_crawl(url)
     try:
         if resp_info.text:
@@ -88,6 +90,23 @@ def page_info(url):
     if not resp_info.desc:
         resp_info.desc = responses.get(resp_info.status_code, '')
     return resp_info
+
+
+def page_info(url):
+    if html.match(url) or url.endswith('/'):
+        return __page_info(url)
+    #
+    head_resp = requests.head(url, timeout=2, verify=False)
+    content_type = ''
+    for header in head_resp.headers:
+        if header.lower() == 'content-type':
+            content_type = head_resp.headers[header].split(';')[0].strip()
+            break
+    if content_type.startswith('text/'):
+        return __page_info(url)
+    return RespInfo(url=url,
+                    title=detect_filename(url, None, head_resp.headers),
+                    status_code=head_resp.status_code)
 
 
 def page_title(url):
