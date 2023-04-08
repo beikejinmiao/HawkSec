@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import re
-import tldextract
+from utils.hostsplit import domextract
 
 
 ipv4 = re.compile(r"^((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)(\.((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]\d)|\d)){3}$")
@@ -47,13 +47,13 @@ def is_valid_ip(text):
 
 
 def is_valid_domain(text):
-    if domain.match(text) and "." in text[-7:] and tldextract.extract(text).suffix != "":
+    if domain.match(text) and "." in text[-7:] and domextract(text).suffix != "":
         return True
     return False
 
 
 def maybe_url(text):
-    if url.match(text) and tldextract.extract(text).suffix != "":
+    if url.match(text) and domextract(text).suffix != "":
         return True
     return False
 
@@ -68,7 +68,7 @@ def find_domains(text):
     domains = set()
     for item in domain_find_regex.findall(text):
         # in general, domain suffix length less than 6.
-        if "." in item[-7:] and tldextract.extract(item).suffix != "":
+        if "." in item[-7:] and domextract(item).suffix != "":
             domains.add(item)
     return list(domains)
 

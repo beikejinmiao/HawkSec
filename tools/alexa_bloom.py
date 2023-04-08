@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import os
-import tldextract
 from pybloom_live import BloomFilter
 from utils.filedir import reader
+from utils.hostsplit import domextract
 from conf.paths import PRIVATE_RESOURCE_HOME
 from conf.paths import ALEXA_BLOOM_FILTER_PATH
 
@@ -25,7 +25,7 @@ def check(hosts):
         bloom = BloomFilter.fromfile(fopen)
     for host in hosts:
         host = host.lower()
-        reg_domain = tldextract.extract(host).registered_domain
+        reg_domain = domextract(host).registered_domain
         if not reg_domain:
             reg_domain = host
         if reg_domain in bloom:

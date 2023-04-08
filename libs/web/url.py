@@ -2,12 +2,12 @@
 # -*- coding:utf-8 -*-
 import os
 import re
-import tldextract
 import html as htmlparser
 from urllib.parse import unquote
 from collections import namedtuple
 from urllib.parse import urlparse
 from libs.regex import html, common_dom
+from utils.hostsplit import domextract
 
 
 def normal_url(url):
@@ -25,7 +25,7 @@ def urlsite(url):
     if re.match(r'^\w+://', url):
         site = urlparse(url).netloc
     #
-    ext = tldextract.extract(url)
+    ext = domextract(url)
     if not ext.registered_domain:
         return UrlSiteResult(subdomain='', domain='', suffix='',
                              reg_domain='', hostname=site)
