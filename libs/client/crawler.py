@@ -192,8 +192,8 @@ class Spider(object):
                         self.urls[new_url] = new_url_info
                         new_urls.append(new_url_info)
             except:
-                logger.error('网页内容解析异常: %s' % url)
-                logger.error(traceback.format_exc())
+                logger.warning('网页内容解析异常: %s' % url)
+                logger.warning(traceback.format_exc())
 
     def filter(self, path):
         # 默认忽略图片、音频、视频、可执行文件

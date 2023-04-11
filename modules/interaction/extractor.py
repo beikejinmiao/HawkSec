@@ -246,9 +246,10 @@ class TextExtractor(SuicidalQThread):
             if len(result) > 0 and origin:
                 # self._sync2db()
                 self.results[origin] = result
-        except:
-            logger.error('解析敏感内容失败: %s' % origin)
-            logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.warning('解析敏感内容失败: %s' % origin)
+            logger.warning(repr(e))
+            # logger.error(traceback.format_exc())
         return result
 
     def __extract_file(self, local_path, origin=None):
@@ -300,7 +301,7 @@ class TextExtractor(SuicidalQThread):
                 except:
                     time.sleep(0.5)
             if os.path.exists(local_path):
-                logger.error('删除文件失败: %s' % local_path)
+                logger.warning('删除文件失败: %s' % local_path)
 
     def run(self):
         # self.add_thread(self._sync2db())

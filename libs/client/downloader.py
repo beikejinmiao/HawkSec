@@ -208,7 +208,10 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                     self._file_urls_archive.write(resp.url + '\n')
                     continue
                 # 非文件链接不记录URL来源网页地址
-                record = {'origin': resp.url, 'origin_name': resp.title,
+                # 插入同一张表下的数据字段个数必须保持一致
+                #   文件爬取结果也会插入CrawlStat表中,且包含`origin_from`字段
+                record = {'origin': resp.url,
+                          'origin_name': resp.title, 'origin_from': '',
                           'resp_code': resp.status_code, 'desc': resp.desc}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 self._metric.crawl_total += 1

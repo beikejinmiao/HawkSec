@@ -146,10 +146,10 @@ class LicenseHelper(object):
         try:
             license_dict = self.load()
         except FileNotFoundError:
-            return 'License文件不存在，请将有效License文件放置在于目录%s下' % os.path.dirname(LICENSE_PATH)
+            return 'License文件不存在，请将有效License文件放置于目录%s下' % os.path.dirname(LICENSE_PATH)
         except:
             logger.error(traceback.format_exc())
-            return '无效的License，请联系工作人员'
+            return '无效的License，请将有效License文件放置于目录%s下' % os.path.dirname(LICENSE_PATH)
         #
         if not self._check_date(license_dict['end_date']):
             return 'License有效期至：%s(已到期)，请联系工作人员' % license_dict['end_date']

@@ -319,6 +319,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.expendTimeLabel.setText(expend_time)
         self.expendTimeLabel2.setText(expend_time)
         self.progressBar.setValue(min(99, int(math.sqrt(seconds) / 3) + 1))     # 86400秒 --> 98%
+        # 定时保存状态,避免程序异常崩溃导致状态数据丢失
+        self._save_metric()
 
     def _set_crawl_metric(self, metric):
         self.crawledCntLabel.setText(str(metric.crawl_total))

@@ -64,9 +64,10 @@ def extract(filepath):
                 # linux不支持doc/ppt提取文本
                 elif Platform == SYSTEM.WINDOWS and re.match(r'.*\.(doc|ppt)$', filepath, re.I):
                     content = autocheck(filepath)
-    except:
-        logger.error('提取文本失败: %s' % filepath)
-        logger.error(traceback.format_exc())
+    except Exception as e:
+        logger.warning('提取文本失败: %s' % filepath)
+        logger.warning(repr(e))
+        # logger.error(traceback.format_exc())
     #
     content = '' if content is None else content.strip()
     if content:
