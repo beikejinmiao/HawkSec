@@ -156,7 +156,7 @@ class WebFileDownloader(Downloader):
             else:
                 self._metric.file_failed += 1
                 self._metric.crawl_failed += 1
-                logger.error('Download Error(%s %s): %s' % (fileinfo.status_code, fileinfo.desc, url))
+                logger.warning('Download Error(%s %s): %s' % (fileinfo.status_code, fileinfo.desc, url))
         except Exception as e:
             self._metric.file_failed += 1
             self._metric.crawl_failed += 1
@@ -166,8 +166,8 @@ class WebFileDownloader(Downloader):
             self._put_db_queue(TABLES.CrawlStat.value, record)
             # self.db_rows.append(record)
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
-            logger.error(traceback.format_exc())
-            logger.error('Download Error: %s' % url)
+            logger.warning('Download Error: %s' % url)
+            logger.warning(traceback.format_exc())
         return suffix
 
     def downloads(self):

@@ -81,8 +81,8 @@ def __page_info(url):
         # BeautifulSoup解析图片时：  TypeError: object of type 'NoneType' has no len()
         pass
     except:
-        logger.error('find title error: %s' % url)
-        logger.error(traceback.format_exc())
+        logger.warning('find title error: %s' % url)
+        logger.warning(traceback.format_exc())
     # title为空时,默认使用从url中提取文件名
     if not resp_info.title:
         resp_info.title = urlfile(url)

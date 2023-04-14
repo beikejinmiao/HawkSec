@@ -133,7 +133,7 @@ class Spider(object):
                     new_urls.append(new_url_info)
                     continue
             except Exception as e:
-                logger.error('GET %s %s' % (url, e))
+                logger.warning('GET %s %s' % (url, e))
                 url_info.status_code = -1
                 url_info.desc = type(e).__name__
                 yield url_info

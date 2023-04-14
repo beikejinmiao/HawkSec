@@ -288,7 +288,7 @@ class TextExtractor(SuicidalQThread):
             try:
                 self.load2extract(local_path, origin=remote_path)
             except Exception as e:
-                logger.error(str(e) + ': %s' % local_path)
+                logger.warning(str(e) + ': %s' % local_path)
             # 处理删除文件时的错误
             try_count = 3
             while try_count > 0:

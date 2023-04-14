@@ -52,7 +52,7 @@ def reader(path, encoding='utf-8', skip_blank=True, raisexp=False):
                 raise e
         break
     if len(failed_charsets) == len(charsets):
-        logger.error("编码错误导致读取文件失败，目前只支持GBK和UFT-8编码: '%s'" % path)
+        logger.warning("编码错误导致读取文件失败，目前只支持GBK和UFT-8编码: '%s'" % path)
     else:
         logger.info("读取文件成功成功: '%s'" % path)
 

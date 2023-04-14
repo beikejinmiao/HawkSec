@@ -73,8 +73,8 @@ class SSHSession(Downloader):
                 else:
                     files.append(f.filename)
         except:
-            logger.error('sftp walk error: %s' % remotepath)
-            logger.error(traceback.format_exc())
+            logger.warning('sftp walk error: %s' % remotepath)
+            logger.warning(traceback.format_exc())
 
         yield path, folders, files
 
@@ -108,8 +108,8 @@ class SSHSession(Downloader):
         except:
             # self._metric.crawl_total += 1
             self._metric.crawl_failed += 1
-            logger.error('sftp traverse error: %s' % self.remote_root)
-            logger.info(traceback.format_exc())
+            logger.warning('sftp traverse error: %s' % self.remote_root)
+            logger.warning(traceback.format_exc())
         logger.info('SFTP遍历目录结束')
         logger.info('SFTP Metric统计: %s' % self._metric)
         self._filepath_archive.close()
@@ -143,8 +143,8 @@ class SSHSession(Downloader):
             except Exception as e:
                 self._metric.crawl_failed += 1
                 self._metric.file_failed += 1
-                logger.error(traceback)
-                logger.error('Download Error: %s' % remote_filepath)
+                logger.warning('Download Error: %s' % remote_filepath)
+                logger.warning(traceback.format_exc())
                 record = {'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)}
                 self._put_db_queue(TABLES.CrawlStat.value, record)
                 # self.db_rows.append(record)
