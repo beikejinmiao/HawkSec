@@ -97,7 +97,7 @@ class Sqlite(object):
         # 重命名字段
         if isinstance(columns, dict):
             df = df.rename(columns=columns)
-        df.to_csv(filepath, index=False)
+        df.to_csv(filepath, chunksize=50000, index=False)
 
     def command(self, cmd):
         self.__conn.execute(cmd)

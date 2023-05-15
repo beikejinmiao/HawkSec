@@ -247,8 +247,7 @@ class TextExtractor(SuicidalQThread):
                 # self._sync2db()
                 self.results[origin] = result
         except Exception as e:
-            logger.warning('解析敏感内容失败: %s' % origin)
-            logger.warning(repr(e))
+            logger.warning('解析敏感内容失败: %s，原因: %s' % (origin, e))
             # logger.error(traceback.format_exc())
         return result
 
