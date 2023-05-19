@@ -131,7 +131,7 @@ class TaskManager(QObject):
                     try:
                         os.remove(filepath)
                     except Exception as e:
-                        logger.warning(e)
+                        logger.warning('%s - 请手动删除' % e)
         if not os.path.exists(DOWNLOADS):
             os.makedirs(DOWNLOADS)
         #

@@ -87,7 +87,7 @@ class Downloader(SuicidalQThread):
         pass
 
     def run(self):
-        self.add_thread(self._log_stats())
+        # self.add_thread(self._log_stats())
         # self.add_thread(self._sync2db())
         # self.add_thread(self._dump_metric())
         try:

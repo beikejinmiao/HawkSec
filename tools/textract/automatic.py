@@ -41,6 +41,7 @@ def plaintext(filepath, encoding='gbk'):
 
 def extract(filepath):
     content = ''
+    logger.info('开始提取文本: %s' % filepath)
     if not os.path.exists(filepath):
         return content
     try:
@@ -68,10 +69,10 @@ def extract(filepath):
         logger.warning('提取文本失败: %s' % filepath)
         logger.warning(repr(e))
         # logger.error(traceback.format_exc())
+    else:
+        logger.info('提取文本成功: %s' % filepath)
     #
     content = '' if content is None else content.strip()
-    if content:
-        logger.info('提取文本成功: %s' % filepath)
     return content
 
 

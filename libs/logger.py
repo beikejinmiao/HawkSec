@@ -92,7 +92,7 @@ class QLogTailReader(QThread):
 
 LOGGING_CONFIG = {
     "version": 1,
-    "disable_existing_loggers": "true",
+    "disable_existing_loggers": True,
     "formatters": {
         "short": {
             "format": "%(asctime)s - %(levelname)s - %(message)s"
@@ -106,13 +106,13 @@ LOGGING_CONFIG = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "short" if RuntimeEnv == "exe" else "default",
             "stream": "ext://sys.stdout"
         },
         "file": {
             "class": "logging.FileHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "short" if RuntimeEnv == "exe" else "default",
             "filename": LOG_FILEPATH,
             "mode": "w+",

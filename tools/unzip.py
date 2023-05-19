@@ -39,12 +39,13 @@ def unrar(filepath, dstdir=None):
 
 def __unpack(filepath, dstdir):
     if re.match(r'.*\.rar$', filepath, re.I):
-        unrar(filepath, dstdir=dstdir)
+        # 在解压前打印日志,避免解压过程卡死导致无法正确打印日志
         logger.info("解压: '%s'" % filepath)
+        unrar(filepath, dstdir=dstdir)
     else:
         # shutil.ReadError: xxx.zip is not a zip file
-        shutil.unpack_archive(filepath, dstdir)
         logger.info("解压: '%s'" % filepath)
+        shutil.unpack_archive(filepath, dstdir)
 
 
 def unpack(filepath, dstdir=None, depth=2):
