@@ -80,6 +80,9 @@ class TextExtractor(SuicidalQThread):
         self.__load_whitelist()
         # 限制外链数量
         self.__ext_urlpath_limit = dict()
+        # 记录最近一次文件内容提取时间,定期检查与当前时间的间隔,超过阈值直接退出
+        self.__last_extract_time = None
+        self.__HANGUP_THRESHOLD = 7200  # 秒
 
     def __get_files(self, root):
         # 递归遍历所有本地文件路径
@@ -301,10 +304,22 @@ class TextExtractor(SuicidalQThread):
                     time.sleep(0.5)
             if os.path.exists(local_path):
                 logger.warning('删除文件失败: %s' % local_path)
+            self.__last_extract_time = time.time()
+
+    @timer(60, 60)
+    def _check_hangup(self):
+        if self.__last_extract_time is None:
+            return
+        hangup_time = time.time() - self.__last_extract_time
+        if hangup_time > self.__HANGUP_THRESHOLD:
+            # 挂起时间超过阈值,发送结束信号,直接退出
+            self.finished.emit()
+            logger.info('敏感内容提取任务结束!')
 
     def run(self):
         # self.add_thread(self._sync2db())
         # self.add_thread(self._dump_metric())
+        self.add_thread(self._check_hangup())
         # 捕获内部异常,防止异常导致无法发送结束信号
         try:
             if self.path_queue is not None:
