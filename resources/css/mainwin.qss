@@ -21,7 +21,7 @@
 }
 
 
-#extUrlFrame, #idcardFrame, #keywordFrame {
+#extUrlFrame, #idcardFrame, #mobileFrame, #keywordFrame {
     background: #FFFFFF;
     border-radius: 10px;
 }

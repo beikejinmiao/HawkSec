@@ -25,6 +25,7 @@ _yaml_backup = {
         "origin_hit": 0,
         "start_time": "",
         "idcard_count": 0,
+        "mobile_count": 0,
         "keyword_find": 0,
         "exturl_count": 0
     }

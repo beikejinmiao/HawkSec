@@ -21,7 +21,7 @@ from utils.filedir import traverse
 from tools.unzip import unpack
 from tools.textract.automatic import extract as textract
 from libs.regex import find_urls, is_gov_edu
-from utils.idcard import find_idcard
+from utils.refind import find_idcard, find_mobile
 from libs.web.page import page_info, page_a_href
 from libs.web.url import normal_url, urlsite
 from modules.interaction.metric import ExtractMetric
@@ -65,11 +65,13 @@ class TextExtractor(SuicidalQThread):
         self.sensitives = {
             SENSITIVE_FLAG.URL: {'content': set(), 'find': 0},
             SENSITIVE_FLAG.IDCARD: {'content': set(), 'find': 0},
+            SENSITIVE_FLAG.MOBILE: {'content': set(), 'find': 0},
             SENSITIVE_FLAG.KEYWORD: {'content': set(), 'find': 0},
         }
         self.__funcs = {
             SENSITIVE_FLAG.URL: self.external_url,
             SENSITIVE_FLAG.IDCARD: self.idcard,
+            SENSITIVE_FLAG.MOBILE: self.mobile,
             SENSITIVE_FLAG.KEYWORD: self.keyword,
         }
         self._metric = ExtractMetric()
@@ -136,9 +138,11 @@ class TextExtractor(SuicidalQThread):
     def _update_metric(self):
         self._metric.exturl_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
         self._metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
+        self._metric.mobile_count = len(self.sensitives[SENSITIVE_FLAG.MOBILE]['content'])
         self._metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
         self._metric.exturl_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
         self._metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
+        self._metric.mobile_find = self.sensitives[SENSITIVE_FLAG.MOBILE]['find']
         self._metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
         self._metric.origin_hit = len(self.results)
 
@@ -172,6 +176,11 @@ class TextExtractor(SuicidalQThread):
     @staticmethod
     def idcard(text):
         return find_idcard(text)
+
+    @staticmethod
+    def mobile(text):
+        phones = find_mobile(text)
+        return [''.join(item) for item in phones]
 
     def keyword(self, text):
         matches = list()

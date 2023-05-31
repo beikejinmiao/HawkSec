@@ -18,3 +18,13 @@ def find_idcard(text):
     # return [x for x in idcard_pattern.findall(text) if x]
     return [x for x in idcard_pattern.findall(text) if check_idcard(x)]
 
+
+phone_pattern = re.compile(r'([\u4e00-\u9fa5 :：]{0,10}\s*)'
+                           r'\b(13\d{9}|14[57]\d{8}|15\d{9}|166\d{8}|17[367]\d{8}|18\d{9})\b'
+                           r'(\s*[\u4e00-\u9fa5]{0,10})')
+
+
+def find_mobile(text):
+    return phone_pattern.findall(text)
+
+

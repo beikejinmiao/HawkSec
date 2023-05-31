@@ -34,11 +34,13 @@ class CrawlMetric(AbstractMetric):
 
 class ExtractMetric(AbstractMetric):
     def __init__(self, exturl_find=0, exturl_count=0, idcard_find=0, idcard_count=0,
-                 keyword_find=0, keyword_count=0, origin_hit=0):
+                 mobile_find=0, mobile_count=0, keyword_find=0, keyword_count=0, origin_hit=0):
         self.exturl_find = exturl_find
         self.exturl_count = exturl_count
         self.idcard_find = idcard_find
         self.idcard_count = idcard_count
+        self.mobile_find = mobile_find
+        self.mobile_count = mobile_count
         self.keyword_find = keyword_find
         self.keyword_count = keyword_count
         self.origin_hit = origin_hit

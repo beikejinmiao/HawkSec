@@ -104,11 +104,11 @@ class MainWindow(UiMainWindow, QWidget):
         self.settingBtnLabel.setText('')
         label_images = zip([self.logoLabel, self.robotLabel, self.robotLabel2,
                             self.waitforGifLabel, self.finishIconLabel,
-                            self.extUrlIconLabel, self.idcardIconLabel, self.keywordIconLabel,
+                            self.extUrlIconLabel, self.idcardIconLabel, self.mobileIconLabel, self.keywordIconLabel,
                             self.minimizeBtnLabel, self.maximizeBtnLabel],
                            ['logo.png', 'robot.png', 'robot.png',
                             'icon/waitfor.png', 'icon/finish.png',
-                            'icon/exturl.png', 'icon/idcard.png', 'icon/keyword.png',
+                            'icon/exturl.png', 'icon/idcard.png', 'icon/mobile.png', 'icon/keyword.png',
                             'icon/minimize.png', 'icon/maximize.png'])
         for label, img in label_images:
             label.setPixmap(QPixmap('image:%s' % img))
@@ -130,12 +130,13 @@ class MainWindow(UiMainWindow, QWidget):
                        self.historyBtn, self.detailBtn, self.settingBtnLabel, self.helpBtnLabel,
                        self.minimizeBtnLabel, self.maximizeBtnLabel, self.closeBtnLabel,
                        self.crawledCntLabel, self.hitCntLabel, self.failedCntLabel,
-                       self.extUrlCntLabel, self.idcardCntLabel, self.keywordCntLabel,
+                       self.extUrlCntLabel, self.idcardCntLabel, self.mobileCntLabel, self.keywordCntLabel,
                        self.crawledCntLabel2, self.hitCntLabel2, self.failedCntLabel2,
-                       self.extUrlCntLabel2, self.idcardCntLabel2, self.keywordCntLabel2]:
+                       self.extUrlCntLabel2, self.idcardCntLabel2, self.mobileCntLabel2, self.keywordCntLabel2]:
             button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        for waiting_layout in (self.extUrlWaitingLayout, self.idcardWaitingLayout, self.keywordWaitingLayout):
+        for waiting_layout in (self.extUrlWaitingLayout, self.idcardWaitingLayout,
+                               self.mobileWaitingLayout, self.keywordWaitingLayout):
             spinner = WaitingSpinner(self, lines=16, radius=4, line_length=7, speed=1, color=(35, 88, 222))
             waiting_layout.addWidget(spinner)
             spinner.start()
@@ -157,6 +158,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.httpsRadioBtn.setChecked(True)
         self.extUrlTextEdit.setReadOnly(True)
         self.idcardTextEdit.setReadOnly(True)
+        self.mobileTextEdit.setReadOnly(True)
         self.keywordTextEdit.setReadOnly(True)
         self.httpRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
         self.httpsRadioBtn.clicked.connect(lambda: self.__toggle_sftp(visible=False))
@@ -178,6 +180,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.extUrlCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
         self.idcardCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
         self.idcardCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
+        self.mobileCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.MOBILE))
+        self.mobileCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.MOBILE))
         self.keywordCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
         self.keywordCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
         self.hitCntLabel.clicked.connect(self.show_extract_win)
@@ -221,7 +225,8 @@ class MainWindow(UiMainWindow, QWidget):
                 self.protocol = radio.text().lower()
         # 监控内容/敏感类型
         self.sensitive_flags = list()
-        for ix, check_box in enumerate([self.extUrlCheckBox, self.idcardCheckBox, self.keywordCheckBox]):
+        for ix, check_box in enumerate([self.extUrlCheckBox, self.idcardCheckBox,
+                                        self.mobileCheckBox, self.keywordCheckBox]):
             if check_box.isChecked():
                 self.sensitive_flags.append(ix)
         if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
@@ -275,12 +280,13 @@ class MainWindow(UiMainWindow, QWidget):
         return self.auth_config
 
     def _init_sensitive_layout(self):
-        for layout in (self.extUrlGridLayout, self.idcardGridLayout, self.keywordGridLayout):
+        for layout in (self.extUrlGridLayout, self.idcardGridLayout, self.mobileGridLayout, self.keywordGridLayout):
             for ix in range(layout.count()):
                 child = layout.itemAt(ix).widget()
                 child.setVisible(True)
         self.extUrlTextEdit.setText('')
         self.idcardTextEdit.setText('')
+        self.mobileTextEdit.setText('')
         self.keywordTextEdit.setText('')
         self._set_crawl_metric(CrawlMetric())
         self._set_extract_metric(ExtractMetric())
@@ -290,6 +296,7 @@ class MainWindow(UiMainWindow, QWidget):
         sensitive_layouts = {
             SENSITIVE_FLAG.URL: self.extUrlGridLayout,
             SENSITIVE_FLAG.IDCARD: self.idcardGridLayout,
+            SENSITIVE_FLAG.MOBILE: self.mobileGridLayout,
             SENSITIVE_FLAG.KEYWORD: self.keywordGridLayout,
         }
         for flag in set(list(sensitive_layouts.keys())) - set(self.sensitive_flags):
@@ -304,6 +311,8 @@ class MainWindow(UiMainWindow, QWidget):
             text_edit = self.extUrlTextEdit
         elif flag == SENSITIVE_FLAG.IDCARD:
             text_edit = self.idcardTextEdit
+        elif flag == SENSITIVE_FLAG.MOBILE:
+            text_edit = self.mobileTextEdit
         elif flag == SENSITIVE_FLAG.KEYWORD:
             text_edit = self.keywordTextEdit
         else:
@@ -320,7 +329,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.expendTimeLabel2.setText(expend_time)
         self.progressBar.setValue(min(99, int(math.sqrt(seconds) / 3) + 1))     # 86400秒 --> 98%
         # 定时保存状态,避免程序异常崩溃导致状态数据丢失
-        self._save_metric()
+        if seconds > 0 and seconds % 2 == 0:
+            self._save_metric()
 
     def _set_crawl_metric(self, metric):
         self.crawledCntLabel.setText(str(metric.crawl_total))
@@ -336,6 +346,8 @@ class MainWindow(UiMainWindow, QWidget):
         #     self.idcardCntLabel2.setText('%s/%s' % (metric.idcard_count, metric.idcard_find))
         self.idcardCntLabel.setText('%s' % metric.idcard_count)
         self.idcardCntLabel2.setText('%s' % metric.idcard_count)
+        self.mobileCntLabel.setText('%s' % metric.mobile_count)
+        self.mobileCntLabel2.setText('%s' % metric.mobile_count)
         self.keywordCntLabel.setText('%s' % metric.keyword_find)
         self.keywordCntLabel2.setText('%s' % metric.keyword_find)
         #
@@ -363,6 +375,7 @@ class MainWindow(UiMainWindow, QWidget):
         configure['metric']['crawl_failed'] = self.failedCntLabel.text()
         configure['metric']['exturl_count'] = self.extUrlCntLabel.text()
         configure['metric']['idcard_count'] = self.idcardCntLabel.text()
+        configure['metric']['mobile_count'] = self.mobileCntLabel.text()
         configure['metric']['keyword_find'] = self.keywordCntLabel.text()
         configure['metric']['origin_hit'] = self.hitCntLabel.text()
         configure.save()
