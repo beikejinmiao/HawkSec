@@ -6,7 +6,7 @@ import traceback
 import magic
 from tika import parser as tikarser
 from conf.config import Platform, TIKA_SERVER_ACTIVE
-from libs.enums import SYSTEM
+from libs.enums import System
 from libs.regex import js_css
 from tools.textract.office import autocheck
 from libs.logger import logger
@@ -63,7 +63,7 @@ def extract(filepath):
                 if re.match(r'.*\.(docx|xls[x]?|pptx|pdf)$', filepath, re.I):
                     content = autocheck(filepath)
                 # linux不支持doc/ppt提取文本
-                elif Platform == SYSTEM.WINDOWS and re.match(r'.*\.(doc|ppt)$', filepath, re.I):
+                elif Platform == System.WINDOWS and re.match(r'.*\.(doc|ppt)$', filepath, re.I):
                     content = autocheck(filepath)
     except Exception as e:
         logger.warning('提取文本失败: %s' % filepath)

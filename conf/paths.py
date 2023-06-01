@@ -5,7 +5,7 @@ import sys
 import shutil
 from pathlib import Path
 from conf.config import Platform, RuntimeEnv
-from libs.enums import SYSTEM
+from libs.enums import System
 
 # 打包好后的exe目录名和结构已发生变化,根目录名是随机生成的
 # 不能从路径中获取,需直接定义
@@ -17,9 +17,9 @@ if RuntimeEnv == 'exe':
     # PyInstaller creates a temp folder and stores path in _MEIPASS
     MAIN_HOME = sys._MEIPASS
     #
-    if Platform == SYSTEM.WINDOWS:
+    if Platform == System.WINDOWS:
         DUMP_HOME = 'C:\\HawkSec'
-    elif Platform == SYSTEM.DARWIN:
+    elif Platform == System.DARWIN:
         DUMP_HOME = os.path.join(USER_HOME, 'HawkSec')
     else:
         DUMP_HOME = os.path.join('/tmp', 'HawkSec')

@@ -10,7 +10,7 @@ from libs.timer import timer
 from libs.client.crawler import Spider, UrlFileInfo
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite
-from libs.enums import TABLES
+from libs.enums import Tables
 from libs.thread import SuicidalQThread
 from libs.web import pywget
 from conf.paths import DUMP_HOME, DOWNLOADS, CRAWL_METRIC_PATH
@@ -49,7 +49,7 @@ class Downloader(SuicidalQThread):
 
     def __load_whitelist(self):
         sqlite = Sqlite()
-        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % Tables.WhiteList.value)
         for record in records:
             self._white_url_file.add(record[0])
         sqlite.close()
@@ -145,7 +145,7 @@ class WebFileDownloader(Downloader):
             record = {'origin': url,
                       'origin_name': fileinfo.filename, 'origin_from': url_info.url_from,
                       'resp_code': fileinfo.status_code, 'desc': fileinfo.desc}
-            self._put_db_queue(TABLES.CrawlStat.value, record)
+            self._put_db_queue(Tables.CrawlStat.value, record)
             # self.db_rows.append(record)
             if fileinfo.filepath is not None:
                 suffix = path.split('.')[-1].lower()
@@ -163,7 +163,7 @@ class WebFileDownloader(Downloader):
             record = {'origin': url,
                       'origin_name': url_info.filename, 'origin_from': url_info.url_from,
                       'resp_code': -1, 'desc': type(e).__name__}
-            self._put_db_queue(TABLES.CrawlStat.value, record)
+            self._put_db_queue(Tables.CrawlStat.value, record)
             # self.db_rows.append(record)
             # UnicodeError: encoding with 'idna' codec failed (UnicodeError: label empty or too long)
             logger.warning('Download Error: %s' % url)
@@ -213,7 +213,7 @@ class WebCrawlDownloader(Spider, WebFileDownloader):
                 record = {'origin': resp.url,
                           'origin_name': resp.title, 'origin_from': '',
                           'resp_code': resp.status_code, 'desc': resp.desc}
-                self._put_db_queue(TABLES.CrawlStat.value, record)
+                self._put_db_queue(Tables.CrawlStat.value, record)
                 self._metric.crawl_total += 1
                 # 解析网页中的敏感内容
                 if resp.text and self.extractor is not None:

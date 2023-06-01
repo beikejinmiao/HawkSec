@@ -13,7 +13,7 @@ from PyQt5.QtGui import QPixmap, QPalette, QColor, QCursor
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)))
 from libs.pyaml import configure
-from libs.enums import sensitive_flag_name, SENSITIVE_FLAG
+from libs.enums import sensitive_flag_name, SensitiveFlag
 from conf.paths import PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from modules.gui.ui_main_window import Ui_MainWindow as UiMainWindow
 from modules.interaction.widget import WaitingSpinner
@@ -176,14 +176,14 @@ class MainWindow(UiMainWindow, QWidget):
         self.crawledCntLabel2.clicked.connect(lambda: self.show_progress_win(target='total'))
         self.failedCntLabel.clicked.connect(lambda: self.show_progress_win(target='failed'))
         self.failedCntLabel2.clicked.connect(lambda: self.show_progress_win(target='failed'))
-        self.extUrlCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
-        self.extUrlCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.URL))
-        self.idcardCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
-        self.idcardCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.IDCARD))
-        self.mobileCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.MOBILE))
-        self.mobileCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.MOBILE))
-        self.keywordCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
-        self.keywordCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SENSITIVE_FLAG.KEYWORD))
+        self.extUrlCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.URL))
+        self.extUrlCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.URL))
+        self.idcardCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.IDCARD))
+        self.idcardCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.IDCARD))
+        self.mobileCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.MOBILE))
+        self.mobileCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.MOBILE))
+        self.keywordCntLabel.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.KEYWORD))
+        self.keywordCntLabel2.clicked.connect(lambda: self.show_sensitive_win(target=SensitiveFlag.KEYWORD))
         self.hitCntLabel.clicked.connect(self.show_extract_win)
         self.hitCntLabel2.clicked.connect(self.show_extract_win)
         #
@@ -229,7 +229,7 @@ class MainWindow(UiMainWindow, QWidget):
                                         self.mobileCheckBox, self.keywordCheckBox]):
             if check_box.isChecked():
                 self.sensitive_flags.append(ix)
-        if SENSITIVE_FLAG.KEYWORD in self.sensitive_flags:
+        if SensitiveFlag.KEYWORD in self.sensitive_flags:
             self._keywords = [item.strip() for item in self.keywordLineEdit.text().split(',')]
         if len(self.sensitive_flags) <= 0:
             self._robot_tips(tips='请选择监控内容：外链/身份证/关键字')
@@ -294,10 +294,10 @@ class MainWindow(UiMainWindow, QWidget):
 
     def _hide_sensitive_layout(self):
         sensitive_layouts = {
-            SENSITIVE_FLAG.URL: self.extUrlGridLayout,
-            SENSITIVE_FLAG.IDCARD: self.idcardGridLayout,
-            SENSITIVE_FLAG.MOBILE: self.mobileGridLayout,
-            SENSITIVE_FLAG.KEYWORD: self.keywordGridLayout,
+            SensitiveFlag.URL: self.extUrlGridLayout,
+            SensitiveFlag.IDCARD: self.idcardGridLayout,
+            SensitiveFlag.MOBILE: self.mobileGridLayout,
+            SensitiveFlag.KEYWORD: self.keywordGridLayout,
         }
         for flag in set(list(sensitive_layouts.keys())) - set(self.sensitive_flags):
             layout = sensitive_layouts[flag]
@@ -307,13 +307,13 @@ class MainWindow(UiMainWindow, QWidget):
 
     def _log_extractor_result(self, result):
         flag = result.flag
-        if flag == SENSITIVE_FLAG.URL:
+        if flag == SensitiveFlag.URL:
             text_edit = self.extUrlTextEdit
-        elif flag == SENSITIVE_FLAG.IDCARD:
+        elif flag == SensitiveFlag.IDCARD:
             text_edit = self.idcardTextEdit
-        elif flag == SENSITIVE_FLAG.MOBILE:
+        elif flag == SensitiveFlag.MOBILE:
             text_edit = self.mobileTextEdit
-        elif flag == SENSITIVE_FLAG.KEYWORD:
+        elif flag == SensitiveFlag.KEYWORD:
             text_edit = self.keywordTextEdit
         else:
             raise ValueError('不支持敏感内容Flag: %s' % flag)
@@ -473,7 +473,7 @@ class MainWindow(UiMainWindow, QWidget):
         self.extractWindow.show()
 
     def show_sensitive_win(self, target=None):
-        if isinstance(target, SENSITIVE_FLAG):
+        if isinstance(target, SensitiveFlag):
             self.sensitiveWindow = SensitiveDataWindow(sensitive_type=target.value)
         else:
             self.sensitiveWindow = SensitiveDataWindow()

@@ -12,8 +12,8 @@ from PyQt5.QtCore import pyqtSignal
 from libs.timer import timer
 from libs.regex import archive
 from libs.pysqlite import Sqlite
-from libs.enums import TABLES
-from libs.enums import SENSITIVE_FLAG, sensitive_flag_name
+from libs.enums import Tables
+from libs.enums import SensitiveFlag, sensitive_flag_name
 from libs.thread import SuicidalQThread
 from libs.filter import Alexa
 from conf.paths import EXTRACT_METRIC_PATH
@@ -63,16 +63,16 @@ class TextExtractor(SuicidalQThread):
             'others': 0,
         }
         self.sensitives = {
-            SENSITIVE_FLAG.URL: {'content': set(), 'find': 0},
-            SENSITIVE_FLAG.IDCARD: {'content': set(), 'find': 0},
-            SENSITIVE_FLAG.MOBILE: {'content': set(), 'find': 0},
-            SENSITIVE_FLAG.KEYWORD: {'content': set(), 'find': 0},
+            SensitiveFlag.URL: {'content': set(), 'find': 0},
+            SensitiveFlag.IDCARD: {'content': set(), 'find': 0},
+            SensitiveFlag.MOBILE: {'content': set(), 'find': 0},
+            SensitiveFlag.KEYWORD: {'content': set(), 'find': 0},
         }
         self.__funcs = {
-            SENSITIVE_FLAG.URL: self.external_url,
-            SENSITIVE_FLAG.IDCARD: self.idcard,
-            SENSITIVE_FLAG.MOBILE: self.mobile,
-            SENSITIVE_FLAG.KEYWORD: self.keyword,
+            SensitiveFlag.URL: self.external_url,
+            SensitiveFlag.IDCARD: self.idcard,
+            SensitiveFlag.MOBILE: self.mobile,
+            SensitiveFlag.KEYWORD: self.keyword,
         }
         self._metric = ExtractMetric()
         #
@@ -103,10 +103,10 @@ class TextExtractor(SuicidalQThread):
 
     def __load_whitelist(self):
         sqlite = Sqlite()
-        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % Tables.WhiteList.value)
         for record in records:
             self._white_domain.add(record[0])
-        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+        records = sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % Tables.WhiteList.value)
         for record in records:
             self._white_url_file.add(record[0])
         sqlite.close()
@@ -136,14 +136,14 @@ class TextExtractor(SuicidalQThread):
     #     sqlite.close()
 
     def _update_metric(self):
-        self._metric.exturl_count = len(self.sensitives[SENSITIVE_FLAG.URL]['content'])
-        self._metric.idcard_count = len(self.sensitives[SENSITIVE_FLAG.IDCARD]['content'])
-        self._metric.mobile_count = len(self.sensitives[SENSITIVE_FLAG.MOBILE]['content'])
-        self._metric.keyword_count = len(self.sensitives[SENSITIVE_FLAG.KEYWORD]['content'])
-        self._metric.exturl_find = self.sensitives[SENSITIVE_FLAG.URL]['find']
-        self._metric.idcard_find = self.sensitives[SENSITIVE_FLAG.IDCARD]['find']
-        self._metric.mobile_find = self.sensitives[SENSITIVE_FLAG.MOBILE]['find']
-        self._metric.keyword_find = self.sensitives[SENSITIVE_FLAG.KEYWORD]['find']
+        self._metric.exturl_count = len(self.sensitives[SensitiveFlag.URL]['content'])
+        self._metric.idcard_count = len(self.sensitives[SensitiveFlag.IDCARD]['content'])
+        self._metric.mobile_count = len(self.sensitives[SensitiveFlag.MOBILE]['content'])
+        self._metric.keyword_count = len(self.sensitives[SensitiveFlag.KEYWORD]['content'])
+        self._metric.exturl_find = self.sensitives[SensitiveFlag.URL]['find']
+        self._metric.idcard_find = self.sensitives[SensitiveFlag.IDCARD]['find']
+        self._metric.mobile_find = self.sensitives[SensitiveFlag.MOBILE]['find']
+        self._metric.keyword_find = self.sensitives[SensitiveFlag.KEYWORD]['find']
         self._metric.origin_hit = len(self.results)
 
     @timer(2, 2)
@@ -202,13 +202,13 @@ class TextExtractor(SuicidalQThread):
         try:
             for flag in self.sensitive_flags:
                 # 只在网页中提取提取外链,下载的文件中默认不提取
-                if flag == SENSITIVE_FLAG.URL and local_path is not None:
+                if flag == SensitiveFlag.URL and local_path is not None:
                     continue
                 candidates = self.__funcs[flag](text)
                 if len(candidates) > 0:
                     self.sensitives[flag]['find'] += len(candidates)
                     candidates = set(candidates)  # 本次发现的敏感内容
-                    if flag == SENSITIVE_FLAG.KEYWORD:
+                    if flag == SensitiveFlag.KEYWORD:
                         candidates_new = candidates
                     else:
                         candidates_new = candidates - self.sensitives[flag]['content']      # 本次新发现的敏感内容
@@ -228,10 +228,10 @@ class TextExtractor(SuicidalQThread):
                     'sensitive_type': flag, 'sensitive_name': sensitive_name,
                     'content': ', '.join(values[0]), 'count': len(values[0]),       # 本次发现的敏感内容
                 }
-                self._put_db_queue(TABLES.Extractor.value, record)
+                self._put_db_queue(Tables.Extractor.value, record)
                 # 如果发现新外链，尝试从a标签中提取title，并尝试访问校验其返回码
                 exturl_info = dict()
-                if flag == SENSITIVE_FLAG.URL and len(values[1]) > 0:
+                if flag == SensitiveFlag.URL and len(values[1]) > 0:
                     exturl_info = page_a_href(text)
                     for url in values[1]:
                         resp = page_info(url)
@@ -250,7 +250,7 @@ class TextExtractor(SuicidalQThread):
                         'sensitive_type': flag, 'sensitive_name': sensitive_name
                     }
                     record['content_name'], record['desc'] = exturl_info.get(value, ('', ''))
-                    self._put_db_queue(TABLES.Sensitives.value, record)
+                    self._put_db_queue(Tables.Sensitives.value, record)
             #
             self._update_metric()
             self.metrics.emit(self._metric)

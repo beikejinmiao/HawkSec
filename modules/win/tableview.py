@@ -8,7 +8,7 @@ from PyQt5.QtCore import QDir, Qt, pyqtSlot
 from PyQt5.QtGui import QPixmap, QPalette, QColor, QCursor
 from PyQt5.QtWidgets import QWidget, QHeaderView, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt5.QtWidgets import QCalendarWidget, QFileDialog, QApplication, QTableView, QPushButton
-from libs.enums import TABLES, SENSITIVE_FLAG, SENSITIVE_NAME, sensitive_flag_name
+from libs.enums import Tables, SensitiveFlag, SensitiveName, sensitive_flag_name
 from conf.paths import DUMP_HOME, PRIVATE_RESOURCE_HOME, IMAGE_HOME
 from utils.filedir import StyleSheetHelper
 from modules.interaction.widget import QTimeLineEdit
@@ -261,9 +261,9 @@ class DataGridWindow(TablePageModel, Ui_Form, QWidget):
             code = self.searchCodeComboBox.currentText()
             if not (code == '' or code.upper() == 'ALL'):
                 _db_where = ''
-                if self.table == TABLES.CrawlStat.value:
+                if self.table == Tables.CrawlStat.value:
                     self.db_where = 'resp_code=%s' % code
-                elif self.table == TABLES.Extractor.value or self.table == TABLES.Sensitives.value:
+                elif self.table == Tables.Extractor.value or self.table == Tables.Sensitives.value:
                     _db_where = 'sensitive_name="%s"' % code
                     self.db_where = _db_where + ('' if not self.db_where else ' AND ' + self.db_where)
         if self.timeLineEdit.text():
@@ -327,7 +327,7 @@ class ProgressDataWindow(DataGridWindow):
             else:
                 # 没有空格，只是一个值
                 db_where += 'resp_code=%s' % resp_code
-        super().__init__(table=TABLES.CrawlStat.value,
+        super().__init__(table=Tables.CrawlStat.value,
                          columns=columns, column_modes=column_modes,
                          db_where=db_where, title=title)
 
@@ -349,13 +349,13 @@ class ExtractDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
-        super().__init__(table=TABLES.Extractor.value,
+        super().__init__(table=Tables.Extractor.value,
                          columns=columns, column_modes=column_modes,
                          db_where=None, title=title)
 
     def modify_ui(self):
         self.searchCodeLabel.setText('敏感类型')
-        names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+        names = [SensitiveName.URL.value, SensitiveName.IDCARD.value, SensitiveName.KEYWORD.value]
         for i, name in enumerate(names):
             self.searchCodeComboBox.insertItem(i + 1, name)
 
@@ -376,20 +376,20 @@ class SensitiveDataWindow(DataGridWindow):
             title = sensitive_flag_name[sensitive_type].value
         title += '列表'
         # 外链表格添加标题描述，其他移除描述
-        if sensitive_type != SENSITIVE_FLAG.URL:
+        if sensitive_type != SensitiveFlag.URL:
             del columns['content_name']
             del columns['desc']
             column_modes.pop(3)
             column_modes.pop(3)
         #
-        super().__init__(table=TABLES.Sensitives.value,
+        super().__init__(table=Tables.Sensitives.value,
                          columns=columns, column_modes=column_modes,
                          db_where=db_where, title=title)
 
     def modify_ui(self):
         if not self.db_where:
             self.searchCodeLabel.setText('敏感类型')
-            names = [SENSITIVE_NAME.URL.value, SENSITIVE_NAME.IDCARD.value, SENSITIVE_NAME.KEYWORD.value]
+            names = [SensitiveName.URL.value, SensitiveName.IDCARD.value, SensitiveName.KEYWORD.value]
             for i, name in enumerate(names):
                 self.searchCodeComboBox.insertItem(i + 1, name)
         else:
@@ -406,7 +406,7 @@ class WhiteListDataWindow(DataGridWindow):
         column_modes = [QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.Stretch,
                         QHeaderView.ResizeMode.ResizeToContents, QHeaderView.ResizeMode.ResizeToContents]
         db_where = 'white_type="%s"' % white_type
-        super().__init__(table=TABLES.WhiteList.value, columns=columns, db_where=db_where, column_modes=column_modes)
+        super().__init__(table=Tables.WhiteList.value, columns=columns, db_where=db_where, column_modes=column_modes)
 
     def modify_ui(self):
         self.searchCodeLabel.hide()

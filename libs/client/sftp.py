@@ -10,7 +10,7 @@ from conf.paths import DUMP_HOME, DOWNLOADS
 from libs.regex import img, video, executable
 from libs.client.downloader import Downloader
 from libs.pyaml import configure
-from libs.enums import TABLES
+from libs.enums import Tables
 from libs.logger import logger
 import warnings
 # from cryptography.utils import CryptographyDeprecationWarning         # ImportError
@@ -138,7 +138,7 @@ class SSHSession(Downloader):
                 # 将下载文件的本地路径和远程文件放入队列中
                 self._put_path_queue((local_filepath, remote_filepath))
                 record = {'origin': remote_filepath, 'resp_code': 0, 'desc': 'Success'}
-                self._put_db_queue(TABLES.CrawlStat.value, record)
+                self._put_db_queue(Tables.CrawlStat.value, record)
                 # self.db_rows.append(record)
             except Exception as e:
                 self._metric.crawl_failed += 1
@@ -146,7 +146,7 @@ class SSHSession(Downloader):
                 logger.warning('Download Error: %s' % remote_filepath)
                 logger.warning(traceback.format_exc())
                 record = {'origin': remote_filepath, 'resp_code': -1, 'desc': str(e)}
-                self._put_db_queue(TABLES.CrawlStat.value, record)
+                self._put_db_queue(Tables.CrawlStat.value, record)
                 # self.db_rows.append(record)
             self.metrics.emit(self._metric)
         # 统计文件类型数量

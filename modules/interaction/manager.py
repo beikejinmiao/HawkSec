@@ -7,7 +7,7 @@ import shutil
 from queue import Queue
 from PyQt5.QtCore import QTimer, QObject, pyqtSignal
 from conf.paths import CRAWL_METRIC_PATH, EXTRACT_METRIC_PATH, DOWNLOADS
-from libs.enums import SENSITIVE_FLAG, TABLES
+from libs.enums import SensitiveFlag, Tables
 from libs.pysqlite import Sqlite
 from libs.client.downloader import WebCrawlDownloader
 from libs.client.sftp import SSHSession
@@ -136,13 +136,13 @@ class TaskManager(QObject):
             os.makedirs(DOWNLOADS)
         #
         sqlite = Sqlite()
-        sqlite.truncate([TABLES.CrawlStat.value, TABLES.Extractor.value, TABLES.Sensitives.value])
+        sqlite.truncate([Tables.CrawlStat.value, Tables.Extractor.value, Tables.Sensitives.value])
         sqlite.close()
         logger.info('成功清除历史数据')
 
 
 if __name__ == '__main__':
-    manager = TaskManager('https://www.ncut.edu.cn/', flags=[SENSITIVE_FLAG.URL, SENSITIVE_FLAG.IDCARD])
+    manager = TaskManager('https://www.ncut.edu.cn/', flags=[SensitiveFlag.URL, SensitiveFlag.IDCARD])
     # manager = TaskManager('106.13.202.41', protocol='sftp',
     #                       flags=[SensitiveType.URL, SensitiveType.IDCARD],
     #                       auth_config={'port': 61001, 'username': 'root', 'password': ''})

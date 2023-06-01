@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import time
-from libs.enums import SENSITIVE_FLAG
+from libs.enums import SensitiveFlag
 from modules.interaction.manager import TaskManager
 
 # target = 'https://eco.btbu.edu.cn/tzgg/86177.htm'
 target = 'https://www.btbu.edu.cn/'
-sensitive_flags = [SENSITIVE_FLAG.URL, ]
+sensitive_flags = [SensitiveFlag.URL, ]
 
 
 if __name__ == '__main__':

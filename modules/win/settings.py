@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsDropShadowEffect, QFileDialog
 from modules.gui.ui_settings import Ui_Form
 from modules.win.tableview import WhiteListDataWindow
 from modules.win.msgbox import QInfoMessageBox, QWarnMessageBox
-from libs.enums import TABLES
+from libs.enums import Tables
 from libs.pyaml import configure
 from libs.pysqlite import Sqlite
 from libs.regex import is_valid_domain
@@ -121,13 +121,13 @@ class SettingsWindow(Ui_Form, QWidget):
     def __load_existed(self):
         if self._existed_domain is None:
             self._existed_domain = set()
-            records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % TABLES.WhiteList.value)
+            records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="domain"' % Tables.WhiteList.value)
             for record in records:
                 self._existed_domain.add(record[0])
         #
         if self._existed_file is None:
             self._existed_file = set()
-            records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % TABLES.WhiteList.value)
+            records = self.sqlite.select('SELECT ioc FROM %s WHERE white_type="file"' % Tables.WhiteList.value)
             for record in records:
                 self._existed_file.add(record[0])
 
@@ -164,7 +164,7 @@ class SettingsWindow(Ui_Form, QWidget):
                         {'white_type': 'file', 'ioc': file, 'desc': '自定义'} for file in new_white_file
                     ])
             if len(white_insert) > 0:
-                self.sqlite.insert_many(TABLES.WhiteList.value, white_insert)
+                self.sqlite.insert_many(Tables.WhiteList.value, white_insert)
             QInfoMessageBox("保存成功").exec()
             self.close()
         except Exception as e:
