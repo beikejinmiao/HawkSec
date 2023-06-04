@@ -179,8 +179,7 @@ class TextExtractor(SuicidalQThread):
 
     @staticmethod
     def mobile(text):
-        phones = find_mobile(text)
-        return [''.join(item) for item in phones]
+        return find_mobile(text)
 
     def keyword(self, text):
         matches = list()
