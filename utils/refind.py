@@ -41,7 +41,7 @@ def find_mobile(text):
             #   中文字符的Unicode范围： [\u4e00-\u9fa5]
             #   全角ASCII、全角中英文标点、半宽片假名、半宽平假名、半宽韩文字母范围：[\uff00-\uffef]
             # item = re.sub(r'[^\x00-\x7E\u2e80-\ufe4f\uff00-\uffef]+', '', item)
-            item = re.sub(r'[^\x00-\x7E\u4e00-\u9fa5\uff00-\uffef]+', '', item)     # 移除非ASCII、非中文、非全角符号
+            item = re.sub(r'[^\x00-\x7E\u4e00-\u9fa5\uff00-\uffef]+', ' ', item)    # 移除非ASCII、非中文、非全角符号
             item = re.sub(r'[\x00-\x20]+', ' ', item)                               # 将ASCII控制字符替换为空格
             item = re.sub(r'^[\s:;,).：；，）。]+', '', item)                         # 替换行首无关字符
             if item.endswith(';') or item.endswith('；'):
