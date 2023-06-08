@@ -38,11 +38,12 @@ class Config(object):
     def __init__(self, filename):
         self.filename = filename
         self.cfg = dict()
-        with open(filename, encoding='utf-8') as f:
-            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
         try:
+            with open(filename, encoding='utf-8') as f:
+                self.cfg = yaml.load(f, Loader=yaml.FullLoader)
             # 历史yaml文件没有属性`mobile_count`,为保证兼容性需手动赋值
-            self.cfg['metric']['mobile_count'] = 0
+            if 'mobile_count' not in self.cfg['metric']:
+                self.cfg['metric']['mobile_count'] = 0
         except:
             logger.warning('配置文件%s疑似损坏,恢复默认配置' % CONF_PATH)
             self.cfg = _yaml_backup
