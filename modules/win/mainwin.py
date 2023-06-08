@@ -320,7 +320,7 @@ class MainWindow(UiMainWindow, QWidget):
         text_edit.append('来源：{origin}\t{name}：{content}'.format(
             origin=result.origin, name=sensitive_flag_name[flag].value, content=result.content))
 
-    def _set_expend_time(self, seconds):
+    def _set_expend_time(self, seconds, save_metric=True):
         seconds = round(seconds)
         # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
         # expend_time = '{:0>8}'.format(str(datetime.timedelta(seconds=seconds)))
@@ -328,8 +328,8 @@ class MainWindow(UiMainWindow, QWidget):
         self.expendTimeLabel.setText(expend_time)
         self.expendTimeLabel2.setText(expend_time)
         self.progressBar.setValue(min(99, int(math.sqrt(seconds) / 3) + 1))     # 86400秒 --> 98%
-        # 定时保存状态,避免程序异常崩溃导致状态数据丢失
-        if seconds > 0 and seconds % 2 == 0:
+        # 默认定时保存状态,避免程序异常崩溃导致状态数据丢失
+        if save_metric and seconds > 0 and seconds % 2 == 0:
             self._save_metric()
 
     def _set_crawl_metric(self, metric):
@@ -365,7 +365,8 @@ class MainWindow(UiMainWindow, QWidget):
             bases = [1, 60, 3600, 86400]
             for i, item in enumerate(reversed(items)):
                 seconds += int(item) * bases[i]
-            self._set_expend_time(seconds)
+            # 从配置文件中读取指标后不需重新保存
+            self._set_expend_time(seconds, save_metric=False)
         self._set_crawl_metric(metric)
         self._set_extract_metric(metric)
 
